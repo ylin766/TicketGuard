@@ -130,13 +130,24 @@ Price comparison accounts for match importance — Group Stage, Knockout, and Fi
 
 ## Tech Stack
 
+![Google ADK](https://img.shields.io/badge/Google_ADK-4285F4?style=for-the-badge&logo=google&logoColor=white)
+![Gemini](https://img.shields.io/badge/Gemini_2.5-8E75B2?style=for-the-badge&logo=google&logoColor=white)
+![Fivetran](https://img.shields.io/badge/Fivetran_MCP-00A1E0?style=for-the-badge&logo=fivetran&logoColor=white)
+![BigQuery](https://img.shields.io/badge/BigQuery-4285F4?style=for-the-badge&logo=googlebigquery&logoColor=white)
+![Python](https://img.shields.io/badge/Python_3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Selenium](https://img.shields.io/badge/Selenium-43B02A?style=for-the-badge&logo=selenium&logoColor=white)
+![SeatGeek](https://img.shields.io/badge/SeatGeek_API-FA5252?style=for-the-badge&logoColor=white)
+
 | Layer | Technology | Role |
 |---|---|---|
-| **Agent Framework** | Google Cloud Agent Builder | Orchestrates 6-step workflow and tool call sequence |
-| **Core Model** | Gemini (multimodal) | Screenshot analysis, visual fraud detection, sightline report generation |
-| **Partner MCP** | **Fivetran MCP Server** | Triggers 3 data pipelines on demand, syncs to BigQuery |
-| **Browser Control** | Browser-Use (Python) | Sandbox access to ticket pages + A View From My Seat |
-| **Data Warehouse** | BigQuery | Stores market listings, regulation reference, phishing domain intelligence |
+| **Agent Framework** | [Google ADK](https://adk.dev/) | Orchestrates 6-step workflow and tool call sequence |
+| **Core Model** | Gemini 2.5 Flash (multimodal) | Screenshot analysis, visual fraud detection, sightline report generation |
+| **Partner MCP** | [Fivetran MCP Server](https://github.com/fivetran/fivetran-mcp) | Triggers 3 data pipelines on demand, syncs to BigQuery |
+| **Data Pipelines** | Fivetran Connector SDK | Custom connectors for SeatGeek API and PhishHunt feed |
+| **Browser Control** | Selenium + ADK Computer Use | Sandbox access to ticket pages + A View From My Seat |
+| **Data Warehouse** | Google BigQuery | Stores market listings, regulation reference, phishing domain intelligence |
+| **Match Data** | [wc26-mcp](https://github.com/jordanlyall/wc26-mcp) | FIFA 2026 match schedule, venues, and team data via MCP |
+| **Market Prices** | [SeatGeek API](https://seatgeek.github.io/) | Real-time secondary market ticket listings |
 | **Tool 1** | DomainCheck Tool | Domain similarity + WHOIS + SSL detection |
 | **Tool 2** | RegulationLookup Tool | Queries anti-scalping law resale caps by venue location |
 
