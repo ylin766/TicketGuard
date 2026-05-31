@@ -2,7 +2,7 @@
 
 > **Your real-time gatekeeper before you click "Buy"** — a multi-step AI Agent that audits any ticket listing URL for fraud, obstructed views, price manipulation, and legal violations before you spend thousands on a FIFA 2026 World Cup ticket.
 
-📖 [查看中文文档 (Chinese Documentation)](./Plan.md)
+📖 [查看中文文档 (Chinese Documentation)](./README.zh.md)
 
 ---
 
