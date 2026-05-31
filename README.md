@@ -131,7 +131,7 @@ Price comparison accounts for match importance — Group Stage, Knockout, and Fi
 ## Tech Stack
 
 ![Google ADK](https://img.shields.io/badge/Google_ADK-4285F4?style=for-the-badge&logo=google&logoColor=white)
-![Gemini](https://img.shields.io/badge/Gemini_2.5-8E75B2?style=for-the-badge&logo=google&logoColor=white)
+![Gemini](https://img.shields.io/badge/Gemini_3-8E75B2?style=for-the-badge&logo=google&logoColor=white)
 ![Fivetran](https://img.shields.io/badge/Fivetran_MCP-00A1E0?style=for-the-badge&logo=fivetran&logoColor=white)
 ![BigQuery](https://img.shields.io/badge/BigQuery-4285F4?style=for-the-badge&logo=googlebigquery&logoColor=white)
 ![Python](https://img.shields.io/badge/Python_3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)
@@ -141,7 +141,7 @@ Price comparison accounts for match importance — Group Stage, Knockout, and Fi
 | Layer | Technology | Role |
 |---|---|---|
 | **Agent Framework** | [Google ADK](https://adk.dev/) | Orchestrates 6-step workflow and tool call sequence |
-| **Core Model** | Gemini 2.5 Flash (multimodal) | Screenshot analysis, visual fraud detection, sightline report generation |
+| **Core Model** | Gemini 3 (multimodal) | Screenshot analysis, visual fraud detection, sightline report generation |
 | **Partner MCP** | [Fivetran MCP Server](https://github.com/fivetran/fivetran-mcp) | Triggers 3 data pipelines on demand, syncs to BigQuery |
 | **Data Pipelines** | Fivetran Connector SDK | Custom connectors for SeatGeek API and PhishHunt feed |
 | **Browser Control** | Selenium + ADK Computer Use | Sandbox access to ticket pages + A View From My Seat |
