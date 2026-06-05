@@ -54,7 +54,7 @@ class SecurityOrchestrator(BaseAgent):
         # 1. Deterministic pipeline (runs off-thread to avoid blocking the loop).
         pipeline_result = await asyncio.to_thread(run_pipeline, url)
         ctx.session.state[SECURITY_RESULT] = pipeline_result
-        logger.info("[%s] pipeline score: %s", self.name, pipeline_result.get("score"))
+        logger.info("[%s] pipeline flagged: %s", self.name, pipeline_result.get("flagged"))
 
         # 2. TODO: grey-zone escalation to content_audit_agent goes here.
         return
