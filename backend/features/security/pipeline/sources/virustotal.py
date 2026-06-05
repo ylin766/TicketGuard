@@ -72,13 +72,14 @@ def query(url: str) -> dict | None:
 
     malicious = stats.get("malicious", 0)
     suspicious = stats.get("suspicious", 0)
+    harmless = stats.get("harmless", 0)
     total = sum(stats.values())
     return {
         "name": NAME,
-        # Graded source: a reputation score from many engine votes, not a yes/no.
-        "kind": "reputation_score",
+        "threat": malicious > 0 or suspicious > 0,
         "malicious": malicious,
         "suspicious": suspicious,
+        "harmless": harmless,
         "total": total,
         "detail": f"{malicious} malicious / {suspicious} suspicious of {total} engines.",
     }

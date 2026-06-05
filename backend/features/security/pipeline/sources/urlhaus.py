@@ -33,17 +33,16 @@ def query(url: str) -> dict | None:
     status = payload.get("query_status")
 
     if status == "ok":
-        threat = payload.get("threat", "listed")
+        threat_type = payload.get("threat", "listed")
+        url_status = payload.get("url_status", "unknown")
         return {
             "name": NAME,
-            # Authoritative blacklist: a binary listed/not-listed verdict.
-            "kind": "blacklist_verdict",
-            "listed": True,
-            "threats": [threat],
-            "detail": f"Listed in URLhaus ({threat}).",
+            "threat": True,
+            "threat_type": threat_type,
+            "url_status": url_status,
+            "tags": payload.get("tags") or [],
+            "detail": f"Listed in URLhaus ({threat_type}, {url_status}).",
         }
     if status == "no_results":
-        return {"name": NAME, "kind": "blacklist_verdict", "listed": False,
-                "threats": [], "detail": "Not listed in URLhaus."}
-    return {"name": NAME, "kind": "blacklist_verdict", "listed": False,
-            "threats": [], "detail": f"URLhaus status: {status}."}
+        return {"name": NAME, "threat": False, "detail": "Not listed in URLhaus."}
+    return {"name": NAME, "threat": False, "detail": f"URLhaus status: {status}."}

@@ -45,12 +45,10 @@ def query(url: str) -> dict | None:
     )
     resp.raise_for_status()
     matches = resp.json().get("matches", [])
-    threats = sorted({m["threatType"] for m in matches})
+    threat_types = sorted({m["threatType"] for m in matches})
     return {
         "name": NAME,
-        # Authoritative blacklist: a binary listed/not-listed verdict.
-        "kind": "blacklist_verdict",
-        "listed": bool(matches),
-        "threats": threats,
-        "detail": "Listed: " + ", ".join(threats) if threats else "No Safe Browsing match.",
+        "threat": bool(matches),
+        "threat_types": threat_types,
+        "detail": "Listed: " + ", ".join(threat_types) if threat_types else "No Safe Browsing match.",
     }
