@@ -47,6 +47,16 @@ are optional — leave a key unset and that source is simply skipped.
 3. Copy the full key into `URLHAUS_AUTH_KEY`.
    - A `403 unknown_auth_key` means the key is wrong — copy it again, in full.
 
+#### 5. `CHECKPHISH_API_KEY` — Bolster AI phishing/scam classifier (optional)
+1. Register at https://checkphish.bolster.ai and sign in.
+2. Open **Settings → API** and copy your API key.
+3. Copy the key into `CHECKPHISH_API_KEY`.
+
+#### 6. `METADEFENDER_API_KEY` — OPSWAT multi-engine URL reputation (optional)
+1. Sign up at https://www.opswat.com (MetaDefender Cloud) and sign in.
+2. Open your profile → **API Key** (or the developer dashboard).
+3. Copy the key into `METADEFENDER_API_KEY`.
+
 ### Run
 ```bash
 cd backend
