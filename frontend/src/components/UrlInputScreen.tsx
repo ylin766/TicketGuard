@@ -1,0 +1,151 @@
+import { useState, type FormEvent } from "react";
+import { motion } from "framer-motion";
+import "./UrlInputScreen.css";
+
+interface UrlInputScreenProps {
+  /** Called with the submitted URL when the user starts an audit. */
+  onAudit: (url: string) => void;
+  /** Whether an audit is currently running. */
+  loading: boolean;
+  /** Optional error message from a previous attempt. */
+  error?: string | null;
+}
+
+/** Naive URL/host validation good enough for a paste-and-go field. */
+function looksLikeUrl(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  // Accept bare hosts ("stubhub.com/...") as well as full URLs.
+  return /^(https?:\/\/)?[\w-]+(\.[\w-]+)+/.test(trimmed);
+}
+
+export function UrlInputScreen({ onAudit, loading, error }: UrlInputScreenProps) {
+  const [url, setUrl] = useState("");
+  const [touched, setTouched] = useState(false);
+
+  const valid = looksLikeUrl(url);
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    setTouched(true);
+    if (!valid || loading) return;
+    onAudit(url.trim());
+  };
+
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        setUrl(text.trim());
+        setTouched(false);
+      }
+    } catch {
+      // Clipboard blocked (no permission / insecure context) — silently ignore.
+    }
+  };
+
+  return (
+    <motion.div
+      className="input-screen"
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -24 }}
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <div className="brand-logo clay">
+        <img
+          className="brand-logo-img"
+          src={`${import.meta.env.BASE_URL}logo.png`}
+          alt="TicketGuard"
+          width={240}
+          height={240}
+        />
+      </div>
+
+      <h1 className="input-title sr-only">TicketGuard</h1>
+
+      <form className="input-card clay" onSubmit={handleSubmit} noValidate>
+        <div className={`neu-inset input-field${url ? " is-filled" : ""}`}>
+          <span className="input-icon" aria-hidden="true">
+            🔗
+          </span>
+          <input
+            id="ticket-url"
+            type="text"
+            inputMode="url"
+            autoComplete="off"
+            spellCheck={false}
+            placeholder="Paste the listing link here"
+            value={url}
+            disabled={loading}
+            onChange={(e) => setUrl(e.target.value)}
+            onBlur={() => setTouched(true)}
+          />
+          {url ? (
+            <button
+              type="button"
+              className="field-action"
+              onClick={() => setUrl("")}
+              disabled={loading}
+              aria-label="Clear input"
+            >
+              ✕
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="field-action"
+              onClick={handlePaste}
+              disabled={loading}
+            >
+              Paste
+            </button>
+          )}
+        </div>
+
+        {touched && !valid ? (
+          <p className="field-hint danger">That doesn’t look like a valid link.</p>
+        ) : error ? (
+          <p className="field-hint danger">{error}</p>
+        ) : null}
+
+        <button
+          type="submit"
+          className="audit-button neu-raised"
+          disabled={loading || (touched && !valid)}
+        >
+          {loading ? (
+            <span className="btn-loading">
+              <span className="spinner" aria-hidden="true" />
+              Auditing…
+            </span>
+          ) : (
+            <>Audit this listing</>
+          )}
+        </button>
+
+        <div className="example-row">
+          <span className="example-label">No link?</span>
+          <button
+            type="button"
+            className="example-chip"
+            disabled={loading}
+            onClick={() => {
+              setUrl("stubhub.com/listing/98234");
+              setTouched(false);
+            }}
+          >
+            Try a sample
+          </button>
+        </div>
+      </form>
+
+      <ul className="trust-row">
+        <li className="glass trust-chip">🌐 Site credibility</li>
+        <li className="glass trust-chip">👁️ Sightline</li>
+        <li className="glass trust-chip">💰 Fair price</li>
+        <li className="glass trust-chip">⚖️ Legal cap</li>
+      </ul>
+    </motion.div>
+  );
+}

@@ -1,0 +1,160 @@
+/* ===================================================================
+   TicketGuard — clay + glassmorphism + neumorphism design system
+   =================================================================== */
+
+:root {
+  /* Brand palette — football pitch greens + warm cream clay */
+  --bg-1: #d8f3c8;
+  --bg-2: #a7e090;
+  --bg-3: #4ca85a;
+
+  /* Warm pistachio-cream clay (not pure white → less clash with grass) */
+  --clay-base: #eef4e3;
+  --clay-top: #f7faf0;
+  --clay-bottom: #e3ecd5;
+
+  /* Claymorphism shadow ingredients */
+  --clay-hi: rgba(255, 255, 255, 0.95); /* inner top-left highlight */
+  --clay-lo: rgba(150, 178, 138, 0.55); /* inner bottom-right shade */
+  --clay-cast: rgba(22, 58, 34, 0.3); /* outer cast — green-tinted */
+
+  --ink: #233027;
+  --ink-soft: #4f5e52;
+  --ink-faint: #8a988c;
+
+  --accent: #2e9e54;
+  --accent-soft: #6fc683;
+
+  /* Verdict colors */
+  --safe: #2bb673;
+  --safe-soft: #8be9c0;
+  --caution: #e8a13a;
+  --caution-soft: #ffd79a;
+  --danger: #e5484d;
+  --danger-soft: #ffb0b3;
+
+  --radius-lg: 34px;
+  --radius-md: 24px;
+  --radius-sm: 18px;
+
+  /* One rounded family everywhere for a unified clay look; weight sets hierarchy */
+  --font-body: "Fredoka", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-display: "Fredoka", "Segoe UI", system-ui, sans-serif;
+
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.7);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--ink);
+  /* Solid pitch green behind the 3D turf (no sky). */
+  background: #379247;
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Grass photo + soft green vignette so clay cards sit naturally on it. */
+.pitch-bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(
+      ellipse at 50% 42%,
+      rgba(15, 42, 24, 0) 38%,
+      rgba(12, 34, 20, 0.42) 100%
+    ),
+    url("/grass-texture.png");
+  background-size: cover, cover;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
+}
+
+.app-shell {
+  position: relative;
+  z-index: 1;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+}
+
+/* ---------- Reusable clay surfaces (claymorphism) ---------- */
+
+/* Puffy clay card — green-tinted cast shadow + inner highlight/shade. */
+.clay {
+  background: linear-gradient(150deg, var(--clay-top), var(--clay-bottom));
+  border-radius: var(--radius-lg);
+  border: none;
+  box-shadow: 0 22px 46px -10px var(--clay-cast),
+    inset 6px 6px 14px var(--clay-hi), inset -7px -9px 16px var(--clay-lo);
+}
+
+/* Lighter clay pill — used for chips / banners. */
+.glass {
+  background: linear-gradient(150deg, var(--clay-top), var(--clay-bottom));
+  border: none;
+  border-radius: var(--radius-md);
+  box-shadow: 0 12px 26px -8px var(--clay-cast),
+    inset 3px 3px 8px var(--clay-hi), inset -4px -5px 10px var(--clay-lo);
+}
+
+/* Pressed-in clay field — concave, no outer cast. */
+.neu-inset {
+  background: #e7efda;
+  border-radius: var(--radius-sm);
+  border: none;
+  box-shadow: inset 5px 5px 11px var(--clay-lo),
+    inset -5px -5px 11px var(--clay-hi);
+}
+
+/* Raised clay button — convex, lifts on hover, presses on click. */
+.neu-raised {
+  background: linear-gradient(150deg, var(--clay-top), var(--clay-bottom));
+  border: none;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 14px 28px -10px var(--clay-cast),
+    inset 4px 4px 9px var(--clay-hi), inset -5px -6px 11px var(--clay-lo);
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.neu-raised:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 36px -10px var(--clay-cast),
+    inset 4px 4px 9px var(--clay-hi), inset -5px -6px 11px var(--clay-lo);
+}
+
+.neu-raised:active {
+  transform: translateY(0);
+  box-shadow: inset 5px 5px 12px var(--clay-lo),
+    inset -5px -5px 12px var(--clay-hi);
+}
+
+/* ---------- Typography helpers ---------- */
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink-faint);
+}
+
+.muted {
+  color: var(--ink-soft);
+}

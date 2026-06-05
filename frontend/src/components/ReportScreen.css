@@ -1,0 +1,293 @@
+.report-screen {
+  width: 100%;
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ---------- Top bar ---------- */
+.report-topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.back-button span {
+  font-size: 18px;
+}
+
+/* ---------- Hero ---------- */
+.report-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 26px;
+  padding: 28px 30px;
+  flex-wrap: wrap;
+}
+
+.report-hero-main {
+  flex: 1;
+  min-width: 260px;
+}
+
+.report-url {
+  margin: 6px 0 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  word-break: break-all;
+}
+
+.report-match {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.report-venue {
+  margin-top: 4px;
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.report-prices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.price-pill {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 18px;
+  min-width: 110px;
+}
+
+.price-pill strong {
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.text-danger {
+  color: var(--danger);
+}
+
+.text-safe {
+  color: var(--safe);
+}
+
+.report-hero-gauge {
+  display: grid;
+  place-items: center;
+}
+
+/* ---------- Recommendation banner ---------- */
+.recommendation {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  border-radius: var(--radius-md);
+}
+
+.recommendation-emoji {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.recommendation-text {
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.verdict-safe {
+  background: linear-gradient(150deg, #f1faf2, #dff1e4);
+  box-shadow: 0 14px 28px -10px rgba(20, 90, 55, 0.34),
+    inset 4px 4px 9px rgba(255, 255, 255, 0.9),
+    inset -5px -6px 11px rgba(120, 180, 140, 0.5);
+  border-left: 5px solid var(--safe);
+}
+
+.verdict-caution {
+  background: linear-gradient(150deg, #fdf6e8, #f6e8cc);
+  box-shadow: 0 14px 28px -10px rgba(150, 100, 20, 0.32),
+    inset 4px 4px 9px rgba(255, 255, 255, 0.9),
+    inset -5px -6px 11px rgba(200, 165, 110, 0.5);
+  border-left: 5px solid var(--caution);
+}
+
+.verdict-danger {
+  background: linear-gradient(150deg, #fdeeee, #f7d8da);
+  box-shadow: 0 14px 28px -10px rgba(150, 30, 35, 0.3),
+    inset 4px 4px 9px rgba(255, 255, 255, 0.9),
+    inset -5px -6px 11px rgba(210, 150, 152, 0.5);
+  border-left: 5px solid var(--danger);
+}
+
+/* ---------- Score grid ---------- */
+.score-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.score-card {
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.score-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.score-card-icon {
+  font-size: 24px;
+}
+
+.score-card-titles {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.score-card-title {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.score-card-weight {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink-faint);
+}
+
+.score-card-value {
+  font-size: 26px;
+  font-weight: 900;
+}
+
+.score-bar-track {
+  height: 12px;
+  border-radius: 999px;
+  background: #e2ead4;
+  box-shadow: inset 2px 2px 5px rgba(150, 178, 138, 0.6),
+    inset -2px -2px 5px rgba(255, 255, 255, 0.85);
+  overflow: hidden;
+}
+
+.score-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 1s ease;
+}
+
+.score-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.score-flag {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: inset 1px 1px 3px rgba(150, 178, 138, 0.4),
+    inset -1px -1px 3px rgba(255, 255, 255, 0.9);
+}
+
+.score-detail {
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+/* ---------- Gauge ---------- */
+.risk-gauge {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+}
+
+.risk-gauge svg {
+  display: block;
+}
+
+.risk-gauge-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.risk-gauge-score {
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.risk-gauge-max {
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.risk-gauge-label {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ---------- Footer ---------- */
+.report-footer-back {
+  margin-top: 4px;
+  align-self: center;
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+@media (max-width: 620px) {
+  .score-grid {
+    grid-template-columns: 1fr;
+  }
+  .report-hero {
+    justify-content: center;
+    text-align: center;
+  }
+  .report-prices {
+    justify-content: center;
+  }
+}
