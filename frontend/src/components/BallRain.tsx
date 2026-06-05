@@ -1,11 +1,12 @@
-import { Suspense, useEffect, useMemo, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import {
   Physics,
   RigidBody,
   BallCollider,
   CuboidCollider,
+  type RapierRigidBody,
 } from "@react-three/rapier";
 import * as THREE from "three";
 
@@ -25,14 +26,20 @@ import * as THREE from "three";
 
 const MODEL_URL = `${import.meta.env.BASE_URL}models/soccer-ball.glb`;
 const BALL_COUNT = 20;
-const BALL_RADIUS = 42; // px
+const BALL_RADIUS = 42; // px — identical for every ball (no size variation)
 const WALL_THICKNESS = 40;
-const COLLIDER_DEPTH = 60; // z half-extent so locked-z balls can't slip past
+const Z_RANGE = 90; // balls roam within ±Z_RANGE on the depth axis
+const COLLIDER_DEPTH = 180; // z half-extent; ≥ Z_RANGE so balls always rest on UI
 
 useGLTF.preload(MODEL_URL);
 
-/** Selectors of UI elements that balls should rest on (not pass through). */
+/** UI blocks that balls should bounce off — input screen only. The report
+ *  screen instead renders above the ball layer (see App / global.css), so its
+ *  cards don't shove balls around. Missing elements park off-screen. */
 const COLLIDER_SELECTORS = [".brand-logo", ".input-card", ".audit-button"];
+
+/** Far-away parking spot for colliders whose element isn't on screen. */
+const FAR_AWAY = 100000;
 
 interface Viewport {
   w: number;
@@ -53,32 +60,40 @@ function useViewport(): Viewport {
   return vp;
 }
 
-/** A single soccer ball rigid body, constrained to the z = 0 plane. */
+/** A single soccer ball rigid body, free to tumble in 3D within a z-band. */
 function Ball({
   startX,
   startY,
+  startZ,
+  spin,
   scale,
   center,
+  register,
 }: {
   startX: number;
   startY: number;
+  startZ: number;
+  spin: [number, number, number];
   scale: number;
   center: THREE.Vector3;
+  register: (body: RapierRigidBody | null) => void;
 }) {
   const { scene } = useGLTF(MODEL_URL);
   const model = useMemo(() => scene.clone(true), [scene]);
 
   return (
     <RigidBody
+      ref={register}
       ccd
       colliders={false}
-      position={[startX, startY, 0]}
-      enabledTranslations={[true, true, false]}
-      enabledRotations={[false, false, true]}
-      restitution={0.2}
-      friction={0.9}
-      linearDamping={0.15}
-      angularDamping={0.4}
+      position={[startX, startY, startZ]}
+      angularVelocity={spin}
+      enabledTranslations={[true, true, true]}
+      enabledRotations={[true, true, true]}
+      restitution={0.45}
+      friction={0.55}
+      linearDamping={0.05}
+      angularDamping={0.08}
     >
       <BallCollider args={[BALL_RADIUS]} />
       <primitive
@@ -94,7 +109,7 @@ function Ball({
   );
 }
 
-/** Fixed walls: floor + left/right so balls stay on screen. */
+/** Fixed walls: floor + left/right + front/back so balls stay in the box. */
 function Walls({ w, h }: Viewport) {
   return (
     <>
@@ -107,68 +122,67 @@ function Walls({ w, h }: Viewport) {
       <RigidBody type="fixed" colliders={false} position={[w / 2 + WALL_THICKNESS, 0, 0]}>
         <CuboidCollider args={[WALL_THICKNESS, h, COLLIDER_DEPTH]} />
       </RigidBody>
+      <RigidBody type="fixed" colliders={false} position={[0, 0, COLLIDER_DEPTH + WALL_THICKNESS]}>
+        <CuboidCollider args={[w, h, WALL_THICKNESS]} />
+      </RigidBody>
+      <RigidBody type="fixed" colliders={false} position={[0, 0, -COLLIDER_DEPTH - WALL_THICKNESS]}>
+        <CuboidCollider args={[w, h, WALL_THICKNESS]} />
+      </RigidBody>
     </>
   );
 }
 
-interface Rect {
-  x: number;
-  y: number;
-  hw: number;
-  hh: number;
-}
+/**
+ * One kinematic collider that tracks a live DOM element every frame. Because
+ * it's a kinematicPosition body, any movement (e.g. the user scrolling the
+ * report) imparts velocity to balls it touches — so cards can shove balls.
+ */
+function TrackedCollider({ selector }: { selector: string }) {
+  const ref = useRef<RapierRigidBody>(null);
+  const [size, setSize] = useState<{ hw: number; hh: number }>({ hw: 1, hh: 1 });
+  const sizeRef = useRef(size);
+  sizeRef.current = size;
 
-/** Maps live DOM rects of UI cards into fixed physics colliders. */
-function DomColliders() {
-  const [rects, setRects] = useState<Rect[]>([]);
-
-  useEffect(() => {
-    const measure = () => {
-      const next: Rect[] = [];
-      for (const sel of COLLIDER_SELECTORS) {
-        const el = document.querySelector(sel);
-        if (!el) continue;
-        const r = el.getBoundingClientRect();
-        if (r.width === 0 || r.height === 0) continue;
-        next.push({
-          x: r.left + r.width / 2 - window.innerWidth / 2,
-          y: window.innerHeight / 2 - (r.top + r.height / 2),
-          hw: r.width / 2,
-          hh: r.height / 2,
-        });
-      }
-      setRects(next);
-    };
-
-    measure();
-    // Re-measure after fonts load and the entrance animation settles, since
-    // late layout shifts would otherwise leave colliders out of sync.
-    const timers = [150, 400, 700, 1100].map((ms) =>
-      window.setTimeout(measure, ms),
-    );
-    if (document.fonts?.ready) {
-      document.fonts.ready.then(measure).catch(() => {});
+  useFrame(() => {
+    const body = ref.current;
+    if (!body) return;
+    const el = document.querySelector(selector);
+    const r = el?.getBoundingClientRect();
+    if (!r || r.width === 0 || r.height === 0) {
+      body.setNextKinematicTranslation({ x: FAR_AWAY, y: FAR_AWAY, z: 0 });
+      return;
     }
-    const ro = new ResizeObserver(measure);
-    ro.observe(document.body);
-    for (const sel of COLLIDER_SELECTORS) {
-      const el = document.querySelector(sel);
-      if (el) ro.observe(el);
+    const hw = r.width / 2;
+    const hh = r.height / 2;
+    const cur = sizeRef.current;
+    if (Math.abs(cur.hw - hw) > 2 || Math.abs(cur.hh - hh) > 2) {
+      setSize({ hw, hh });
     }
-    window.addEventListener("resize", measure);
-    return () => {
-      timers.forEach((t) => window.clearTimeout(t));
-      ro.disconnect();
-      window.removeEventListener("resize", measure);
-    };
-  }, []);
+    body.setNextKinematicTranslation({
+      x: r.left + r.width / 2 - window.innerWidth / 2,
+      y: window.innerHeight / 2 - (r.top + r.height / 2),
+      z: 0,
+    });
+  });
 
   return (
+    <RigidBody
+      ref={ref}
+      type="kinematicPosition"
+      colliders={false}
+      position={[FAR_AWAY, FAR_AWAY, 0]}
+    >
+      <CuboidCollider args={[size.hw, size.hh, COLLIDER_DEPTH]} />
+    </RigidBody>
+  );
+}
+
+/** Live kinematic colliders for every tracked UI block. */
+function DomColliders() {
+  return (
     <>
-      {rects.map((r, i) => (
-        <RigidBody key={i} type="fixed" colliders={false} position={[r.x, r.y, 0]}>
-          <CuboidCollider args={[r.hw, r.hh, COLLIDER_DEPTH]} />
-        </RigidBody>
+      {COLLIDER_SELECTORS.map((sel) => (
+        <TrackedCollider key={sel} selector={sel} />
       ))}
     </>
   );
@@ -194,19 +208,95 @@ function Scene({ w, h }: Viewport) {
       Array.from({ length: BALL_COUNT }, (_, i) => ({
         id: i,
         x: (Math.random() - 0.5) * (w - BALL_RADIUS * 2),
-        y: h / 2 + 120 + Math.random() * (h + 600),
+        // Staggered release: each ball starts progressively higher (plus jitter)
+        // so they stream in at different times instead of one solid drop.
+        y: h / 2 + 140 + i * 150 + Math.random() * 120,
+        z: (Math.random() - 0.5) * 2 * Z_RANGE,
+        spin: [
+          (Math.random() - 0.5) * 8,
+          (Math.random() - 0.5) * 8,
+          (Math.random() - 0.5) * 8,
+        ] as [number, number, number],
       })),
     [w, h],
   );
+
+  // Keep references to every ball so we can wake them when the user scrolls.
+  // A sleeping ball ignores gravity, so a moving card could otherwise leave it
+  // floating in mid-air; waking them guarantees they always fall back down.
+  const bodies = useRef<(RapierRigidBody | null)[]>([]);
+
+  useEffect(() => {
+    let raf = 0;
+    const wake = () => {
+      cancelAnimationFrame(raf);
+      // Wake on the next frame so it runs after the scroll-driven layout shift.
+      raf = requestAnimationFrame(() => {
+        for (const b of bodies.current) b?.wakeUp();
+      });
+    };
+    window.addEventListener("scroll", wake, { passive: true });
+    window.addEventListener("wheel", wake, { passive: true });
+    window.addEventListener("touchmove", wake, { passive: true });
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", wake);
+      window.removeEventListener("wheel", wake);
+      window.removeEventListener("touchmove", wake);
+    };
+  }, []);
 
   return (
     <Physics gravity={[0, -1800, 0]} timeStep={1 / 120}>
       <Walls w={w} h={h} />
       <DomColliders />
-      {balls.map((b) => (
-        <Ball key={b.id} startX={b.x} startY={b.y} scale={scale} center={center} />
+      {balls.map((b, i) => (
+        <Ball
+          key={b.id}
+          startX={b.x}
+          startY={b.y}
+          startZ={b.z}
+          spin={b.spin}
+          scale={scale}
+          center={center}
+          register={(body) => {
+            bodies.current[i] = body;
+          }}
+        />
       ))}
     </Physics>
+  );
+}
+
+/** A row of overhead spotlights for an exhibition / stadium-floodlight look. */
+function Spotlights({ w, h }: Viewport) {
+  const count = 5;
+  const targets = useMemo(
+    () => Array.from({ length: count }, () => new THREE.Object3D()),
+    [],
+  );
+  return (
+    <>
+      {targets.map((target, i) => {
+        const t = i / (count - 1);
+        const x = (t - 0.5) * w * 0.9;
+        return (
+          <group key={i}>
+            <primitive object={target} position={[x, -h / 2, 0]} />
+            <spotLight
+              position={[x, h / 2 + 160, 320]}
+              target={target}
+              angle={0.6}
+              penumbra={0.7}
+              distance={0}
+              decay={0}
+              intensity={1.6}
+              color="#ffffff"
+            />
+          </group>
+        );
+      })}
+    </>
   );
 }
 
@@ -218,12 +308,14 @@ export function BallRain() {
       <Canvas
         orthographic
         dpr={[1, 1.5]}
-        camera={{ position: [0, 0, 300], zoom: 1, near: 0.1, far: 2000 }}
+        style={{ pointerEvents: "none" }}
+        camera={{ position: [0, 0, 600], zoom: 1, near: 0.1, far: 4000 }}
         gl={{ antialias: true, alpha: true }}
       >
-        <ambientLight intensity={1.1} />
-        <hemisphereLight args={["#ffffff", "#9ec48a", 0.7]} />
-        <directionalLight position={[200, 400, 300]} intensity={1.8} />
+        <ambientLight intensity={0.85} />
+        <hemisphereLight args={["#ffffff", "#9ec48a", 0.6]} />
+        <directionalLight position={[150, 300, 400]} intensity={1.1} />
+        <Spotlights w={w} h={h} />
         <Suspense fallback={null}>
           <Scene w={w} h={h} />
         </Suspense>

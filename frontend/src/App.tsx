@@ -35,7 +35,7 @@ export default function App() {
   return (
     <>
       <PitchScene />
-      <main className="app-shell">
+      <main className={`app-shell${view === "report" && report ? " app-shell--above-balls" : ""}`}>
         <AnimatePresence mode="wait">
           {view === "input" || !report ? (
             <UrlInputScreen
