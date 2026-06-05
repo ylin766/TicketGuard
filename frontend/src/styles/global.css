@@ -84,6 +84,14 @@ body {
   background-repeat: no-repeat, no-repeat;
 }
 
+/* Physics ball-rain overlay — sits in front of the UI, never intercepts input. */
+.ball-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
 .app-shell {
   position: relative;
   z-index: 1;
