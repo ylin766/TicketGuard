@@ -17,6 +17,11 @@ build/
 # Node
 node_modules/
 
+# TypeScript / Vite build artifacts
+*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
+
 # OS
 .DS_Store
 Thumbs.db
