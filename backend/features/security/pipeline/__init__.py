@@ -1,32 +1,23 @@
 """Security pipeline — the deterministic, hard-coded part of the workflow.
 
-``run_pipeline(url)`` runs both detectors in parallel and returns the weighted
-trust score. No LLM, no session state: pure input (url) -> output (dict).
+``run_pipeline(url)`` queries the threat-intel aggregator and returns each
+source's raw risk findings. No LLM, no session state, no synthesized score:
+pure input (url) -> output (dict).
 """
 
-from concurrent.futures import ThreadPoolExecutor
-
-from .intelowl import run_intelowl
-from .scoring import aggregate
-from .spiderfoot import run_spiderfoot
+from .threatintel import run_threatintel
 
 __all__ = ["run_pipeline"]
 
 
 def run_pipeline(url: str) -> dict:
-    """Run all detectors on a URL and return the aggregated trust score.
+    """Evaluate a URL against the threat-intel aggregator.
 
     Args:
         url: The full ticket-listing URL to evaluate.
 
     Returns:
-        dict with keys: score (0-100, higher = safer), flags, detail.
+        dict with keys: status, findings (each source's native report),
+        flagged (any source reported a threat), detail.
     """
-    with ThreadPoolExecutor(max_workers=2) as pool:
-        intelowl_future = pool.submit(run_intelowl, url)
-        spiderfoot_future = pool.submit(run_spiderfoot, url)
-        results = {
-            "intelowl": intelowl_future.result(),
-            "spiderfoot": spiderfoot_future.result(),
-        }
-    return aggregate(results)
+    return run_threatintel(url)
