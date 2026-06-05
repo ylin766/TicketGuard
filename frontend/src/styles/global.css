@@ -92,6 +92,12 @@ body {
   pointer-events: none;
 }
 
+/* R3F re-enables pointer-events on its own wrapper for raycasting; force it
+   off for every descendant so clicks always reach the UI underneath. */
+.ball-layer * {
+  pointer-events: none !important;
+}
+
 .app-shell {
   position: relative;
   z-index: 1;
@@ -102,6 +108,13 @@ body {
   justify-content: center;
   padding: 32px 20px;
 }
+
+/* On the report screen the content sits above the ball-rain overlay so the
+   cards never overlap with or get disturbed by the falling balls. */
+.app-shell--above-balls {
+  z-index: 3;
+}
+
 
 /* ---------- Reusable clay surfaces (claymorphism) ---------- */
 
