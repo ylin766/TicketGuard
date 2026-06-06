@@ -116,9 +116,7 @@ export function ReportScreen({ report, onBack }: ReportScreenProps) {
 
       <ThreatIntelPanel url={report.url} />
 
-      <button className="report-footer-back neu-raised" onClick={onBack} type="button">
-        ← Audit another listing
-      </button>
+
     </motion.div>
   );
 }
