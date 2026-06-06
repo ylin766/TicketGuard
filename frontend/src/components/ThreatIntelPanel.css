@@ -19,6 +19,7 @@
   text-align: left;
   gap: 12px;
   transition: opacity 0.15s ease;
+  font-family: inherit;
 }
 
 .ti-header:disabled {
@@ -136,16 +137,16 @@
 
 .ti-badge--safe {
   color: var(--safe);
-  background: linear-gradient(145deg, #f0fbf5, #e0f5eb);
-  box-shadow: inset 2px 2px 4px rgba(255, 255, 255, 0.9),
-    inset -2px -2px 4px rgba(43, 182, 115, 0.2);
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: inset 1px 1px 3px rgba(150, 178, 138, 0.4),
+    inset -1px -1px 3px rgba(255, 255, 255, 0.9);
 }
 
 .ti-badge--danger {
   color: var(--danger);
-  background: linear-gradient(145deg, #fdf0f0, #f9e0e1);
-  box-shadow: inset 2px 2px 4px rgba(255, 255, 255, 0.9),
-    inset -2px -2px 4px rgba(229, 72, 77, 0.2);
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: inset 1px 1px 3px rgba(150, 178, 138, 0.4),
+    inset -1px -1px 3px rgba(255, 255, 255, 0.9);
 }
 
 /* ---------- Source count chip ---------- */
