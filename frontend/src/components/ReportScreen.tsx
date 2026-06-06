@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import type { TicketReport } from "../types";
 import { RiskGauge } from "./RiskGauge";
 import { ScoreCard } from "./ScoreCard";
+import { ThreatIntelPanel } from "./ThreatIntelPanel";
 import "./ReportScreen.css";
 
 interface ReportScreenProps {
@@ -112,6 +113,8 @@ export function ReportScreen({ report, onBack }: ReportScreenProps) {
           result={dimensions.sightline}
         />
       </section>
+
+      <ThreatIntelPanel url={report.url} />
 
       <button className="report-footer-back neu-raised" onClick={onBack} type="button">
         ← Audit another listing
