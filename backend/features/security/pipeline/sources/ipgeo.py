@@ -10,7 +10,8 @@ from urllib.parse import urlparse
 
 import requests
 
-from .....core.config import HTTP_TIMEOUT_SECONDS
+from ..http_utils import DEFAULT_TIMEOUT_LEVELS, fetch_with_retry
+
 from ..constants import DNS_RESOLVE_URL, IPGEO_API_BASE
 
 logger = logging.getLogger(__name__)
@@ -24,11 +25,12 @@ def _host(url: str) -> str:
 
 
 def _resolve(domain: str) -> str | None:
-    resp = requests.get(
+    resp = fetch_with_retry(
+        "GET",
         DNS_RESOLVE_URL,
         params={"name": domain, "type": "A"},
         headers={"User-Agent": "ticketguard/1.0"},
-        timeout=HTTP_TIMEOUT_SECONDS,
+        timeout_levels=DEFAULT_TIMEOUT_LEVELS,
     )
     resp.raise_for_status()
     for answer in resp.json().get("Answer") or []:
@@ -48,10 +50,11 @@ def query(url: str) -> dict | None:
             "detail": f"{domain} did not resolve to an IPv4 address.",
         }
 
-    geo = requests.get(
+    geo = fetch_with_retry(
+        "GET",
         f"{IPGEO_API_BASE}/{ip}",
         headers={"User-Agent": "ticketguard/1.0"},
-        timeout=HTTP_TIMEOUT_SECONDS,
+        timeout_levels=DEFAULT_TIMEOUT_LEVELS,
     ).json()
     country = geo.get("countryName")
     isp = (geo.get("asn") or {}).get("isp") if isinstance(geo.get("asn"), dict) else geo.get("isp")

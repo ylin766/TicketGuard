@@ -10,7 +10,9 @@ from urllib.parse import urlparse
 
 import requests
 
-from ..constants import CRTSH_API_URL, SLOW_HTTP_TIMEOUT_SECONDS
+from ..http_utils import SLOW_TIMEOUT_LEVELS, fetch_with_retry
+
+from ..constants import CRTSH_API_URL
 
 logger = logging.getLogger(__name__)
 
@@ -24,11 +26,12 @@ def _registered_domain(url: str) -> str:
 
 def query(url: str) -> dict | None:
     domain = _registered_domain(url)
-    resp = requests.get(
+    resp = fetch_with_retry(
+        "GET",
         CRTSH_API_URL,
         params={"q": domain, "output": "json"},
         headers={"User-Agent": "ticketguard/1.0"},
-        timeout=SLOW_HTTP_TIMEOUT_SECONDS,
+        timeout_levels=SLOW_TIMEOUT_LEVELS,
     )
     resp.raise_for_status()
     certs = resp.json() if resp.text.strip() else []

@@ -9,7 +9,8 @@ import os
 
 import requests
 
-from .....core.config import HTTP_TIMEOUT_SECONDS
+from ..http_utils import DEFAULT_TIMEOUT_LEVELS, fetch_with_retry
+
 from ..constants import URLHAUS_API_URL, URLHAUS_AUTH_KEY_ENV
 
 logger = logging.getLogger(__name__)
@@ -22,11 +23,12 @@ def query(url: str) -> dict | None:
     if not auth_key:
         return None
 
-    resp = requests.post(
+    resp = fetch_with_retry(
+        "POST",
         URLHAUS_API_URL,
         headers={"Auth-Key": auth_key, "User-Agent": "ticketguard/1.0"},
         data={"url": url},
-        timeout=HTTP_TIMEOUT_SECONDS,
+        timeout_levels=DEFAULT_TIMEOUT_LEVELS,
     )
     resp.raise_for_status()
     payload = resp.json()

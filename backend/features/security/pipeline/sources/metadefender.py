@@ -12,7 +12,8 @@ from urllib.parse import quote
 
 import requests
 
-from .....core.config import HTTP_TIMEOUT_SECONDS
+from ..http_utils import DEFAULT_TIMEOUT_LEVELS, fetch_with_retry
+
 from ..constants import METADEFENDER_API_KEY_ENV, METADEFENDER_URL_BASE
 
 logger = logging.getLogger(__name__)
@@ -25,10 +26,11 @@ def query(url: str) -> dict | None:
     if not api_key:
         return None
 
-    resp = requests.get(
+    resp = fetch_with_retry(
+        "GET",
         f"{METADEFENDER_URL_BASE}/{quote(url, safe='')}",
         headers={"apikey": api_key},
-        timeout=HTTP_TIMEOUT_SECONDS,
+        timeout_levels=DEFAULT_TIMEOUT_LEVELS,
     )
     resp.raise_for_status()
     lookup = resp.json().get("lookup_results", {})

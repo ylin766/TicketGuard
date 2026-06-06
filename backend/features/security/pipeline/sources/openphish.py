@@ -10,7 +10,8 @@ import time
 
 import requests
 
-from .....core.config import HTTP_TIMEOUT_SECONDS
+from ..http_utils import DEFAULT_TIMEOUT_LEVELS, fetch_with_retry
+
 from ..constants import OPENPHISH_CACHE_TTL_SECONDS, OPENPHISH_FEED_URL
 
 logger = logging.getLogger(__name__)
@@ -27,10 +28,11 @@ def _feed() -> set[str]:
     global _cache, _cache_time
     with _lock:
         if not _cache or time.monotonic() - _cache_time > OPENPHISH_CACHE_TTL_SECONDS:
-            resp = requests.get(
+            resp = fetch_with_retry(
+        "GET",
                 OPENPHISH_FEED_URL,
                 headers={"User-Agent": "ticketguard/1.0"},
-                timeout=HTTP_TIMEOUT_SECONDS,
+                timeout_levels=DEFAULT_TIMEOUT_LEVELS,
             )
             resp.raise_for_status()
             _cache = {line.strip() for line in resp.text.splitlines() if line.strip()}

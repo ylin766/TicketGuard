@@ -12,7 +12,8 @@ import time
 
 import requests
 
-from .....core.config import HTTP_TIMEOUT_SECONDS
+from ..http_utils import DEFAULT_TIMEOUT_LEVELS, fetch_with_retry
+
 from ..constants import (
     CHECKPHISH_API_KEY_ENV,
     CHECKPHISH_SCAN_URL,
@@ -28,20 +29,22 @@ NAME = "CheckPhish"
 
 def _scan_and_wait(api_key: str, url: str) -> str:
     """Submit a scan, poll until done, and return the disposition."""
-    submit = requests.post(
+    submit = fetch_with_retry(
+        "POST",
         CHECKPHISH_SCAN_URL,
         json={"apiKey": api_key, "urlInfo": {"url": url}, "scanType": "quick"},
-        timeout=HTTP_TIMEOUT_SECONDS,
+        timeout_levels=DEFAULT_TIMEOUT_LEVELS,
     )
     submit.raise_for_status()
     job_id = submit.json()["jobID"]
 
     deadline = time.monotonic() + THREATINTEL_MAX_WAIT_SECONDS
     while time.monotonic() < deadline:
-        report = requests.post(
+        report = fetch_with_retry(
+        "POST",
             CHECKPHISH_STATUS_URL,
             json={"apiKey": api_key, "jobID": job_id, "insights": False},
-            timeout=HTTP_TIMEOUT_SECONDS,
+            timeout_levels=DEFAULT_TIMEOUT_LEVELS,
         ).json()
         if report.get("status") == "DONE":
             return report.get("disposition", "unknown")
