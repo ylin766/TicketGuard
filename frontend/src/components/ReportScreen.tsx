@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import type { TicketReport } from "../types";
 import { RiskGauge } from "./RiskGauge";
 import { ScoreCard } from "./ScoreCard";
+import { ThreatIntelPanel } from "./ThreatIntelPanel";
 import "./ReportScreen.css";
 
 interface ReportScreenProps {
@@ -113,9 +114,9 @@ export function ReportScreen({ report, onBack }: ReportScreenProps) {
         />
       </section>
 
-      <button className="report-footer-back neu-raised" onClick={onBack} type="button">
-        ← Audit another listing
-      </button>
+      <ThreatIntelPanel url={report.url} />
+
+
     </motion.div>
   );
 }

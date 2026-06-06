@@ -59,3 +59,36 @@ export function scoreToVerdict(score: number): Verdict {
   if (score >= 40) return "caution";
   return "danger";
 }
+
+// ---------------------------------------------------------------------------
+// Threat-intel panel types (independent from TicketReport / mock data)
+// ---------------------------------------------------------------------------
+
+/** One threat-intel source result from the backend pipeline. */
+export interface ThreatSource {
+  /** Source name, e.g. "VirusTotal", "Sucuri". */
+  name: string;
+  /**
+   * true  → confirmed threat
+   * false → confirmed clean
+   * null  → intelligence context only (not a threat verdict)
+   */
+  threat: boolean | null;
+  /** Human-readable summary from this source. */
+  detail: string;
+  /** Any extra source-native fields (rank, match_count, …). */
+  [key: string]: unknown;
+}
+
+/** Raw response from POST /api/threat-intel. */
+export interface ThreatIntelResult {
+  status: "ok" | "unavailable";
+  /** True if any finding source reported threat = true. */
+  flagged: boolean;
+  /** Sources that returned a threat verdict (threat = true | false). */
+  findings: ThreatSource[];
+  /** Sources that returned intelligence context (threat = null). */
+  context: ThreatSource[];
+  /** Space-joined summary of all source details. */
+  detail: string;
+}
