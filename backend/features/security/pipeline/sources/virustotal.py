@@ -10,7 +10,8 @@ import time
 
 import requests
 
-from .....core.config import HTTP_TIMEOUT_SECONDS
+from ..http_utils import DEFAULT_TIMEOUT_LEVELS, fetch_with_retry
+
 from ..constants import (
     DETECTOR_POLL_INTERVAL_SECONDS,
     THREATINTEL_MAX_WAIT_SECONDS,
@@ -30,21 +31,23 @@ def _url_id(url: str) -> str:
 
 def _submit_and_wait(url: str, headers: dict) -> dict:
     """Submit a not-yet-seen URL, poll until the analysis completes."""
-    submit = requests.post(
+    submit = fetch_with_retry(
+        "POST",
         f"{VIRUSTOTAL_API_BASE}/urls",
         headers=headers,
         data={"url": url},
-        timeout=HTTP_TIMEOUT_SECONDS,
+        timeout_levels=DEFAULT_TIMEOUT_LEVELS,
     )
     submit.raise_for_status()
     analysis_id = submit.json()["data"]["id"]
 
     deadline = time.monotonic() + THREATINTEL_MAX_WAIT_SECONDS
     while time.monotonic() < deadline:
-        report = requests.get(
+        report = fetch_with_retry(
+        "GET",
             f"{VIRUSTOTAL_API_BASE}/analyses/{analysis_id}",
             headers=headers,
-            timeout=HTTP_TIMEOUT_SECONDS,
+            timeout_levels=DEFAULT_TIMEOUT_LEVELS,
         ).json()
         attributes = report["data"]["attributes"]
         if attributes["status"] == "completed":
@@ -59,10 +62,11 @@ def query(url: str) -> dict | None:
         return None
 
     headers = {"x-apikey": api_key}
-    resp = requests.get(
+    resp = fetch_with_retry(
+        "GET",
         f"{VIRUSTOTAL_API_BASE}/urls/{_url_id(url)}",
         headers=headers,
-        timeout=HTTP_TIMEOUT_SECONDS,
+        timeout_levels=DEFAULT_TIMEOUT_LEVELS,
     )
     if resp.status_code == 404:
         stats = _submit_and_wait(url, headers)

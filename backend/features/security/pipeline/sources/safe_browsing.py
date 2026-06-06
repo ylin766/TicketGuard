@@ -8,7 +8,8 @@ import os
 
 import requests
 
-from .....core.config import HTTP_TIMEOUT_SECONDS
+from ..http_utils import DEFAULT_TIMEOUT_LEVELS, fetch_with_retry
+
 from ..constants import SAFE_BROWSING_API_KEY_ENV, SAFE_BROWSING_API_URL
 
 logger = logging.getLogger(__name__)
@@ -37,11 +38,12 @@ def query(url: str) -> dict | None:
             "threatEntries": [{"url": url}],
         },
     }
-    resp = requests.post(
+    resp = fetch_with_retry(
+        "POST",
         SAFE_BROWSING_API_URL,
         params={"key": api_key},
         json=body,
-        timeout=HTTP_TIMEOUT_SECONDS,
+        timeout_levels=DEFAULT_TIMEOUT_LEVELS,
     )
     resp.raise_for_status()
     matches = resp.json().get("matches", [])
