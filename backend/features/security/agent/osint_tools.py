@@ -1,8 +1,8 @@
 import os
 import requests
 
-SERPER_API_KEY = os.environ.get("SERPER_API_KEY", "f99d20a7ebb230a9eaf4126d74a06e102ba0e1df")
-TAVILY_API_KEY = os.environ.get("TAVILY_API_KEY", "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")
+SERPER_API_KEY = os.environ.get("SERPER_API_KEY", "")
+TAVILY_API_KEY = os.environ.get("TAVILY_API_KEY", "")
 
 def _run_serper_search(query: str, num: int = 4) -> str:
     """Internal generic Serper request function"""
