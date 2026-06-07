@@ -39,7 +39,16 @@ Each entry has its own fields; the only shared key is ``threat``
 intelligence (``threat is None``) goes in ``context`` and never sets ``flagged``.
 """
 
+from google.adk.agents import SequentialAgent
+
 from ....core.state_keys import SECURITY_RESULT  # noqa: F401 - evidence key for the agent
+from .osint_subagent import osint_subagent
 
-# TODO: define the grey-zone LLM agent that reads SECURITY_RESULT and judges it.
-
+# The content_audit_agent acts as the main grey-zone LLM orchestrator.
+# It currently delegates the investigation to the OSINT subagent.
+# Future subagents (e.g. screenshot analysis, WHOIS deep-dive) can be added here.
+content_audit_agent = SequentialAgent(
+    name="content_audit_agent",
+    sub_agents=[osint_subagent],
+    description="Main security LLM agent that orchestrates subagents like OSINT to make a final grey-zone verdict based on SECURITY_RESULT.",
+)
