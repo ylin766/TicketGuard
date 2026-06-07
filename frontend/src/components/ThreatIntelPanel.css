@@ -1,0 +1,235 @@
+/* ThreatIntelPanel — full clay morphism, no emoji, SVG icons */
+
+.ti-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ---------- Header button ---------- */
+.ti-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  gap: 12px;
+  transition: opacity 0.15s ease;
+  font-family: inherit;
+}
+
+.ti-header:disabled {
+  cursor: default;
+}
+
+.ti-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+/* Shield icon wrapper — small clay pill */
+.ti-header-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(150deg, var(--clay-top), var(--clay-bottom));
+  box-shadow: 0 6px 14px -4px var(--clay-cast),
+    inset 3px 3px 6px var(--clay-hi),
+    inset -3px -3px 6px var(--clay-lo);
+  flex-shrink: 0;
+}
+
+.ti-header-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+/* ---------- SVG icons ---------- */
+
+/* Base style for all inline SVGs */
+.ti-icon {
+  width: 18px;
+  height: 18px;
+  stroke: var(--accent);
+  fill: none;
+}
+
+/* Source row icons */
+.ti-source-icon-svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  flex-shrink: 0;
+}
+
+.ti-icon--safe {
+  stroke: var(--safe);
+}
+
+.ti-icon--danger {
+  stroke: var(--danger);
+}
+
+.ti-icon--info {
+  stroke: var(--ink-faint);
+}
+
+/* Chevron */
+.ti-chevron-svg {
+  width: 18px;
+  height: 18px;
+  stroke: var(--ink-faint);
+  fill: none;
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
+}
+
+.ti-chevron-svg--up {
+  transform: rotate(180deg);
+}
+
+/* ---------- Loading: clay pulsing dots ---------- */
+.ti-clay-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ti-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--clay-top), var(--clay-bottom));
+  box-shadow: 0 3px 6px -2px var(--clay-cast),
+    inset 2px 2px 3px var(--clay-hi),
+    inset -2px -2px 3px var(--clay-lo);
+  animation: clay-pulse 1.2s ease-in-out infinite;
+}
+
+.ti-dot:nth-child(2) { animation-delay: 0.2s; }
+.ti-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes clay-pulse {
+  0%, 100% { transform: scale(1);   opacity: 0.7; }
+  50%       { transform: scale(1.35); opacity: 1;   }
+}
+
+/* ---------- Badge ---------- */
+.ti-badge {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.ti-badge--safe {
+  color: var(--safe);
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: inset 1px 1px 3px rgba(150, 178, 138, 0.4),
+    inset -1px -1px 3px rgba(255, 255, 255, 0.9);
+}
+
+.ti-badge--danger {
+  color: var(--danger);
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: inset 1px 1px 3px rgba(150, 178, 138, 0.4),
+    inset -1px -1px 3px rgba(255, 255, 255, 0.9);
+}
+
+/* ---------- Source count chip ---------- */
+.ti-count {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--ink-faint);
+  background: var(--clay-bottom);
+  border-radius: 999px;
+  padding: 3px 9px;
+  box-shadow: inset 2px 2px 4px var(--clay-lo),
+    inset -2px -2px 4px var(--clay-hi);
+}
+
+/* ---------- Status messages ---------- */
+.ti-status {
+  padding: 10px 22px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.ti-status--error {
+  color: var(--danger);
+}
+
+/* ---------- Source rows ---------- */
+.ti-sources {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 14px 14px;
+  overflow: hidden;
+}
+
+.ti-source {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  /* Pressed-in clay surface */
+  background: linear-gradient(145deg, var(--clay-bottom), var(--clay-top));
+  box-shadow: inset 3px 3px 7px var(--clay-lo),
+    inset -3px -3px 7px var(--clay-hi);
+  border-left: 4px solid transparent;
+}
+
+.ti-source--safe   { border-left-color: var(--safe); }
+.ti-source--danger { border-left-color: var(--danger); }
+.ti-source--info   { border-left-color: var(--ink-faint); }
+
+/* Icon wrapper inside source row */
+.ti-source-icon-wrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, var(--clay-top), var(--clay-bottom));
+  box-shadow: 0 4px 8px -3px var(--clay-cast),
+    inset 2px 2px 4px var(--clay-hi),
+    inset -2px -2px 4px var(--clay-lo);
+  flex-shrink: 0;
+}
+
+.ti-source-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ti-source-name {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.ti-source-detail {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}

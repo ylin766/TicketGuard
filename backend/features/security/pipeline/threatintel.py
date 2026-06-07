@@ -16,7 +16,8 @@ Pure function: takes a URL, returns a normalized dict. No session state.
 """
 
 import logging
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Generator
 
 from .sources import ALL_SOURCES
 
@@ -33,30 +34,45 @@ def _query_source(source, url: str) -> dict | None:
 
 
 def run_threatintel(url: str) -> dict:
-    """Aggregate every configured source for a URL.
-
-    Args:
-        url: The full ticket-listing URL to evaluate.
-
-    Returns:
-        dict with keys: status ("ok" | "unavailable"), findings (threat
-        verdicts), context (non-threat intelligence), flagged (any finding
-        reported a threat), detail.
-    """
+    """Aggregate every configured source for a URL (blocking, returns all at once)."""
     with ThreadPoolExecutor(max_workers=len(ALL_SOURCES)) as pool:
         verdicts = list(pool.map(lambda s: _query_source(s, url), ALL_SOURCES))
 
-    # None -> source skipped (no API key). A dict with "error" -> source failed.
     reported = [v for v in verdicts if v is not None and "error" not in v]
     if not reported:
         return {"status": "unavailable", "findings": [], "context": [],
                 "flagged": False, "detail": "No source returned a result."}
 
-    # threat is True/False -> a threat finding; None -> intelligence context.
     findings = [v for v in reported if v.get("threat") is not None]
     context = [v for v in reported if v.get("threat") is None]
-
     flagged = any(f["threat"] is True for f in findings)
     detail = " ".join(f"[{v['name']}] {v['detail']}" for v in reported)
     return {"status": "ok", "findings": findings, "context": context,
             "flagged": flagged, "detail": detail}
+
+
+def stream_threatintel(url: str) -> Generator[dict, None, None]:
+    """Stream source results one at a time as each completes.
+
+    Yields one dict per source as soon as that source's query returns.
+    Skipped sources (None) and errored sources are excluded.
+    The final yielded item has type="done" and carries the aggregate summary.
+    """
+    reported: list[dict] = []
+
+    with ThreadPoolExecutor(max_workers=len(ALL_SOURCES)) as pool:
+        futures = {pool.submit(_query_source, src, url): src for src in ALL_SOURCES}
+
+        for future in as_completed(futures):
+            result = future.result()
+            if result is None or "error" in result:
+                continue
+            reported.append(result)
+            yield {"type": "source", "data": result}
+
+    # Final summary event
+    if not reported:
+        yield {"type": "done", "status": "unavailable", "flagged": False}
+    else:
+        flagged = any(r.get("threat") is True for r in reported)
+        yield {"type": "done", "status": "ok", "flagged": flagged}
