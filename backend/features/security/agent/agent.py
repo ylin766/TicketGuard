@@ -1,45 +1,49 @@
-"""Grey-zone security agent — LLM judgement layer (placeholder).
+"""Browser-based security agent — the visual (Layer 2) judgement step.
 
 The deterministic pipeline writes its structured evidence to session state under
-SECURITY_RESULT; this agent will read it from there and decide the verdict.
+SECURITY_RESULT. This LLM agent inspects a suspicious ticket URL *in a real
+browser* via the ``browser_security_check`` tool, which opens the page, safely
+probes up to two purchase-flow transitions, and returns a structured,
+evidence-backed browser-risk result.
 
 SECURITY_RESULT (ctx.session.state["security_result"]) is shaped like:
     {
         "status": "ok",                 # "ok" | "unavailable"
-        "findings": [                   # threat verdicts (threat is True/False)
-            {"name": "VirusTotal", "threat": True,
-             "malicious": 12, "suspicious": 1, "harmless": 49, "total": 92, "detail": "..."},
-            {"name": "SafeBrowsing", "threat": True,
-             "threat_types": ["SOCIAL_ENGINEERING"], "detail": "..."},
-            {"name": "URLhaus", "threat": False, "detail": "..."},
-            {"name": "CheckPhish", "threat": False, "disposition": "clean", "detail": "..."},
-            {"name": "MetaDefender", "threat": True,
-             "detected_by": 1, "total": 21, "detail": "..."},
-            {"name": "Sucuri", "threat": True,
-             "blacklisted_by": ["Google Safe Browsing"], "malware": False, "detail": "..."},
-            {"name": "OpenPhish", "threat": False, "detail": "..."},
-            {"name": "PhishStats", "threat": False, "match_count": 0, "detail": "..."},
-        ],
-        "context": [                    # non-threat intelligence (threat is None)
-            {"name": "Tranco", "threat": None, "rank": 180, "detail": "..."},
-            {"name": "crt.sh", "threat": None,
-             "certificate_count": 69, "earliest_certificate": "...", "detail": "..."},
-            {"name": "Wayback", "threat": None,
-             "has_snapshot": True, "closest_timestamp": "...", "detail": "..."},
-            {"name": "RDAP", "threat": None, "registered_on": "...", "status": [...], "detail": "..."},
-            {"name": "IPGeo", "threat": None,
-             "ip": "...", "country": "...", "isp": "...", "detail": "..."},
-        ],
+        "findings": [...],              # threat verdicts (threat is True/False)
+        "context": [...],               # non-threat intelligence (threat is None)
         "flagged": True,                # any finding reported threat is True
         "detail": "...",                # human-readable one-line summary
     }
 
-Each entry has its own fields; the only shared key is ``threat``
-(True / False / None). Threat sources go in ``findings``; non-threat
-intelligence (``threat is None``) goes in ``context`` and never sets ``flagged``.
+Design principle: a login or payment page is NOT a scam by itself. Risk rises
+only when a sensitive action co-occurs with an unverified or inconsistent
+context (brand/domain mismatch, off-platform payment, OTP / transfer-code
+request, suspicious redirect, event mismatch). The browser tool encodes that.
 """
 
+from google.adk.agents import LlmAgent
+
+from ....core.config import GEMINI_MODEL
 from ....core.state_keys import SECURITY_RESULT  # noqa: F401 - evidence key for the agent
+from .browser_check.browser_security_tool import browser_security_check
 
-# TODO: define the grey-zone LLM agent that reads SECURITY_RESULT and judges it.
+BROWSER_SECURITY_INSTRUCTION = """\
+You are the browser-based security step in a larger ticket-scam detection system.
 
+Use the browser_security_check tool for any ticket URL that needs browser
+inspection. Pass the expected event / venue / date when the caller provides them.
+
+Return only the tool result JSON. Do not guess beyond the evidence returned by
+the tool. Do not classify a login or payment page as a scam by itself — rely on
+the tool's context and evidence (domain match, off-platform payment, transfer-code
+requests, redirects). Never instruct the tool to enter credentials, payment
+details, OTP, or to confirm a purchase or transfer.
+"""
+
+browser_security_agent = LlmAgent(
+    name="ticket_browser_security_agent",
+    model=GEMINI_MODEL,
+    description="Browser-based security checker for ticket-selling links.",
+    instruction=BROWSER_SECURITY_INSTRUCTION,
+    tools=[browser_security_check],
+)

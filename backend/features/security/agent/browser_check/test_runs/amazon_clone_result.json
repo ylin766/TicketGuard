@@ -1,0 +1,238 @@
+{
+  "module": "browser_security_check",
+  "input_url": "https://abhishek-codelab.github.io/Amazon-Homepage-Clone/",
+  "final_url": "https://abhishek-codelab.github.io/Amazon-Homepage-Clone/",
+  "risk_level": "unknown",
+  "risk_score": 50,
+  "verdict": "unknown_browser_check_failed",
+  "summary": "Browser check failed before reliable evidence could be collected.",
+  "claim": {
+    "claimed_platform": null,
+    "claimed_domain": null,
+    "marketplace_type": "unknown",
+    "claimed_event": null,
+    "claimed_venue": null,
+    "claimed_city_state": null,
+    "claimed_date_time": null,
+    "visible_price_range": null,
+    "page_state": "unknown",
+    "confidence": "low",
+    "evidence": []
+  },
+  "sensitive_action": {
+    "is_sensitive_action_page": false,
+    "page_state": "unknown",
+    "action_types": [],
+    "payment_context": "none",
+    "payment_methods": [],
+    "requested_inputs": [],
+    "irreversible_action_visible": false,
+    "evidence": []
+  },
+  "trust_check": {
+    "current_registered_domain": null,
+    "claimed_domain": null,
+    "is_trusted_marketplace_domain": false,
+    "domain_matches_claimed_platform": null,
+    "domain_mismatch_reason": null,
+    "suspicious_redirect": false,
+    "event_reference_mismatch": null,
+    "off_platform_payment_detected": false,
+    "strong_flags": [],
+    "weak_flags": [],
+    "benign_context": []
+  },
+  "transitions": [],
+  "evidence": [
+    "Browser check error: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\\nPlease retry in 36.83676625s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '36s'}]}}"
+  ],
+  "recommended_action": "Do not rely on the browser result; use manual verification or the other security modules.",
+  "snapshots": [
+    {
+      "step": 0,
+      "url": "https://abhishek-codelab.github.io/Amazon-Homepage-Clone/",
+      "registered_domain": "github.io",
+      "title": "Amazon Homepage Clone",
+      "screenshot_path": "backend/features/security/agent/browser_check/test_runs/amazon_clone_step_0.png",
+      "body_text": "Deliver to\n\nIndia\n\nAll\nAlexa Skills\nAmazon Devices\nAmazon Pay\nAppliances\nApps & Games\nBaby\nBeauty & Personal Care\nBooks\nCar & Motorbike\nClothing, Shoes & Jewelry\nCollectibles & Fine Art\nComputers\nElectronics\n\nHello, Sign in\n\nAccount & Lists\n\nReturns\n\n& Orders\n\n Cart\n All\n\nToday's Deals\n\n \n\nCustomer Service\n\n \n\nRegistry\n\n \n\nGift Cards\n\n \n\nSell\n\nShop deals in Electronics\n\nYou are on amazon.com. You can also shop on amazon India for millions of products with fast local delivery. Click here to go to amazon.in\n\nClothes\n\nSee more\n\nHealth & Personal Care\n\nSee more\n\nfurniture\n\nSee more\n\nElectronics\n\nSee more\n\nBeauty picks\n\nSee more\n\nPet Care\n\nSee more\n\nNew Arrival in Toys\n\nSee more\n\nDiscover Fasion Trends\n\nSee more\n\nBack to top\n\nGet to Know Us\n\nCareers\nBlog\nAbout Amazon\nInvestor Relations\nAmazon Devices\nAmazon Science\n\nMake Money with Us\n\nSell products on Amazon\nSell on Amazon Business\nSell apps on Amazon\nBecome an Affiliate\nAdvertise Your Products\nSelf-Publish with Us\nHost an Amazon Hub\nSee More Make Money with Us\n\nAmazon Payment Products\n\nAmazon Business Cards\nShop with Points\nReload Your Balance\nAmazon Currency Converter\n\nLet Us Help You\n\nAmazon and COVID-19\nYour Account\nYour Orders\nShipping Rates & Policies\nReturns & Replacements\nManage Return Authorization\nAmazon Assistant\nHelp\nConditions of Use & Sale Privacy Notice Interest-Based Ads\n© 1996-2024, Amazon.com, Inc. or its affiliates\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18",
+      "html_excerpt": "<!DOCTYPE html><html lang=\"en\" class=\" idc0_343 zfzfntiu\"><head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Amazon Homepage Clone</title>\n    <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css\" integrity=\"sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==\" crossorigin=\"anonymous\" referrerpolicy=\"no-referrer\">\n    <link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n    <header>\n        <div class=\"navbar\">\n\n            \n            <div class=\"nav-logo border\">\n                <div class=\"logo\"></div>\n            </div>\n\n\n            <div class=\"nav-address border\">\n                <p class=\"add-first\">Deliver to</p>\n                <div class=\"add-icon\">\n                    <i class=\"fa-solid fa-location-dot\"></i>\n                    <p class=\"add-second\">India</p>\n                </div>\n\n            </div>\n\n\n            <div class=\"nav-search border\">\n                <select class=\"search-select\">\n                    <option>All</option>\n                    <option>Alexa Skills</option>\n                    <option>Amazon Devices</option>\n                    <option>Amazon Pay</option>\n                    <option>Appliances</option>\n                    <option>Apps &amp; Games</option>\n                    <option>Baby</option>\n                    <option>Beauty &amp; Personal Care</option>\n                    <option>Books</option>\n                    <option>Car &amp; Motorbike</option>\n                    <option>Clothing, Shoes &amp; Jewelry</option>\n                    <option>Collectibles &amp; Fine Art</option>\n                    <option>Computers</option>\n                    <option>Electronics</option>\n                </select>\n                <input class=\"search-input\" type=\"text\" placeholder=\"Search Amazon.in\">\n                <div class=\"search-icon\">\n                    <i class=\"fa-solid fa-magnifying-glass\"></i>\n                </div>\n\n\n            </div>\n\n\n            <div class=\"nav-signin border\">\n                <p><span>Hello, Sign in</span></p>\n                <p class=\"nav-second\">Account &amp; Lists</p>\n\n            </div>\n\n\n            <div class=\"nav-return border\">\n                <p><span>Returns</span></p>\n                <p class=\"nav-second\">&amp; Orders</p>\n\n            </div>\n\n\n\n            <div class=\"nav-cart border\">\n                <i class=\"fa-solid fa-cart-arrow-down\"></i>\n            Cart</div>\n\n\n        </div>\n\n        <div class=\"panel\">\n            <div class=\"panel-all\">\n                <i class=\"fa-solid fa-bars\"></i>\n                All\n            </div>\n\n            <div class=\"panel-ops\">\n                <p>Today's Deals</p>\n                <p>Customer Service</p>\n                <p>Registry</p>\n                <p>Gift Cards</p>\n                <p>Sell</p>\n            </div>\n\n            <div class=\"panel-deals\"> \n                Shop deals in Electronics\n            </div>\n\n        </div>\n\n    </header>\n\n\n\n    <!-- container Box -->\n\n    <div class=\"hero-section\">\n        <div class=\"hero-msg\">\n            <p>You are on amazon.com. You can also shop on amazon India for millions of products with fast local delivery. <a href=\"#\">Click here to go to amazon.in</a></p>\n        </div>\n    </div>\n\n\n\n    <div class=\"shop-section\">\n\n        <!-- 1st row -->\n\n\n        <div class=\"box1 box\">\n            <div class=\"box-content\">\n                <h2>Clothes</h2>\n                <div class=\"box-img\" style=\"background-image: url('box1_image.jpg');\"></div>\n                <p>See more</p>\n            </div>\n        </div>\n\n    \n\n        <div class=\"box2 box\">\n            <div class=\"box-content\">\n                <h2>Health &amp; Personal Care</h2>\n                <div class=\"box-img\" style=\"background-image: url('box2_image.jpg');\"></div>\n                <p>See more</p>\n            </div>  \n\n        </div>\n\n\n\n        <div class=\"box3 box\">\n             <div class=\"box-content\">\n                <h2>furniture</h2>\n                <div class=\"box-img\" style=\"background-image: url('box3_image.jpg');\"></div>\n                <p>See more</p>\n            </div>\n        </div>\n\n\n\n        <div class=\"box4 box\">\n            <div class=\"box-content\">\n                <h2>Electronics</h2>\n                <div class=\"box-img\" style=\"background-image: url('box4_image.jpg');\"></div>\n                <p>See more</p>\n            </div>\n        </div>\n\n\n\n        <!-- 2nd row -->\n\n\n\n         <div class=\"box1 box\">\n            <div class=\"box-content\">\n                <h2>Beauty picks</h2>\n                <div class=\"box-img\" style=\"background-image: url('box5_image.jpg');\"></div>\n                <p>See more</p>\n            </div>\n        </div>\n\n    \n\n        <div class=\"box2 box\">\n            <div class=\"box-content\">\n                <h2>Pet Care</h2>\n                <div class=\"box-img\" style=\"background-image: url('box6_image.jpg');\"></div>\n                <p>See more</p>\n            </div>  \n\n        </div>\n\n\n\n        <div class=\"box3 box\">\n             <div class=\"box-content\">\n                <h2>New Arrival in Toys</h2>\n                <div class=\"box-img\" style=\"background-image: url('box7_image.jpg');\"></div>\n                <p>See more</p>\n            </div>\n        </div>\n\n\n\n        <div class=\"box4 box\">\n            <div class=\"box-content\">\n                <h2>Discover Fasion Trends</h2>\n                <div class=\"box-img\" style=\"background-image: url('box8_image.jpg');\"></div>\n                <p>See more</p>\n            </div>\n        </div>\n\n\n\n    </div>\n\n\n    <!--Amazon footer -->\n\n     \n    <footer>\n        <div class=\"foot-panel1\">\n            <p>Back to top</p>\n\n        </div>\n\n        <div class=\"foot-panel2\">\n\n\n            <ul>\n                <p>Get to Know Us</p>\n                <a>Careers</a>\n                <a>Blog</a>\n                <a>About Amazon</a>\n                <a>Investor Relations</a>\n                <a>Amazon Devices</a>\n                <a>Amazon Science</a>\n            </ul>\n\n\n\n\n            <ul>\n                <p>Make Money with Us</p>\n                <a>Sell products on Amazon</a>\n                <a>Sell on Amazon Business</a>\n                <a>Sell apps on Amazon</a>\n                <a>Become an Affiliate</a>\n                <a>Advertise Your Products</a>\n                <a>Self-Publish with Us</a>\n                <a>Host an Amazon Hub</a>\n                <a>See More Make Money with Us</a>\n            </ul>\n\n\n\n\n            <ul>\n                <p>Amazon Payment Products</p>\n                <a>Amazon Business Cards</a>\n                <a>Shop with Points</a>\n                <a>Reload Your Balance</a>\n                <a>Amazon Currency Converter</a>\n            </ul>\n\n\n\n            <ul>\n                <p>Let Us Help You</p>\n                <a>Amazon and COVID-19</a>\n                <a>Your Account</a>\n                <a>Your Orders</a>\n                <a>Shipping Rates &amp; Policies</a>\n                <a>Returns &amp; Replacements</a>\n                <a>Manage Return Authorization</a>\n                <a>Amazon Assistant</a>\n                <a>Help</a>\n            </ul>\n\n\n        </div>\n\n\n        <div class=\"foot-panel3\">\n            <div class=\"logo\"></div>\n\n        </div>\n\n\n\n        <div class=\"foot-panel4\">\n            <div class=\"pages\">\n                <a>Conditions of Use &amp; Sale</a>\n                <a>Privacy Notice</a>\n                <a>Interest-Based Ads</a>\n\n            </div>\n\n            <div class=\"copyright\">\n                © 1996-2024, Amazon.com, Inc. or its affiliates\n\n\n        </div>\n\n    </div></footer>\n\n\n\n    \n\n\n    \n\n<div id=\"playwright-highlight-container\" style=\"position: fixed; pointer-events: none; top: 0px; left: 0px; width: 100%; height: 100%; z-index: 2147483647; background-color: transparent;\"><div style=\"position: fixed; border: 2px solid rgb(255, 0, 0); background-color: rgba(255, 0, 0, 0.1); pointer-events: none; box-sizing: border-box; top: 793px; left: 161.781px; width: 112.047px; height: 15px;\"></div><div class=\"playwright-highlight-label\" style=\"position: fixed; background: rgb(255, 0, 0); color: white; padding: 1px 4px; border-radius: 4px; font-size: 8px; top: 775px; left: 253.828px;\">0</div><div style=\"position: fixed; border: 2px solid rgb(0, 255, 0); background-color: rgba(0, 255, 0, 0.1); pointer-events: none; box-sizing: border-box; top: 818px; left: 161.781px; width: 112.047px; height: 15px;\"></div><div class=\"playwright-highlight-label\" style=\"position: fixed; background: rgb(0, 255, 0); color: white; padding: 1px 4px; border-radius: 4px; font-size: 8px; top: 800px; left: 253.828px;\">1</div><div style=\"position: fixed; border: 2px solid rgb(0, 0, 255); background-color: rgba(0, 0, 255, 0.1); pointer-events: none; box-sizing: border-box; top: 843px; left: 161.781px; width: 112.047px; height: 15px;\"></div><div class=\"playwright-highlight-label\" style=\"position: fixed; background: rgb(0, 0, 255); color: white; padding: 1px 4px; border-radius: 4px; font-size: 8px; top: 825px; left: 253.828px;\">2</div><div style=\"position: fixed; border: 2px solid rgb(255, 165, 0); background-color: rgba(255, 165, 0, 0.1); pointer-events: none; box-sizing: border-box; top: 868px; left: 161.781px; width: 112.047px; height: 15px;\"></div><div class=\"playwright-highlight-label\" style=\"position: fixed; background: rgb(255, 165, 0); color: white; padding: 1px 4px; border-radius: 4px; font-size: 8px; top: 850px; left: 253.828px;\">3</div><div style=\"position: fixed; border: 2px solid rgb(128, 0, 128); background-color: rgba(128, 0, 128, 0.1); pointer-events: none; box-sizing: border-box; top: 893px; left: 161.781px; width: 112.047px; height: 15px;\"></div><div class=\"playwright-highlight-label\" style=\"position: fixed; background: rgb(128, 0, 128); color: white; padding: 1px 4px; border-radius: 4px; font-size: 8px; top: 875px; left: 253.828px;\">4</div><div style=\"position: fixed; border: 2px solid rgb(0, 128, 128); background-color: rgba(0, 128, 128, 0.1); pointer-events: none; box-sizing: border-box; top: 793px; left: 435.625px; width: 188.969px; height: 15px;\"></div><div class=\"playwright-highlight-label\" style=\"position: fixed; background: rgb(0, 128, 128); color: white; padding: 1px 4px; border-radius: 4px; font-size: 8px; top: 775px; left: 604.594px;\">5</div><div style=\"position: fixed; border: 2px solid rgb(255, 105, 180); background-color: rgba(255, 105, 180, 0.1); pointer-events: none; box-sizing: border-box; top: 818px; left: 435.625px; width: 188.969px; height: 15px;\"></div><div class=\"playwright-highlight-label\" style=\"position: fixed; background: rgb(255, 105, 180); color: white; padding: 1px 4px; border-radius: 4px; font-size: 8px; top: 800px; left: 604.594px;\">6</div><div style=\"position: fixed; border: 2px solid rgb(75, 0, 130); background-color: rgba(75, 0, 130, 0.1); pointer-events: none; box-sizing: border-box; top: 843px; left: 435.625px; width: 188.969px; height: 15px;\"></div><div class=\"playwright-highlight-label\" style=\"position: fixed; background: rgb(75, 0, 130); color: white; padding: 1px 4px; border-radius: 4px; font-size: 8px; top: 825px; left: 604.594px;\">7</div><div style=\"position: fixed; border: 2px solid rgb(255, 69, 0); background-color: rgba(255, 69, 0, 0.1); pointer-events: none; box-sizing: border-box; top: 868px; left: 435.625px; width: 188.969px; height: 15px;\"></div><div class=\"playwright-highlight-label\" style=\"position: fixed; background: rgb(255, 69, 0); color: white; padding: 1px 4px; border-radius: 4px; font-size: 8px; top: 850px; left: 604.594px;\">8</div><div style=\"position: fixed; border: 2px solid rgb(46, 139, 87); background-color: rgba(46, 139, 87, 0.1); pointer-events: none; box-sizing: border-box; top: 893px; left: 435.625px; width: 188.969px; height: 15px;\"></div><div class=\"playwright-highlight-label\" style=\"position: fixed; background: rgb(46, 139, 87); color: white; padding: 1",
+      "clickable_elements": [
+        {
+          "index": 0,
+          "text": "Careers",
+          "tag": "a",
+          "role": null,
+          "aria_label": null,
+          "href": null,
+          "bbox": null
+        },
+        {
+          "index": 1,
+          "text": "Blog",
+          "tag": "a",
+          "role": null,
+          "aria_label": null,
+          "href": null,
+          "bbox": null
+        },
+        {
+          "index": 2,
+          "text": "About Amazon",
+          "tag": "a",
+          "role": null,
+          "aria_label": null,
+          "href": null,
+          "bbox": null
+        },
+        {
+          "index": 3,
+          "text": "Investor Relations",
+          "tag": "a",
+          "role": null,
+          "aria_label": null,
+          "href": null,
+          "bbox": null
+        },
+        {
+          "index": 4,
+          "text": "Amazon Devices",
+          "tag": "a",
+          "role": null,
+          "aria_label": null,
+          "href": null,
+          "bbox": null
+        },
+        {
+          "index": 5,
+          "text": "Sell products on Amazon",
+          "tag": "a",
+          "role": null,
+          "aria_label": null,
+          "href": null,
+          "bbox": null
+        },
+        {
+          "index": 6,
+          "text": "Sell on Amazon Business",
+          "tag": "a",
+          "role": null,
+          "aria_label": null,
+          "href": null,
+          "bbox": null
+        },
+        {
+          "index": 7,
+          "text": "Sell apps on Amazon",
+          "tag": "a",
+          "role": null,
+          "aria_label": null,
+          "href": null,
+          "bbox": null
+        },
+        {
+          "index": 8,
+          "text": "Become an Affiliate",
+          "tag": "a",
+          "role": null,
+          "aria_label": null,
+          "href": null,
+          "bbox": null
+        },
+        {
+          "index": 9,
+          "text": "Advertise Your Products",
+          "tag": "a",
+          "role": null,
+          "aria_label": null,
+          "href": null,
+          "bbox": null
+        },
+        {
+          "index": 10,
+          "text": "Amazon Business Cards",
+          "tag": "a",
+          "role": null,
+          "aria_label": null,
+          "href": null,
+          "bbox": null
+        },
+        {
+          "index": 11,
+          "text": "Shop with Points",
+          "tag": "a",
+          "role": null,
+          "aria_label": null,
+          "href": null,
+          "bbox": null
+        },
+        {
+          "index": 12,
+          "text": "Reload Your Balance",
+          "tag": "a",
+          "role": null,
+          "aria_label": null,
+          "href": null,
+          "bbox": null
+        },
+        {
+          "index": 13,
+          "text": "Amazon Currency Converter",
+          "tag": "a",
+          "role": null,
+          "aria_label": null,
+          "href": null,
+          "bbox": null
+        },
+        {
+          "index": 14,
+          "text": "Amazon and COVID-19",
+          "tag": "a",
+          "role": null,
+          "aria_label": null,
+          "href": null,
+          "bbox": null
+        },
+        {
+          "index": 15,
+          "text": "Your Account",
+          "tag": "a",
+          "role": null,
+          "aria_label": null,
+          "href": null,
+          "bbox": null
+        },
+        {
+          "index": 16,
+          "text": "Your Orders",
+          "tag": "a",
+          "role": null,
+          "aria_label": null,
+          "href": null,
+          "bbox": null
+        },
+        {
+          "index": 17,
+          "text": "Shipping Rates & Policies",
+          "tag": "a",
+          "role": null,
+          "aria_label": null,
+          "href": null,
+          "bbox": null
+        },
+        {
+          "index": 18,
+          "text": "Returns & Replacements",
+          "tag": "a",
+          "role": null,
+          "aria_label": null,
+          "href": null,
+          "bbox": null
+        }
+      ],
+      "error": null
+    }
+  ],
+  "errors": [
+    "429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\\nPlease retry in 36.83676625s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '36s'}]}}"
+  ]
+}
