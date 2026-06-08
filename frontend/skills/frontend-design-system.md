@@ -27,6 +27,8 @@ rounder, more tactile, and more saturated-but-not-washed-out**.
    - `src/components/BallRain.tsx` — the entire physics/3D pattern library.
    - `src/components/RiskGauge.tsx` + `ReportScreen.css` — how colored emboss is
      done correctly (no hue wash).
+   - `src/components/threatintel/` — the data-driven source-panel registry (§6.5)
+     for rendering many typed backend results.
 2. **Imitate, don't invent.** Find the closest existing component and mirror its
    structure, class composition, and token usage. New shadows/colors/radii are a
    smell — reuse the tokens and surface classes.
@@ -244,6 +246,44 @@ Use the stroke's own alpha as a bump map; clip every lighting layer back
 
 ---
 
+## 6.5 Data-driven panels (source-panel registry pattern)
+
+When rendering a list of heterogeneous backend results that each carry their own
+native fields (e.g. the threat-intel sources — VirusTotal engine counts, RDAP
+registration date, Tranco rank, IPGeo country), **do NOT render them all with one
+generic icon+text row** (that throws away the data) and **do NOT hand-write a
+fully independent component per item** (unmaintainable). Use a **registry**: one
+shared clay shell + a per-type body renderer keyed by name. Reference
+implementation: `src/components/threatintel/`.
+
+Structure (mirror this for any similar "many typed results" feature):
+- `fixtures.ts` — capture **real** backend output (clean + flagged variants) so
+  panels are built and tested **without a live backend**. Get the real shapes by
+  actually running the backend once (don't invent field names).
+- `fields.ts` — **safe typed accessors** (`num/str/bool/strList`) that narrow the
+  `[key: string]: unknown` fields to a type with a fallback, plus derived helpers
+  (e.g. `domainAge`, date formatting). Panels must never crash on a missing field.
+- `icons.tsx` — one stroke-based, `currentColor`, clay-sized glyph per type +
+  a `glyphForX(name)` mapper with a generic fallback. No emoji (see §3 rules).
+- `SourcePanel.tsx` — the shared shell (icon, name, verdict pip, detail) that
+  dispatches to a body via a `Record<string, (props) => JSX | null>` registry.
+  Unknown types fall back to detail-only. Reusable micro-viz live here: ratio
+  bars, chips, big stat, key/value — all built from clay tokens (§2–3).
+- Group results by meaning (e.g. "Threat scan" vs "Domain intelligence") and give
+  the container a **verdict summary** header (counts + streaming progress).
+
+Rules:
+- Each micro-visualization is **colored by verdict** (`--safe/--caution/--danger`)
+  and uses the §6 colored-emboss rules (no hue wash) for any filled bar.
+- Adding a new source = add a fixture entry + a glyph + one body renderer +
+  register it. No edits to the shell or the panel.
+- Test the registry through the full panel with the fixtures (§8): assert each
+  type renders its key field, and scope queries with `within(panelEl)` to avoid
+  matching the same word in both a chip and the detail sentence.
+
+---
+
+
 ## 7. Build, run & verify
 
 ```bash
@@ -376,6 +416,8 @@ Follow these stages in order for any non-trivial component or visual change.
 - [ ] Fredoka font inherited; set hierarchy via font-weight only.
 - [ ] Shadows green-tinted (same-family), never neutral black.
 - [ ] Colored emboss: `multiply` for shade + thin white highlight (no hue wash).
+- [ ] Rendering many typed backend results? Use the source-panel registry (§6.5),
+      not one generic row or N independent components.
 - [ ] Respect `prefers-reduced-motion` for any animation.
 - [ ] Keep clickable UI above overlays; overlays `pointer-events:none`.
 - [ ] Added/updated `*.test.tsx` for new states & interactions; `npm test` green.
