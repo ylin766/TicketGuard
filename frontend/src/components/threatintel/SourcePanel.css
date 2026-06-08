@@ -1,0 +1,251 @@
+/* SourcePanel — per-source clay sub-panels. Tokens from global.css. */
+
+.ti-spanel {
+  background: linear-gradient(150deg, var(--clay-top), var(--clay-bottom));
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 10px 22px -12px var(--clay-cast),
+    inset 3px 3px 7px var(--clay-hi), inset -4px -5px 9px var(--clay-lo);
+  border-left: 4px solid transparent;
+}
+
+.ti-spanel--danger {
+  border-left-color: var(--danger);
+}
+.ti-spanel--safe {
+  border-left-color: var(--safe);
+}
+.ti-spanel--info {
+  border-left-color: var(--accent-soft);
+}
+
+/* ---------- Head ---------- */
+.ti-spanel-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ti-spanel-glyph-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
+  background: linear-gradient(150deg, var(--clay-top), var(--clay-bottom));
+  box-shadow: inset 2px 2px 5px var(--clay-hi), inset -2px -3px 6px var(--clay-lo);
+  flex-shrink: 0;
+}
+
+.ti-glyph {
+  width: 18px;
+  height: 18px;
+}
+
+.ti-spanel-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.ti-pip {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.ti-pip--danger {
+  color: var(--danger);
+}
+.ti-pip--safe {
+  color: var(--safe);
+}
+.ti-pip--info {
+  color: var(--accent);
+}
+
+/* ---------- Body container ---------- */
+.ti-spanel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ti-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ti-spanel-detail {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+/* ---------- Ratio bar ---------- */
+.ti-ratio {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ti-ratio-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.ti-ratio-num {
+  font-size: 15px;
+  font-weight: 900;
+}
+.ti-ratio-num strong {
+  font-size: 18px;
+}
+.ti-ratio-sep {
+  color: var(--ink-faint);
+  font-weight: 700;
+}
+.ti-ratio-unit {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+.ti-ratio-track {
+  height: 8px;
+  border-radius: 999px;
+  background: #e2ead4;
+  box-shadow: inset 2px 2px 4px rgba(150, 178, 138, 0.6),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.85);
+  overflow: hidden;
+}
+
+.ti-ratio-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: inset 0 2px 2px rgba(255, 255, 255, 0.5),
+    inset 0 -2px 3px rgba(31, 42, 28, 0.18);
+}
+.ti-ratio-fill--danger {
+  background: var(--danger);
+}
+.ti-ratio-fill--safe {
+  background: var(--safe);
+}
+
+/* ---------- Chips ---------- */
+.ti-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ti-chip {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: inset 1px 1px 3px rgba(150, 178, 138, 0.4),
+    inset -1px -1px 3px rgba(255, 255, 255, 0.9);
+}
+.ti-chip--danger {
+  color: var(--danger);
+}
+.ti-chip--safe {
+  color: var(--safe);
+}
+.ti-chip--info {
+  color: var(--ink-soft);
+}
+
+/* ---------- Tag (disposition) ---------- */
+.ti-tag {
+  align-self: flex-start;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 5px 12px;
+  border-radius: 999px;
+  box-shadow: 0 6px 14px -8px var(--clay-cast),
+    inset 2px 2px 5px var(--clay-hi), inset -2px -3px 6px var(--clay-lo);
+}
+.ti-tag--danger {
+  color: var(--danger);
+}
+.ti-tag--safe {
+  color: var(--safe);
+}
+
+/* ---------- Big stat ---------- */
+.ti-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.ti-stat-value {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--ink);
+}
+.ti-stat-value--danger {
+  color: var(--danger);
+}
+.ti-stat-value--safe {
+  color: var(--safe);
+}
+.ti-stat-value--info {
+  color: var(--accent);
+}
+.ti-stat-caption {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+/* ---------- Key/value (IP geo) ---------- */
+.ti-kv {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+.ti-kv-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.ti-kv-key {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+.ti-kv-val {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.text-danger {
+  color: var(--danger);
+}
+.text-safe {
+  color: var(--safe);
+}
