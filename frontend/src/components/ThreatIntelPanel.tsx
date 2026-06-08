@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { ThreatSource } from "../types";
-import { SourcePanel, SourcePanelSkeleton } from "./threatintel/SourcePanel";
+import { SourcePanel, SourcePanelSkeleton, SourcePanelTimeout } from "./threatintel/SourcePanel";
 import { GlyphShield, GlyphChevron } from "./threatintel/icons";
 import "./ThreatIntelPanel.css";
 
@@ -44,9 +44,9 @@ function ClayDots() {
 }
 
 /**
- * A titled group. While streaming, every manifest source renders as either its
- * arrived panel or a themed skeleton, so the grid never shifts. Once done, only
- * the sources that actually returned are shown.
+ * A titled group. While streaming, every manifest source renders as its arrived
+ * panel or a themed skeleton, so the grid never shifts. Once done, sources that
+ * never returned render an explicit "timed out" panel instead of vanishing.
  */
 function Group({
   title,
@@ -59,15 +59,11 @@ function Group({
   arrived: Map<string, ThreatSource>;
   streaming: boolean;
 }) {
-  const names = streaming
-    ? manifest
-    : manifest.filter((n) => arrived.has(n));
-  if (names.length === 0) return null;
   return (
     <div className="ti-group">
       <span className="ti-group-title eyebrow">{title}</span>
       <div className="ti-group-grid">
-        {names.map((name, i) => {
+        {manifest.map((name, i) => {
           const src = arrived.get(name);
           return (
             <motion.div
@@ -82,8 +78,10 @@ function Group({
             >
               {src ? (
                 <SourcePanel source={src} />
-              ) : (
+              ) : streaming ? (
                 <SourcePanelSkeleton name={name} />
+              ) : (
+                <SourcePanelTimeout name={name} />
               )}
             </motion.div>
           );

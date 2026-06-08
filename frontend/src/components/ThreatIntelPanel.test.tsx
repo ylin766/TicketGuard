@@ -236,14 +236,16 @@ describe("ThreatIntelPanel streaming placeholders", () => {
     expect(geo.className).toContain("ti-theme--network");
   });
 
-  it("drops unreturned sources from the layout once done", async () => {
-    // crt.sh is omitted from the response (e.g. it errored server-side).
+  it("keeps an unreturned source as a timed-out panel once done", async () => {
+    // crt.sh is omitted from the response (e.g. it errored / timed out server-side).
     const withoutCrt = CLEAN_SOURCES.filter((s) => s.name !== "crt.sh");
     mockSse(withoutCrt, false);
     render(<ThreatIntelPanel url={TEST_URL} />);
 
     await waitFor(() => expect(screen.getByText("CLEAN")).toBeInTheDocument());
-    // No lingering skeleton for crt.sh after completion.
-    expect(screen.queryByLabelText("crt.sh loading")).not.toBeInTheDocument();
+    // crt.sh still has a slot, now marked as timed out (not silently dropped).
+    const crt = screen.getByText("crt.sh").closest(".ti-spanel") as HTMLElement;
+    expect(crt.className).toContain("ti-spanel--timeout");
+    expect(within(crt).getByText(/timed out/i)).toBeInTheDocument();
   });
 });

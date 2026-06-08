@@ -210,9 +210,14 @@ export function SourcePanel({ source }: { source: ThreatSource }) {
   const verdict = verdictOf(source);
   const Glyph = glyphForSource(source.name);
   const Body = BODY_REGISTRY[source.name];
+  const hasBody = Boolean(Body);
 
   return (
-    <div className={`ti-spanel ti-spanel--${verdict} ${themeClass(source.name)}`}>
+    <div
+      className={`ti-spanel ti-spanel--${verdict} ${themeClass(source.name)}${
+        hasBody ? "" : " ti-spanel--detail-only"
+      }`}
+    >
       <div className="ti-spanel-head">
         <span className="ti-spanel-glyph-wrap">
           <Glyph />
@@ -220,10 +225,35 @@ export function SourcePanel({ source }: { source: ThreatSource }) {
         <span className="ti-spanel-name">{source.name}</span>
         <VerdictPip verdict={verdict} />
       </div>
-      <div className="ti-spanel-body">
-        {Body ? <Body source={source} /> : null}
-      </div>
+      {hasBody ? (
+        <div className="ti-spanel-body">
+          <Body source={source} />
+        </div>
+      ) : null}
       <p className="ti-spanel-detail">{source.detail}</p>
+    </div>
+  );
+}
+
+/**
+ * Timeout panel — a source that was expected but never returned (e.g. it timed
+ * out or errored server-side). We keep its slot instead of silently removing
+ * the skeleton, so the user isn't confused by a card that appears then vanishes.
+ */
+export function SourcePanelTimeout({ name }: { name: string }) {
+  const Glyph = glyphForSource(name);
+  return (
+    <div
+      className={`ti-spanel ti-spanel--timeout ti-spanel--detail-only ${themeClass(name)}`}
+    >
+      <div className="ti-spanel-head">
+        <span className="ti-spanel-glyph-wrap">
+          <Glyph />
+        </span>
+        <span className="ti-spanel-name">{name}</span>
+        <span className="ti-spanel-tag">timed out</span>
+      </div>
+      <p className="ti-spanel-detail">No response in time — source skipped.</p>
     </div>
   );
 }
