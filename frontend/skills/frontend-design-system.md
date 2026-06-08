@@ -11,12 +11,29 @@
 ## 0. Overall direction & how to learn this codebase
 
 ### What "good" means here (the north star)
-Every screen should feel like **soft clay toys arranged on a real football
-pitch**: warm, tactile, rounded, matte, with green-tinted soft shadows so
-elements look *embedded in the scene*, never like flat cards floating on white.
-Motion is **playful but never in the way** (physics balls that respect the UI,
-reduced-motion fallbacks). When in doubt, choose the option that is **softer,
-rounder, more tactile, and more saturated-but-not-washed-out**.
+Every screen should feel like **soft clay toys**: warm, tactile, rounded, matte,
+with neutral soft shadows so elements look moulded, never like flat cards
+floating on white. Motion is **playful but never in the way** (physics balls
+that respect the UI, reduced-motion fallbacks). When in doubt, choose the option
+that is **softer, rounder, more tactile, and more saturated-but-not-washed-out**.
+
+### Color: clay is multicolor — give each component its own fitting hue
+Claymorphism's soul is **color variety**, not a single uniform tint. Prefer a
+palette of soft, distinct clay hues over one repeated color:
+- **Don't** paint a whole group/list one color (it reads monochrome and dull).
+  Each item should get its own *fitting* hue (e.g. one per data source), spread
+  around the wheel and kept low-saturation so it stays on-brand and playful.
+- Keep the tint **restrained**: a light background wash + a colored icon/glyph,
+  not a loud full-saturation block.
+- **Reserve semantic colors for meaning:** red = an actual threat/danger,
+  green/`--safe` = a positive/clear state, amber/`--caution` = warning. Never use
+  red as a component's *default* look just because it belongs to a "threat"
+  group — that wastes the signal. Reference: `src/components/threatintel/theme.ts`
+  (one distinct hue per source) + `SourcePanel.css` `.ti-theme--*`.
+- **Surfaces are neutral, not green.** The base clay tokens (`--clay-*`) are
+  warm-neutral grey. (Historically they were pitch-green; that was removed —
+  don't reintroduce a green cast on surfaces. Grass/brand greens live only on
+  the page background and the verdict/accent semantic colors.)
 
 ### How to learn before you touch code (do this first, every time)
 1. **Read this skill end to end**, then open the three anchor files it keeps
@@ -27,6 +44,8 @@ rounder, more tactile, and more saturated-but-not-washed-out**.
    - `src/components/BallRain.tsx` — the entire physics/3D pattern library.
    - `src/components/RiskGauge.tsx` + `ReportScreen.css` — how colored emboss is
      done correctly (no hue wash).
+   - `src/components/threatintel/` — the data-driven source-panel registry (§6.5)
+     for rendering many typed backend results.
 2. **Imitate, don't invent.** Find the closest existing component and mirror its
    structure, class composition, and token usage. New shadows/colors/radii are a
    smell — reuse the tokens and surface classes.
@@ -81,19 +100,20 @@ component MUST read as belonging to this family.
 | **Neumorphism** | Pressed-in fields & raised buttons (`neu-inset`, `neu-raised`) | Soft-UI / neumorphism (dual inset/outset shadows). |
 | **Glassmorphism** | Light frosted chips & banners (`glass`) | Frosted translucent pills. |
 
-**Core idea:** warm pistachio-cream "clay" surfaces sitting on a real grass
-pitch, with green-tinted shadows (never pure black) so cards feel embedded in
-the scene rather than floating on white.
+**Core idea:** warm neutral cream "clay" surfaces with soft neutral shadows
+(never pure black) so cards feel moulded rather than floating on white. (The
+surfaces used to be pistachio-green to sit on the grass; that green cast was
+removed — keep surfaces neutral; greens are reserved for the page background and
+semantic verdict/accent colors.)
 
 ### The claymorphism recipe (memorize this)
-A clay surface = **outer green-tinted cast shadow** + **inner top-left white
-highlight** + **inner bottom-right green shade**. Shadows are *same-family*
-(green-tinted), never neutral grey/black. This is why it reads as soft clay and
-not as a generic card.
+A clay surface = **outer soft cast shadow** + **inner top-left white highlight**
++ **inner bottom-right shade**. Shadows are soft and *neutral-warm grey*, never
+pure black. This is why it reads as soft clay and not as a generic card.
 
 ```css
 box-shadow:
-  0 22px 46px -10px var(--clay-cast),   /* outer drop, green-tinted */
+  0 22px 46px -10px var(--clay-cast),   /* outer drop, neutral */
   inset 6px 6px 14px var(--clay-hi),    /* inner highlight, top-left */
   inset -7px -9px 16px var(--clay-lo);  /* inner shade, bottom-right */
 ```
@@ -244,6 +264,58 @@ Use the stroke's own alpha as a bump map; clip every lighting layer back
 
 ---
 
+## 6.5 Data-driven panels (source-panel registry pattern)
+
+When rendering a list of heterogeneous backend results that each carry their own
+native fields (e.g. the threat-intel sources — VirusTotal engine counts, RDAP
+registration date, Tranco rank, IPGeo country), **do NOT render them all with one
+generic icon+text row** (that throws away the data) and **do NOT hand-write a
+fully independent component per item** (unmaintainable). Use a **registry**: one
+shared clay shell + a per-type body renderer keyed by name. Reference
+implementation: `src/components/threatintel/`.
+
+Structure (mirror this for any similar "many typed results" feature):
+- `fixtures.ts` — capture **real** backend output (clean + flagged variants) so
+  panels are built and tested **without a live backend**. Get the real shapes by
+  actually running the backend once (don't invent field names).
+- `fields.ts` — **safe typed accessors** (`num/str/bool/strList`) that narrow the
+  `[key: string]: unknown` fields to a type with a fallback, plus derived helpers
+  (e.g. `domainAge`, date formatting). Panels must never crash on a missing field.
+- `icons.tsx` — one stroke-based, `currentColor`, clay-sized glyph per type +
+  a `glyphForX(name)` mapper with a generic fallback. No emoji (see §3 rules).
+- `SourcePanel.tsx` — the shared shell (icon, name, verdict pip, detail) that
+  dispatches to a body via a `Record<string, (props) => JSX | null>` registry.
+  Unknown types fall back to detail-only. Reusable micro-viz live here: ratio
+  bars, chips, big stat, key/value — all built from clay tokens (§2–3).
+- Group results by meaning (e.g. "Threat scan" vs "Domain intelligence") and give
+  the container a **verdict summary** header (counts + streaming progress).
+
+Rules:
+- Each micro-visualization is **colored by verdict** (`--safe/--caution/--danger`)
+  and uses the §6 colored-emboss rules (no hue wash) for any filled bar.
+- **Category color (optional):** if you tint cards by category for scannability,
+  tint the **whole block** with a *very restrained* wash (e.g. a light theme-color
+  background gradient + a colored icon glyph) — **not** a bright top line or edge
+  bar, and never a saturated full-color block. The verdict (safe/danger) stays on
+  the small pip; category is a soft, secondary cue.
+- **Avoid an overall color cast on small/dense cards.** The global clay system
+  uses *green-tinted* shadows (§1) because large cards sit on grass. On small,
+  closely-packed sub-panels that green tint accumulates and the whole grid reads
+  greenish. For these, use **neutral grey** inset/cast shadows
+  (e.g. `rgba(120,124,116,…)` / `rgba(40,44,38,…)`) instead of `--clay-lo/-hi/
+  -cast`, and a neutral background gradient. Keep green only on the large
+  page-level clay surfaces.
+- Use a **vertical** (180°) background gradient on grid cards, not a diagonal one,
+  so columns read equally bright (a diagonal sheen makes one side look lighter).
+- Adding a new source = add a fixture entry + a glyph + one body renderer +
+  register it. No edits to the shell or the panel.
+- Test the registry through the full panel with the fixtures (§8): assert each
+  type renders its key field, and scope queries with `within(panelEl)` to avoid
+  matching the same word in both a chip and the detail sentence.
+
+---
+
+
 ## 7. Build, run & verify
 
 ```bash
@@ -374,8 +446,12 @@ Follow these stages in order for any non-trivial component or visual change.
 - [ ] Build from `.clay` / `.glass` / `.neu-inset` / `.neu-raised`; don't invent shadows.
 - [ ] Use design tokens (CSS vars), not hardcoded colors; verdict colors for risk states.
 - [ ] Fredoka font inherited; set hierarchy via font-weight only.
-- [ ] Shadows green-tinted (same-family), never neutral black.
+- [ ] Shadows soft & neutral-warm grey, never pure black; surfaces not green-tinted.
+- [ ] Multicolor by default: give each component its own fitting hue; don't paint
+      a whole group one color. Reserve red/green/amber for danger/safe/caution.
 - [ ] Colored emboss: `multiply` for shade + thin white highlight (no hue wash).
+- [ ] Rendering many typed backend results? Use the source-panel registry (§6.5),
+      not one generic row or N independent components.
 - [ ] Respect `prefers-reduced-motion` for any animation.
 - [ ] Keep clickable UI above overlays; overlays `pointer-events:none`.
 - [ ] Added/updated `*.test.tsx` for new states & interactions; `npm test` green.

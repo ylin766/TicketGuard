@@ -8,15 +8,15 @@
   --bg-2: #a7e090;
   --bg-3: #4ca85a;
 
-  /* Warm pistachio-cream clay (not pure white → less clash with grass) */
-  --clay-base: #eef4e3;
-  --clay-top: #f7faf0;
-  --clay-bottom: #e3ecd5;
+  /* Neutral warm-grey clay (de-greened — brand-wide neutral clay surfaces) */
+  --clay-base: #f3f4f0;
+  --clay-top: #fbfbf9;
+  --clay-bottom: #eef0ea;
 
-  /* Claymorphism shadow ingredients */
-  --clay-hi: rgba(255, 255, 255, 0.95); /* inner top-left highlight */
-  --clay-lo: rgba(150, 178, 138, 0.55); /* inner bottom-right shade */
-  --clay-cast: rgba(22, 58, 34, 0.3); /* outer cast — green-tinted */
+  /* Claymorphism shadow ingredients — neutral grey (no green cast) */
+  --clay-hi: rgba(255, 255, 255, 0.92); /* inner top-left highlight */
+  --clay-lo: rgba(120, 124, 116, 0.4); /* inner bottom-right shade */
+  --clay-cast: rgba(40, 44, 38, 0.26); /* outer cast — neutral */
 
   --ink: #233027;
   --ink-soft: #4f5e52;
@@ -138,7 +138,7 @@ body {
 
 /* Pressed-in clay field — concave, no outer cast. */
 .neu-inset {
-  background: #e7efda;
+  background: #eef0ea;
   border-radius: var(--radius-sm);
   border: none;
   box-shadow: inset 5px 5px 11px var(--clay-lo),

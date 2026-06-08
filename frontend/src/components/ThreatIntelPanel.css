@@ -4,6 +4,24 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* Neutralize the green clay tokens within this whole panel so nothing inside
+     (header, badges, count, dots, source cards) inherits the green cast. */
+  --clay-hi: rgba(255, 255, 255, 0.9);
+  --clay-lo: rgba(120, 124, 116, 0.32);
+  --clay-cast: rgba(40, 44, 38, 0.22);
+  --clay-top: #fbfbf9;
+  --clay-bottom: #eef0ea;
+}
+
+/* Override the shared green-tinted `.glass` surface: this panel is a large,
+   data-dense block where the global green clay cast reads as an overall green
+   wash. Use a neutral clay surface + neutral shadows instead (vertical gradient
+   so columns read evenly). */
+.ti-panel.glass {
+  background: linear-gradient(180deg, #fbfbf9, #eef0ea);
+  box-shadow: 0 12px 26px -8px rgba(40, 44, 38, 0.22),
+    inset 3px 3px 8px rgba(255, 255, 255, 0.9),
+    inset -4px -5px 10px rgba(120, 124, 116, 0.3);
 }
 
 /* ---------- Header button ---------- */
@@ -138,14 +156,14 @@
 .ti-badge--safe {
   color: var(--safe);
   background: rgba(255, 255, 255, 0.65);
-  box-shadow: inset 1px 1px 3px rgba(150, 178, 138, 0.4),
+  box-shadow: inset 1px 1px 3px rgba(120, 124, 116, 0.3),
     inset -1px -1px 3px rgba(255, 255, 255, 0.9);
 }
 
 .ti-badge--danger {
   color: var(--danger);
   background: rgba(255, 255, 255, 0.65);
-  box-shadow: inset 1px 1px 3px rgba(150, 178, 138, 0.4),
+  box-shadow: inset 1px 1px 3px rgba(120, 124, 116, 0.3),
     inset -1px -1px 3px rgba(255, 255, 255, 0.9);
 }
 
@@ -173,6 +191,67 @@
 .ti-status--error {
   color: var(--danger);
 }
+
+/* ---------- Header titles + shield glyph ---------- */
+.ti-header-shield {
+  width: 20px;
+  height: 20px;
+  color: var(--accent);
+}
+
+.ti-header-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ti-header-sub {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-faint);
+}
+
+/* ---------- Grouped panels ---------- */
+.ti-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 4px 16px 18px;
+  overflow: hidden;
+}
+
+.ti-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ti-group-title {
+  padding-left: 2px;
+}
+
+.ti-group-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 10px;
+  align-items: stretch;
+}
+
+/* The motion wrapper must stretch so the panel fills the equal-height row. */
+.ti-group-grid > * {
+  display: flex;
+}
+.ti-group-grid > * > * {
+  width: 100%;
+}
+
+@media (max-width: 560px) {
+  .ti-group-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 
 /* ---------- Source rows ---------- */
 .ti-sources {

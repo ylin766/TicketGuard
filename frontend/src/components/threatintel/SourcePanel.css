@@ -1,0 +1,549 @@
+/* SourcePanel — per-source clay sub-panels. Tokens from global.css. */
+
+.ti-spanel {
+  position: relative;
+  height: 100%;
+  /* Whole-block category tint: a very restrained wash of the theme color over
+     a neutral clay base. Vertical only, so brightness is even across columns. */
+  background: linear-gradient(
+    180deg,
+    var(--ti-bg-top, #fbfbf9),
+    var(--ti-bg-bottom, #eef0ea)
+  );
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* Neutral (non-green) clay shadows so the blocks don't read as greenish. */
+  box-shadow: 0 10px 22px -12px rgba(40, 44, 38, 0.22),
+    inset 3px 3px 7px rgba(255, 255, 255, 0.9),
+    inset -4px -5px 9px rgba(120, 124, 116, 0.32);
+  overflow: hidden;
+}
+
+/* Detail-only cards (no body viz) center their single line vertically. */
+.ti-spanel--detail-only {
+  justify-content: flex-start;
+}
+.ti-spanel--detail-only .ti-spanel-detail {
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+/* Verdict is shown via the pip glyph (top-right); no colored edge needed. */
+
+/* ---------- Category themes (tint the WHOLE block, used restrainedly) -------
+   --ti-accent      : the saturated theme color (icon glyph + small accents)
+   --ti-bg-top/bottom: a very light theme wash for the block background        */
+.ti-theme--virustotal {
+  --ti-accent: #5b6bd0;
+  --ti-bg-top: #f6f7fd;
+  --ti-bg-bottom: #e6e9f7;
+}
+.ti-theme--safebrowsing {
+  --ti-accent: #3d92cf;
+  --ti-bg-top: #f2f9fd;
+  --ti-bg-bottom: #e0eef7;
+}
+.ti-theme--urlhaus {
+  --ti-accent: #d4694e;
+  --ti-bg-top: #fdf6f3;
+  --ti-bg-bottom: #f4e4de;
+}
+.ti-theme--checkphish {
+  --ti-accent: #23938e;
+  --ti-bg-top: #f1faf8;
+  --ti-bg-bottom: #e0f0ed;
+}
+.ti-theme--metadefender {
+  --ti-accent: #8059bd;
+  --ti-bg-top: #faf7fd;
+  --ti-bg-bottom: #ebe3f4;
+}
+.ti-theme--sucuri {
+  --ti-accent: #c4892a;
+  --ti-bg-top: #fdfaf1;
+  --ti-bg-bottom: #f3ead4;
+}
+.ti-theme--openphish {
+  --ti-accent: #cf5d86;
+  --ti-bg-top: #fdf5f8;
+  --ti-bg-bottom: #f6e2ea;
+}
+.ti-theme--phishstats {
+  --ti-accent: #2a9bb0;
+  --ti-bg-top: #f1fafc;
+  --ti-bg-bottom: #def0f4;
+}
+.ti-theme--tranco {
+  --ti-accent: #c79023;
+  --ti-bg-top: #fdfaf0;
+  --ti-bg-bottom: #f3ecd6;
+}
+.ti-theme--crtsh {
+  --ti-accent: #4ca35c;
+  --ti-bg-top: #f3fbf4;
+  --ti-bg-bottom: #e2f2e4;
+}
+.ti-theme--wayback {
+  --ti-accent: #9b5fb0;
+  --ti-bg-top: #fbf6fd;
+  --ti-bg-bottom: #efe1f3;
+}
+.ti-theme--rdap {
+  --ti-accent: #5a73c0;
+  --ti-bg-top: #f5f7fd;
+  --ti-bg-bottom: #e5eaf6;
+}
+.ti-theme--ipgeo {
+  --ti-accent: #2fa98a;
+  --ti-bg-top: #f1fbf7;
+  --ti-bg-bottom: #ddf1e9;
+}
+.ti-theme--default {
+  --ti-accent: #7a8a86;
+  --ti-bg-top: #fbfbf9;
+  --ti-bg-bottom: #eef0ea;
+}
+
+/* ---------- Head ---------- */
+.ti-spanel-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ti-spanel-glyph-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ti-accent, var(--ink-soft));
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: inset 2px 2px 5px rgba(255, 255, 255, 0.85),
+    inset -2px -3px 6px rgba(120, 124, 116, 0.28);
+  flex-shrink: 0;
+}
+
+.ti-glyph {
+  width: 18px;
+  height: 18px;
+}
+
+.ti-spanel-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.ti-pip {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.ti-pip--danger {
+  color: var(--danger);
+}
+.ti-pip--safe {
+  color: var(--safe);
+}
+.ti-pip--info {
+  color: var(--accent);
+}
+
+/* ---------- Body container ---------- */
+.ti-spanel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1; /* fill remaining height so cards in a row stay equal */
+  min-height: 34px;
+}
+
+.ti-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ti-spanel-detail {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  margin-top: auto; /* pin detail to the bottom for a consistent baseline */
+}
+
+/* ---------- Ratio bar ---------- */
+.ti-ratio {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ti-ratio-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.ti-ratio-num {
+  font-size: 15px;
+  font-weight: 900;
+}
+.ti-ratio-num strong {
+  font-size: 18px;
+}
+.ti-ratio-sep {
+  color: var(--ink-faint);
+  font-weight: 700;
+}
+.ti-ratio-unit {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+.ti-ratio-track {
+  height: 8px;
+  border-radius: 999px;
+  background: #e9ebe4;
+  box-shadow: inset 2px 2px 4px rgba(120, 124, 116, 0.4),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.85);
+  overflow: hidden;
+  display: flex;
+}
+
+/* Proportion segments: a red (flagged) share + a green (clear) share that
+   together always fill the track. A full-green bar == all clear. */
+.ti-ratio-seg {
+  height: 100%;
+  transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: inset 0 2px 2px rgba(255, 255, 255, 0.45),
+    inset 0 -2px 3px rgba(31, 42, 28, 0.18);
+}
+.ti-ratio-seg--danger {
+  background: var(--danger);
+}
+.ti-ratio-seg--safe {
+  background: var(--safe);
+}
+
+/* ---------- Chips ---------- */
+.ti-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ti-chip {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: inset 1px 1px 3px rgba(120, 124, 116, 0.3),
+    inset -1px -1px 3px rgba(255, 255, 255, 0.9);
+}
+.ti-chip--danger {
+  color: var(--danger);
+}
+.ti-chip--safe {
+  color: var(--safe);
+}
+.ti-chip--info {
+  color: var(--ink-soft);
+}
+
+/* ---------- Tag (disposition) ---------- */
+.ti-tag {
+  align-self: flex-start;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 5px 12px;
+  border-radius: 999px;
+  box-shadow: 0 6px 14px -8px rgba(40, 44, 38, 0.22),
+    inset 2px 2px 5px rgba(255, 255, 255, 0.9),
+    inset -2px -3px 6px rgba(120, 124, 116, 0.3);
+}
+.ti-tag--danger {
+  color: var(--danger);
+}
+.ti-tag--safe {
+  color: var(--safe);
+}
+
+/* ---------- Big stat ---------- */
+.ti-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.ti-stat-value {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--ink);
+}
+.ti-stat-value--danger {
+  color: var(--danger);
+}
+.ti-stat-value--safe {
+  color: var(--safe);
+}
+.ti-stat-value--info {
+  color: var(--accent);
+}
+.ti-stat-caption {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+/* ---------- Key/value (IP geo) ---------- */
+.ti-kv {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+.ti-kv-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.ti-kv-key {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+.ti-kv-val {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.text-danger {
+  color: var(--danger);
+}
+.text-safe {
+  color: var(--safe);
+}
+
+/* =====================================================================
+   Pending skeleton + per-source loading animations (clay style)
+   ===================================================================== */
+
+.ti-spanel--pending {
+  /* Waiting — verdict unknown; dim the card slightly. */
+  opacity: 0.96;
+}
+
+/* Timed-out source — kept in place but rendered as a clearly inactive, hollow
+   "empty slot" so it contrasts strongly with the filled, raised result cards:
+   recessed (inset) instead of raised, desaturated, dashed outline, no top tint. */
+.ti-spanel--timeout {
+  background: rgba(238, 240, 234, 0.5);
+  box-shadow: inset 2px 2px 6px rgba(120, 124, 116, 0.28),
+    inset -2px -2px 6px rgba(255, 255, 255, 0.6);
+  border: 1.5px dashed rgba(140, 142, 136, 0.5);
+  filter: saturate(0.55);
+}
+.ti-spanel--timeout::before {
+  display: none; /* drop the category top accent — this card is inactive */
+}
+.ti-spanel--timeout .ti-spanel-glyph-wrap {
+  color: var(--ink-faint);
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: inset 1px 1px 3px rgba(120, 124, 116, 0.25),
+    inset -1px -1px 3px rgba(255, 255, 255, 0.7);
+}
+.ti-spanel--timeout .ti-spanel-name {
+  color: var(--ink-faint);
+  font-weight: 700;
+}
+.ti-spanel--timeout .ti-spanel-detail {
+  color: var(--ink-faint);
+  font-style: italic;
+}
+
+.ti-spanel-tag {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: inset 1px 1px 2px rgba(120, 124, 116, 0.3);
+  border: 1px dashed rgba(140, 142, 136, 0.45);
+  flex-shrink: 0;
+}
+
+.ti-spanel-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: var(--ti-accent, var(--accent));
+  flex-shrink: 0;
+}
+
+.ti-loader {
+  width: 22px;
+  height: 22px;
+}
+
+/* Breathing pill for fast sources (no special animation). */
+.ti-loader-breathe {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #fbfbf9, #eef0ea);
+  box-shadow: inset 2px 2px 3px rgba(255, 255, 255, 0.9),
+    inset -2px -2px 3px rgba(120, 124, 116, 0.3);
+  animation: ti-breathe 1.3s ease-in-out infinite;
+}
+
+/* Skeleton placeholder lines — soft inset clay pills with a sheen sweep. */
+.ti-skeleton-line {
+  height: 12px;
+  border-radius: 999px;
+  background: #e9ebe4;
+  box-shadow: inset 2px 2px 4px rgba(120, 124, 116, 0.4),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.8);
+  position: relative;
+  overflow: hidden;
+  width: 70%;
+}
+.ti-skeleton-line--lg {
+  height: 18px;
+  width: 90%;
+}
+.ti-skeleton-line::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.55),
+    transparent
+  );
+  transform: translateX(-100%);
+  animation: ti-sheen 1.5s ease-in-out infinite;
+}
+
+/* ---- keyframes ---- */
+@keyframes ti-breathe {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.25); opacity: 1; }
+}
+
+@keyframes ti-sheen {
+  100% { transform: translateX(100%); }
+}
+
+/* VirusTotal radial scan: core pulses, dots light up in sequence. */
+.ti-scan-core {
+  animation: ti-breathe 1.4s ease-in-out infinite;
+  transform-origin: center;
+}
+.ti-scan-dot {
+  opacity: 0.3;
+  animation: ti-dot-blink 1.2s ease-in-out infinite;
+}
+@keyframes ti-dot-blink {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
+/* CheckPhish hook bobbing. */
+.ti-bob-group {
+  transform-origin: center;
+  animation: ti-bob 1.5s ease-in-out infinite;
+}
+@keyframes ti-bob {
+  0%, 100% { transform: translateY(-2px); }
+  50% { transform: translateY(3px); }
+}
+
+/* MetaDefender layer sweep. */
+.ti-sweep-layer {
+  opacity: 0.3;
+  animation: ti-sweep 1.5s ease-in-out infinite;
+}
+@keyframes ti-sweep {
+  0%, 100% { opacity: 0.25; }
+  40% { opacity: 1; }
+}
+
+/* crt.sh certificate outline drawing. */
+.ti-flow-path {
+  stroke-dasharray: 120;
+  stroke-dashoffset: 120;
+  animation: ti-flow 2s ease-in-out infinite;
+}
+@keyframes ti-flow {
+  0% { stroke-dashoffset: 120; }
+  60%, 100% { stroke-dashoffset: 0; }
+}
+
+/* Wayback clock hand rewinding. */
+.ti-clock-hand {
+  transform-origin: 24px 24px;
+  animation: ti-rewind 2s linear infinite;
+}
+@keyframes ti-rewind {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-360deg); }
+}
+
+/* RDAP calendar page flip. */
+.ti-flip-page {
+  transform-origin: center top;
+  animation: ti-flip 1.6s ease-in-out infinite;
+}
+@keyframes ti-flip {
+  0%, 100% { transform: scaleY(1); opacity: 1; }
+  50% { transform: scaleY(0.15); opacity: 0.6; }
+}
+
+/* ---- reduced motion: hold a calm static state ---- */
+@media (prefers-reduced-motion: reduce) {
+  .ti-loader-breathe,
+  .ti-scan-core,
+  .ti-scan-dot,
+  .ti-bob-group,
+  .ti-sweep-layer,
+  .ti-flow-path,
+  .ti-clock-hand,
+  .ti-flip-page,
+  .ti-skeleton-line::after {
+    animation: none !important;
+  }
+  .ti-scan-dot,
+  .ti-sweep-layer {
+    opacity: 0.7;
+  }
+  .ti-flow-path {
+    stroke-dashoffset: 0;
+  }
+}
