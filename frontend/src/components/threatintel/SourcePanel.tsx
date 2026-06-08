@@ -34,35 +34,48 @@ function VerdictPip({ verdict }: { verdict: Verdict }) {
 
 /* ---------- Reusable micro-visualizations ---------- */
 
-/** A clay ratio bar, e.g. "7 / 91 engines" with a colored fill. */
+/**
+ * A "clean vs threat" proportion bar. The track is ALWAYS full: the share of
+ * engines that flagged a threat shows as a red segment, the rest as green. This
+ * way "0 threats" reads as a reassuring full-green bar instead of an empty one.
+ */
 function RatioBar({
   hit,
   total,
   unit,
-  danger,
 }: {
   hit: number;
   total: number;
   unit: string;
-  danger: boolean;
 }) {
-  const pct = total > 0 ? Math.min(100, Math.max(0, (hit / total) * 100)) : 0;
-  // A non-zero hit should always show a sliver.
-  const width = hit > 0 ? Math.max(4, pct) : 0;
+  const safeCount = Math.max(0, total - hit);
+  const hitPct = total > 0 ? Math.min(100, Math.max(0, (hit / total) * 100)) : 0;
+  // Give any non-zero hit a visible minimum so a single detection isn't invisible.
+  const dangerWidth = hit > 0 ? Math.max(6, hitPct) : 0;
+  const allClear = hit === 0;
+
   return (
     <div className="ti-ratio">
       <div className="ti-ratio-head">
-        <span className="ti-ratio-num">
-          <strong className={danger ? "text-danger" : "text-safe"}>{hit}</strong>
-          <span className="ti-ratio-sep"> / {total}</span>
-        </span>
+        {allClear ? (
+          <span className="ti-ratio-num">
+            <strong className="text-safe">{total}</strong>
+            <span className="ti-ratio-sep"> clear</span>
+          </span>
+        ) : (
+          <span className="ti-ratio-num">
+            <strong className="text-danger">{hit}</strong>
+            <span className="ti-ratio-sep"> flagged · {safeCount} clear</span>
+          </span>
+        )}
         <span className="ti-ratio-unit">{unit}</span>
       </div>
       <div className="ti-ratio-track">
         <div
-          className={`ti-ratio-fill ${danger ? "ti-ratio-fill--danger" : "ti-ratio-fill--safe"}`}
-          style={{ width: `${width}%` }}
+          className="ti-ratio-seg ti-ratio-seg--danger"
+          style={{ width: `${dangerWidth}%` }}
         />
+        <div className="ti-ratio-seg ti-ratio-seg--safe" style={{ flex: 1 }} />
       </div>
     </div>
   );
@@ -100,7 +113,7 @@ function EngineRatioBody({ source }: { source: ThreatSource }) {
   const total = num(source, "total");
   const hit = malicious + suspicious;
   if (total === null) return null;
-  return <RatioBar hit={hit} total={total} unit="engines" danger={hit > 0} />;
+  return <RatioBar hit={hit} total={total} unit="engines" />;
 }
 
 function ThreatTypesBody({ source }: { source: ThreatSource }) {

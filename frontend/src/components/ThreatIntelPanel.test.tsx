@@ -153,8 +153,22 @@ describe("SourcePanel field rendering (via the full panel)", () => {
 
     const vt = screen.getByText("VirusTotal").closest(".ti-spanel") as HTMLElement;
     expect(within(vt).getByText("engines")).toBeInTheDocument();
-    // The ratio renders the engine total inside the .ti-ratio-sep span.
-    expect(within(vt).getByText(/\/ 91/)).toBeInTheDocument();
+    // Clean VirusTotal (0 hits of 91) reads as a reassuring "91 clear".
+    expect(within(vt).getByText("91")).toBeInTheDocument();
+    expect(within(vt).getByText(/clear/)).toBeInTheDocument();
+  });
+
+  it("shows a flagged share in the ratio bar when engines detect a threat", async () => {
+    mockSse(FLAGGED_SOURCES, true);
+    render(<ThreatIntelPanel url={TEST_URL} />);
+    await waitFor(() => screen.getByText("VirusTotal"));
+
+    // Flagged VirusTotal (7 malicious + 3 suspicious of 91) → "10 flagged · 81 clear".
+    const vt = screen.getByText("VirusTotal").closest(".ti-spanel") as HTMLElement;
+    expect(within(vt).getByText("10")).toBeInTheDocument();
+    expect(within(vt).getByText(/flagged/)).toBeInTheDocument();
+    // The red proportion segment is present.
+    expect(vt.querySelector(".ti-ratio-seg--danger")).toBeTruthy();
   });
 
   it("renders RDAP domain age and status chips", async () => {
