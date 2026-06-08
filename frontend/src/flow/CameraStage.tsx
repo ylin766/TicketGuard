@@ -1,51 +1,19 @@
-import { useEffect, type ReactNode } from "react";
-import { AnimatePresence } from "framer-motion";
-import { Scene } from "./Scene";
-import { SceneDispatch } from "./SceneDispatch";
+import { type ReactNode } from "react";
+import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
+import { DataFlow } from "./DataFlow";
 import type { FlowPhase, FlowState } from "./useFlow";
 
 /**
- * The fixed-viewport "camera". It renders exactly one scene for the current
- * phase and lets AnimatePresence play the directional enter/exit (the camera
- * pan). The background (grass + balls) lives elsewhere and stays put.
+ * Orchestrates the continuous flow inside a fixed viewport:
+ *   input screen  →  [DataFlow: one carrier travelling dispatch→…→settle]  →  report
  *
- * For now `pipeline` / `agent` / `settle` are placeholder beats that auto-
- * advance; they'll be filled in by later steps. `input` and `report` are passed
- * in so this component stays decoupled from their data.
+ * The input card and the data carrier share a `layoutId`, so when the audit
+ * starts the whole card MORPHS into the travelling pill (its contents crossfade
+ * out as the pill fades in along the same box). LayoutGroup + a non-"wait"
+ * AnimatePresence keep that shared-element morph continuous across the swap.
  */
 
-const PLACEHOLDER_MS: Partial<Record<FlowPhase, number>> = {
-  pipeline: 1600,
-  agent: 1600,
-  settle: 700,
-};
-
-const PLACEHOLDER_LABEL: Partial<Record<FlowPhase, string>> = {
-  pipeline: "Collecting threat intelligence…",
-  agent: "Agent investigating…",
-  settle: "Compiling report…",
-};
-
-function PlaceholderScene({
-  phase,
-  onDone,
-}: {
-  phase: FlowPhase;
-  onDone: (from: FlowPhase) => void;
-}) {
-  useEffect(() => {
-    const ms = PLACEHOLDER_MS[phase] ?? 1200;
-    const t = window.setTimeout(() => onDone(phase), ms);
-    return () => window.clearTimeout(t);
-  }, [phase, onDone]);
-
-  return (
-    <div className="flow-placeholder">
-      <span className="flow-placeholder-dot" aria-hidden="true" />
-      <span className="flow-placeholder-label">{PLACEHOLDER_LABEL[phase]}</span>
-    </div>
-  );
-}
+const MIDDLE: FlowPhase[] = ["dispatch", "split", "pipeline"];
 
 export function CameraStage({
   flow,
@@ -56,35 +24,57 @@ export function CameraStage({
   input: ReactNode;
   report: ReactNode;
 }) {
-  const { phase, url, advance } = flow;
-
-  let body: ReactNode;
-  let className = "";
-  switch (phase) {
-    case "input":
-      body = input;
-      className = "flow-scene--input";
-      break;
-    case "dispatch":
-      body = <SceneDispatch url={url ?? ""} onDone={advance} />;
-      className = "flow-scene--dispatch";
-      break;
-    case "report":
-      body = report;
-      className = "flow-scene--report";
-      break;
-    default:
-      body = <PlaceholderScene phase={phase} onDone={advance} />;
-      className = `flow-scene--${phase}`;
-  }
+  const { phase, url } = flow;
+  const inMiddle = MIDDLE.includes(phase);
 
   return (
     <div className="camera-stage">
-      <AnimatePresence mode="wait">
-        <Scene key={phase} className={className}>
-          {body}
-        </Scene>
-      </AnimatePresence>
+      <LayoutGroup>
+        <AnimatePresence>
+          {phase === "input" && (
+            <motion.div
+              key="input"
+              className="flow-scene flow-scene--input"
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              /* No opacity on exit: the input card morphs (via shared layoutId)
+                 into the carrier, so it must stay visible while it transforms.
+                 Surrounding chrome (logo/trust row) simply unmounts. */
+              exit={{ transition: { duration: 0 } }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {input}
+            </motion.div>
+          )}
+
+          {inMiddle && (
+            <motion.div
+              key="dataflow"
+              className="flow-scene flow-scene--flow"
+              /* The carrier itself is the shared-layout element; don't fade the
+                 wrapper or it would hide the morph. */
+              initial={false}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0.3 } }}
+            >
+              <DataFlow flow={flow} url={url ?? ""} />
+            </motion.div>
+          )}
+
+          {phase === "report" && (
+            <motion.div
+              key="report"
+              className="flow-scene flow-scene--report"
+              initial={{ opacity: 0, y: 24, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {report}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </LayoutGroup>
     </div>
   );
 }

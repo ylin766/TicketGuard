@@ -94,6 +94,13 @@ describe("ThreatIntelPanel", () => {
     expect(screen.getByText("RDAP")).toBeInTheDocument();
   });
 
+  it("fires onDone once when the stream completes (drives the flow)", async () => {
+    mockSse(CLEAN_SOURCES, false);
+    const onDone = vi.fn();
+    render(<ThreatIntelPanel url={TEST_URL} onDone={onDone} />);
+    await waitFor(() => expect(onDone).toHaveBeenCalledTimes(1));
+  });
+
   it("shows FLAGGED badge and an alert count in the summary", async () => {
     mockSse(FLAGGED_SOURCES, true);
     render(<ThreatIntelPanel url={TEST_URL} />);

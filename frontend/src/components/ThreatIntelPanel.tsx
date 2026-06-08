@@ -7,6 +7,12 @@ import "./ThreatIntelPanel.css";
 
 interface ThreatIntelPanelProps {
   url: string;
+  /** Fired once the stream settles (done / unavailable / error) — used by the
+   *  cinematic flow to advance past the pipeline phase on real completion. */
+  onDone?: () => void;
+  /** Compact mode: single column, head-only source rows — fits a narrow 1/3
+   *  column without an inner scrollbar. */
+  compact?: boolean;
 }
 
 const STREAM_ENDPOINT = "http://localhost:8001/api/threat-intel/stream";
@@ -53,11 +59,13 @@ function Group({
   manifest,
   arrived,
   streaming,
+  compact,
 }: {
   title: string;
   manifest: readonly string[];
   arrived: Map<string, ThreatSource>;
   streaming: boolean;
+  compact?: boolean;
 }) {
   return (
     <div className="ti-group">
@@ -77,11 +85,11 @@ function Group({
               }}
             >
               {src ? (
-                <SourcePanel source={src} />
+                <SourcePanel source={src} compact={compact} />
               ) : streaming ? (
-                <SourcePanelSkeleton name={name} />
+                <SourcePanelSkeleton name={name} compact={compact} />
               ) : (
-                <SourcePanelTimeout name={name} />
+                <SourcePanelTimeout name={name} compact={compact} />
               )}
             </motion.div>
           );
@@ -97,13 +105,17 @@ function Group({
 
 type StreamStatus = "idle" | "streaming" | "done" | "error" | "unavailable";
 
-export function ThreatIntelPanel({ url }: ThreatIntelPanelProps) {
+export function ThreatIntelPanel({ url, onDone, compact }: ThreatIntelPanelProps) {
   const [sources, setSources] = useState<ThreatSource[]>([]);
   const [streamStatus, setStreamStatus] = useState<StreamStatus>("idle");
   const [flagged, setFlagged] = useState<boolean | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(true);
   const controllerRef = useRef<AbortController | null>(null);
+  // Keep the latest onDone without re-running the stream effect.
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
+  const doneFiredRef = useRef(false);
 
   useEffect(() => {
     setSources([]);
@@ -111,9 +123,16 @@ export function ThreatIntelPanel({ url }: ThreatIntelPanelProps) {
     setErrorMsg(null);
     setStreamStatus("streaming");
     setExpanded(true);
+    doneFiredRef.current = false;
 
     const controller = new AbortController();
     controllerRef.current = controller;
+
+    const fireDone = () => {
+      if (doneFiredRef.current) return;
+      doneFiredRef.current = true;
+      onDoneRef.current?.();
+    };
 
     const streamUrl = `${STREAM_ENDPOINT}?url=${encodeURIComponent(url)}`;
 
@@ -151,6 +170,7 @@ export function ThreatIntelPanel({ url }: ThreatIntelPanelProps) {
             } else if (event.type === "done") {
               setFlagged(event.flagged ?? false);
               setStreamStatus(event.status === "unavailable" ? "unavailable" : "done");
+              fireDone();
             }
           }
         }
@@ -159,6 +179,7 @@ export function ThreatIntelPanel({ url }: ThreatIntelPanelProps) {
         if (err.name === "AbortError") return;
         setErrorMsg(err.message);
         setStreamStatus("error");
+        fireDone();
       });
 
     return () => controller.abort();
@@ -177,7 +198,7 @@ export function ThreatIntelPanel({ url }: ThreatIntelPanelProps) {
   const totalSources = FINDING_SOURCES.length + CONTEXT_SOURCES.length;
 
   return (
-    <div className="ti-panel glass">
+    <div className={`ti-panel glass${compact ? " ti-panel--compact" : ""}`}>
       {/* Header / verdict summary */}
       <button
         className="ti-header"
@@ -245,12 +266,14 @@ export function ThreatIntelPanel({ url }: ThreatIntelPanelProps) {
               manifest={FINDING_SOURCES}
               arrived={arrived}
               streaming={isStreaming}
+              compact={compact}
             />
             <Group
               title="Domain intelligence"
               manifest={CONTEXT_SOURCES}
               arrived={arrived}
               streaming={isStreaming}
+              compact={compact}
             />
           </motion.div>
         )}

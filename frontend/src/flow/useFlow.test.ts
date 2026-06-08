@@ -71,7 +71,7 @@ describe("useFlow state machine", () => {
     mockReducedMotion(false);
     const { result } = renderHook(() => useFlow());
     act(() => result.current.start("example.com"));
-    for (const from of ["dispatch", "pipeline", "agent", "settle"] as const) {
+    for (const from of ["dispatch", "split", "pipeline"] as const) {
       act(() => result.current.advance(from));
     }
     expect(result.current.phase).toBe("report");

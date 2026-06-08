@@ -166,6 +166,29 @@
   min-height: 34px;
 }
 
+/* ---------- Compact: head-only single rows for a narrow column ---------- */
+.ti-spanel--compact {
+  height: auto;
+  min-height: 0;
+  padding: 8px 12px;
+  gap: 0;
+}
+.ti-spanel--compact .ti-spanel-glyph-wrap {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+}
+.ti-spanel--compact .ti-glyph {
+  width: 15px;
+  height: 15px;
+}
+.ti-spanel--compact .ti-spanel-name {
+  font-size: 12.5px;
+}
+.ti-spanel--compact::before {
+  height: 3px;
+}
+
 .ti-stack {
   display: flex;
   flex-direction: column;

@@ -219,7 +219,13 @@ const BODY_REGISTRY: Record<string, (p: { source: ThreatSource }) => JSX.Element
   Wayback: WaybackBody,
 };
 
-export function SourcePanel({ source }: { source: ThreatSource }) {
+export function SourcePanel({
+  source,
+  compact,
+}: {
+  source: ThreatSource;
+  compact?: boolean;
+}) {
   const verdict = verdictOf(source);
   const Glyph = glyphForSource(source.name);
   const Body = BODY_REGISTRY[source.name];
@@ -233,7 +239,7 @@ export function SourcePanel({ source }: { source: ThreatSource }) {
   return (
     <div
       className={`ti-spanel ti-spanel--${verdict} ${themeClass(source.name)}${
-        hasBody ? "" : " ti-spanel--detail-only"
+        compact ? " ti-spanel--compact" : hasBody ? "" : " ti-spanel--detail-only"
       }`}
     >
       <div className="ti-spanel-head">
@@ -243,8 +249,10 @@ export function SourcePanel({ source }: { source: ThreatSource }) {
         <span className="ti-spanel-name">{source.name}</span>
         <VerdictPip verdict={verdict} />
       </div>
-      {hasBody ? <div className="ti-spanel-body">{bodyContent}</div> : null}
-      <p className="ti-spanel-detail">{source.detail}</p>
+      {!compact && hasBody ? (
+        <div className="ti-spanel-body">{bodyContent}</div>
+      ) : null}
+      {!compact ? <p className="ti-spanel-detail">{source.detail}</p> : null}
     </div>
   );
 }
@@ -254,11 +262,19 @@ export function SourcePanel({ source }: { source: ThreatSource }) {
  * out or errored server-side). We keep its slot instead of silently removing
  * the skeleton, so the user isn't confused by a card that appears then vanishes.
  */
-export function SourcePanelTimeout({ name }: { name: string }) {
+export function SourcePanelTimeout({
+  name,
+  compact,
+}: {
+  name: string;
+  compact?: boolean;
+}) {
   const Glyph = glyphForSource(name);
   return (
     <div
-      className={`ti-spanel ti-spanel--timeout ti-spanel--detail-only ${themeClass(name)}`}
+      className={`ti-spanel ti-spanel--timeout ${
+        compact ? "ti-spanel--compact" : "ti-spanel--detail-only"
+      } ${themeClass(name)}`}
     >
       <div className="ti-spanel-head">
         <span className="ti-spanel-glyph-wrap">
@@ -267,7 +283,9 @@ export function SourcePanelTimeout({ name }: { name: string }) {
         <span className="ti-spanel-name">{name}</span>
         <span className="ti-spanel-tag">timed out</span>
       </div>
-      <p className="ti-spanel-detail">No response in time — source skipped.</p>
+      {!compact ? (
+        <p className="ti-spanel-detail">No response in time — source skipped.</p>
+      ) : null}
     </div>
   );
 }
@@ -277,12 +295,20 @@ export function SourcePanelTimeout({ name }: { name: string }) {
  * the same footprint as the real panel (stable layout) and shows the source's
  * themed glyph plus a category-tinted looping loader for slow sources.
  */
-export function SourcePanelSkeleton({ name }: { name: string }) {
+export function SourcePanelSkeleton({
+  name,
+  compact,
+}: {
+  name: string;
+  compact?: boolean;
+}) {
   const Glyph = glyphForSource(name);
   const Loader = loaderForSource(name);
   return (
     <div
-      className={`ti-spanel ti-spanel--pending ${themeClass(name)}`}
+      className={`ti-spanel ti-spanel--pending ${themeClass(name)}${
+        compact ? " ti-spanel--compact" : ""
+      }`}
       aria-busy="true"
       aria-label={`${name} loading`}
     >
@@ -295,10 +321,12 @@ export function SourcePanelSkeleton({ name }: { name: string }) {
           <Loader />
         </span>
       </div>
-      <div className="ti-spanel-body">
-        <span className="ti-skeleton-line ti-skeleton-line--lg" />
-        <span className="ti-skeleton-line" />
-      </div>
+      {!compact ? (
+        <div className="ti-spanel-body">
+          <span className="ti-skeleton-line ti-skeleton-line--lg" />
+          <span className="ti-skeleton-line" />
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -36,7 +36,9 @@ export default function App() {
     flow.reset();
   };
 
-  const aboveBalls = flow.phase === "report";
+  // Keep the flow content above the falling balls for every phase except the
+  // initial input screen (where the balls play in front as the hero effect).
+  const aboveBalls = flow.phase !== "input";
 
   return (
     <>

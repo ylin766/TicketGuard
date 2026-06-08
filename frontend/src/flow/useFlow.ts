@@ -25,14 +25,14 @@ function usePrefersReducedMotion(): boolean {
  * Next/Skip — it's a narrated experience). Each phase plays, signals it's done,
  * and the machine advances on its own:
  *
- *   input → dispatch → pipeline → agent → settle → report
+ *   input → dispatch → split → pipeline → report
  *
  * - `input`    waits for the user to start an audit (the only manual trigger).
- * - `dispatch` / `handoff-ish` / `settle` are pure front-end transition beats
- *   advanced by their animation's onComplete (with a minimum dwell so nothing
- *   flashes by).
+ * - `dispatch` is a pure front-end beat: the URL capsule.
+ * - `split`    is a beat: the capsule slides left, melts, and its substance is
+ *   divided into three processing units (security / price / seat).
  * - `pipeline` is a *real* wait: it advances when the threat-intel SSE finishes.
- * - `agent` is timed choreography for now (no backend yet).
+ *   (price / seat are placeholders for now.)
  *
  * Reduced motion is an accessibility requirement (not a skip feature): it jumps
  * straight to `report` once an audit starts.
@@ -40,18 +40,16 @@ function usePrefersReducedMotion(): boolean {
 export type FlowPhase =
   | "input"
   | "dispatch"
+  | "split"
   | "pipeline"
-  | "agent"
-  | "settle"
   | "report";
 
 /** Linear order of phases; advancing always goes to the next one. */
 export const FLOW_ORDER: FlowPhase[] = [
   "input",
   "dispatch",
+  "split",
   "pipeline",
-  "agent",
-  "settle",
   "report",
 ];
 
