@@ -275,6 +275,20 @@ Structure (mirror this for any similar "many typed results" feature):
 Rules:
 - Each micro-visualization is **colored by verdict** (`--safe/--caution/--danger`)
   and uses the §6 colored-emboss rules (no hue wash) for any filled bar.
+- **Category color (optional):** if you tint cards by category for scannability,
+  tint the **whole block** with a *very restrained* wash (e.g. a light theme-color
+  background gradient + a colored icon glyph) — **not** a bright top line or edge
+  bar, and never a saturated full-color block. The verdict (safe/danger) stays on
+  the small pip; category is a soft, secondary cue.
+- **Avoid an overall color cast on small/dense cards.** The global clay system
+  uses *green-tinted* shadows (§1) because large cards sit on grass. On small,
+  closely-packed sub-panels that green tint accumulates and the whole grid reads
+  greenish. For these, use **neutral grey** inset/cast shadows
+  (e.g. `rgba(120,124,116,…)` / `rgba(40,44,38,…)`) instead of `--clay-lo/-hi/
+  -cast`, and a neutral background gradient. Keep green only on the large
+  page-level clay surfaces.
+- Use a **vertical** (180°) background gradient on grid cards, not a diagonal one,
+  so columns read equally bright (a diagonal sheen makes one side look lighter).
 - Adding a new source = add a fixture entry + a glyph + one body renderer +
   register it. No edits to the shell or the panel.
 - Test the registry through the full panel with the fixtures (§8): assert each
