@@ -3,30 +3,23 @@
 .ti-spanel {
   position: relative;
   height: 100%;
-  /* Vertical (top→bottom) clay gradient: keeps the "lit from above" look but
-     has NO horizontal variation, so cards read equally bright across columns
-     (a diagonal gradient made one side look brighter than the other). */
-  background: linear-gradient(180deg, var(--clay-top), var(--clay-bottom));
+  /* Whole-block category tint: a very restrained wash of the theme color over
+     a neutral clay base. Vertical only, so brightness is even across columns. */
+  background: linear-gradient(
+    180deg,
+    var(--ti-bg-top, #fbfbf9),
+    var(--ti-bg-bottom, #eef0ea)
+  );
   border-radius: var(--radius-sm);
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  box-shadow: 0 10px 22px -12px var(--clay-cast),
-    inset 3px 3px 7px var(--clay-hi), inset -4px -5px 9px var(--clay-lo);
+  /* Neutral (non-green) clay shadows so the blocks don't read as greenish. */
+  box-shadow: 0 10px 22px -12px rgba(40, 44, 38, 0.22),
+    inset 3px 3px 7px rgba(255, 255, 255, 0.9),
+    inset -4px -5px 9px rgba(120, 124, 116, 0.32);
   overflow: hidden;
-}
-
-/* Category theme tint — a soft top accent bar across the whole block. */
-.ti-spanel::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: var(--ti-accent, var(--accent-soft));
-  opacity: 0.85;
 }
 
 /* Detail-only cards (no body viz) center their single line vertically. */
@@ -42,22 +35,28 @@
 
 /* Verdict is shown via the pip glyph (top-right); no colored edge needed. */
 
-/* ---------- Category themes (tint the whole block, not the verdict pip) ----- */
+/* ---------- Category themes (tint the WHOLE block, used restrainedly) -------
+   --ti-accent      : the saturated theme color (icon glyph + small accents)
+   --ti-bg-top/bottom: a very light theme wash for the block background        */
 .ti-theme--malware {
-  --ti-accent: #e8775a;
-  --ti-accent-soft: #f6cbbd;
+  --ti-accent: #d4694e;
+  --ti-bg-top: #fdf6f3;
+  --ti-bg-bottom: #f4e4de;
 }
 .ti-theme--reputation {
-  --ti-accent: #e2a93b;
-  --ti-accent-soft: #f6e0a8;
+  --ti-accent: #c79023;
+  --ti-bg-top: #fdfaf0;
+  --ti-bg-bottom: #f3ecd6;
 }
 .ti-theme--registry {
-  --ti-accent: #9166c9;
-  --ti-accent-soft: #d9c6ee;
+  --ti-accent: #8059bd;
+  --ti-bg-top: #faf7fd;
+  --ti-bg-bottom: #ebe3f4;
 }
 .ti-theme--network {
-  --ti-accent: #2fa6a0;
-  --ti-accent-soft: #b6e3df;
+  --ti-accent: #23938e;
+  --ti-bg-top: #f1faf8;
+  --ti-bg-bottom: #e0f0ed;
 }
 
 /* ---------- Head ---------- */
@@ -75,12 +74,9 @@
   align-items: center;
   justify-content: center;
   color: var(--ti-accent, var(--ink-soft));
-  background: linear-gradient(
-    150deg,
-    var(--ti-accent-soft, var(--clay-top)),
-    var(--clay-bottom)
-  );
-  box-shadow: inset 2px 2px 5px var(--clay-hi), inset -2px -3px 6px var(--clay-lo);
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: inset 2px 2px 5px rgba(255, 255, 255, 0.85),
+    inset -2px -3px 6px rgba(120, 124, 116, 0.28);
   flex-shrink: 0;
 }
 
@@ -168,8 +164,8 @@
 .ti-ratio-track {
   height: 8px;
   border-radius: 999px;
-  background: #e2ead4;
-  box-shadow: inset 2px 2px 4px rgba(150, 178, 138, 0.6),
+  background: #e9ebe4;
+  box-shadow: inset 2px 2px 4px rgba(120, 124, 116, 0.4),
     inset -2px -2px 4px rgba(255, 255, 255, 0.85);
   overflow: hidden;
 }
@@ -202,7 +198,7 @@
   padding: 4px 10px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.6);
-  box-shadow: inset 1px 1px 3px rgba(150, 178, 138, 0.4),
+  box-shadow: inset 1px 1px 3px rgba(120, 124, 116, 0.3),
     inset -1px -1px 3px rgba(255, 255, 255, 0.9);
 }
 .ti-chip--danger {
@@ -224,8 +220,9 @@
   letter-spacing: 0.04em;
   padding: 5px 12px;
   border-radius: 999px;
-  box-shadow: 0 6px 14px -8px var(--clay-cast),
-    inset 2px 2px 5px var(--clay-hi), inset -2px -3px 6px var(--clay-lo);
+  box-shadow: 0 6px 14px -8px rgba(40, 44, 38, 0.22),
+    inset 2px 2px 5px rgba(255, 255, 255, 0.9),
+    inset -2px -3px 6px rgba(120, 124, 116, 0.3);
 }
 .ti-tag--danger {
   color: var(--danger);
@@ -308,10 +305,10 @@
    "empty slot" so it contrasts strongly with the filled, raised result cards:
    recessed (inset) instead of raised, desaturated, dashed outline, no top tint. */
 .ti-spanel--timeout {
-  background: rgba(231, 239, 218, 0.45);
-  box-shadow: inset 2px 2px 6px rgba(150, 178, 138, 0.35),
+  background: rgba(238, 240, 234, 0.5);
+  box-shadow: inset 2px 2px 6px rgba(120, 124, 116, 0.28),
     inset -2px -2px 6px rgba(255, 255, 255, 0.6);
-  border: 1.5px dashed rgba(138, 152, 140, 0.5);
+  border: 1.5px dashed rgba(140, 142, 136, 0.5);
   filter: saturate(0.55);
 }
 .ti-spanel--timeout::before {
@@ -320,7 +317,7 @@
 .ti-spanel--timeout .ti-spanel-glyph-wrap {
   color: var(--ink-faint);
   background: rgba(255, 255, 255, 0.4);
-  box-shadow: inset 1px 1px 3px rgba(150, 178, 138, 0.3),
+  box-shadow: inset 1px 1px 3px rgba(120, 124, 116, 0.25),
     inset -1px -1px 3px rgba(255, 255, 255, 0.7);
 }
 .ti-spanel--timeout .ti-spanel-name {
@@ -341,8 +338,8 @@
   padding: 3px 8px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.4);
-  box-shadow: inset 1px 1px 2px rgba(150, 178, 138, 0.35);
-  border: 1px dashed rgba(138, 152, 140, 0.45);
+  box-shadow: inset 1px 1px 2px rgba(120, 124, 116, 0.3);
+  border: 1px dashed rgba(140, 142, 136, 0.45);
   flex-shrink: 0;
 }
 
@@ -367,8 +364,9 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: linear-gradient(145deg, var(--clay-top), var(--clay-bottom));
-  box-shadow: inset 2px 2px 3px var(--clay-hi), inset -2px -2px 3px var(--clay-lo);
+  background: linear-gradient(180deg, #fbfbf9, #eef0ea);
+  box-shadow: inset 2px 2px 3px rgba(255, 255, 255, 0.9),
+    inset -2px -2px 3px rgba(120, 124, 116, 0.3);
   animation: ti-breathe 1.3s ease-in-out infinite;
 }
 
@@ -376,8 +374,8 @@
 .ti-skeleton-line {
   height: 12px;
   border-radius: 999px;
-  background: #e2ead4;
-  box-shadow: inset 2px 2px 4px rgba(150, 178, 138, 0.55),
+  background: #e9ebe4;
+  box-shadow: inset 2px 2px 4px rgba(120, 124, 116, 0.4),
     inset -2px -2px 4px rgba(255, 255, 255, 0.8);
   position: relative;
   overflow: hidden;
