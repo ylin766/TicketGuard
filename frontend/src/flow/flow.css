@@ -1,0 +1,145 @@
+/* Cinematic audit flow — fixed-viewport camera stage + scenes. */
+
+.camera-stage {
+  position: relative;
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Each scene fills the stage and is centered; transforms drive the "camera". */
+.flow-scene {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  will-change: transform, opacity;
+}
+
+/* ---------------- Dispatch transition ---------------- */
+.dispatch {
+  position: relative;
+  width: min(920px, 92vw);
+  height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--accent);
+}
+
+.dispatch-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 22px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, var(--clay-top), var(--clay-bottom));
+  box-shadow: 0 14px 28px -12px var(--clay-cast),
+    inset 3px 3px 8px var(--clay-hi), inset -4px -5px 10px var(--clay-lo);
+  z-index: 1;
+}
+
+.dispatch-node-label {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
+
+.dispatch-node--dest {
+  border: 1.5px dashed rgba(120, 124, 116, 0.5);
+}
+
+.dispatch-route {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+  height: 120px;
+  color: rgba(120, 124, 116, 0.6);
+  z-index: 0;
+}
+
+/* The flying URL packet — follows offsetPath set inline. */
+.dispatch-packet {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink);
+  background: linear-gradient(180deg, #fbfbf9, #eef0ea);
+  box-shadow: 0 10px 22px -10px var(--clay-cast),
+    inset 2px 2px 5px var(--clay-hi), inset -2px -3px 6px var(--clay-lo);
+  z-index: 2;
+}
+
+.dispatch-packet-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px 2px rgba(46, 158, 84, 0.55);
+}
+
+.dispatch-packet-url {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------------- Placeholder beats ---------------- */
+.flow-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 40px;
+}
+
+.flow-placeholder-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #fbfbf9, #eef0ea);
+  box-shadow: inset 2px 2px 4px var(--clay-hi), inset -2px -2px 4px var(--clay-lo);
+  animation: flow-pulse 1.1s ease-in-out infinite;
+}
+
+.flow-placeholder-label {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+}
+
+@keyframes flow-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flow-placeholder-dot {
+    animation: none;
+  }
+}

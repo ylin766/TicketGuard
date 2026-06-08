@@ -1,53 +1,67 @@
 import { useState } from "react";
-import { AnimatePresence } from "framer-motion";
 import { PitchScene } from "./components/PitchScene";
 import { UrlInputScreen } from "./components/UrlInputScreen";
 import { ReportScreen } from "./components/ReportScreen";
+import { CameraStage } from "./flow/CameraStage";
+import { useFlow } from "./flow/useFlow";
 import { auditUrl } from "./api";
 import type { TicketReport } from "./types";
-
-type View = "input" | "report";
+import "./flow/flow.css";
 
 export default function App() {
-  const [view, setView] = useState<View>("input");
+  const flow = useFlow();
   const [report, setReport] = useState<TicketReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleAudit = async (url: string) => {
-    setLoading(true);
     setError(null);
+    setLoading(true);
+    // Start the cinematic flow immediately; fetch the report in the background
+    // so its data is ready by the time the camera reaches the report scene.
+    flow.start(url);
     try {
       const result = await auditUrl(url);
       setReport(result);
-      setView("report");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Audit failed. Try again.");
+      flow.reset();
     } finally {
       setLoading(false);
     }
   };
 
   const handleBack = () => {
-    setView("input");
+    setReport(null);
+    flow.reset();
   };
+
+  const aboveBalls = flow.phase === "report";
 
   return (
     <>
       <PitchScene />
-      <main className={`app-shell${view === "report" && report ? " app-shell--above-balls" : ""}`}>
-        <AnimatePresence mode="wait">
-          {view === "input" || !report ? (
+      <main className={`app-shell${aboveBalls ? " app-shell--above-balls" : ""}`}>
+        <CameraStage
+          flow={flow}
+          input={
             <UrlInputScreen
-              key="input"
               onAudit={handleAudit}
               loading={loading}
               error={error}
             />
-          ) : (
-            <ReportScreen key="report" report={report} onBack={handleBack} />
-          )}
-        </AnimatePresence>
+          }
+          report={
+            report ? (
+              <ReportScreen report={report} onBack={handleBack} />
+            ) : (
+              <div className="flow-placeholder">
+                <span className="flow-placeholder-dot" aria-hidden="true" />
+                <span className="flow-placeholder-label">Finalising…</span>
+              </div>
+            )
+          }
+        />
       </main>
     </>
   );
