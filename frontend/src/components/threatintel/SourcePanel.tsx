@@ -210,7 +210,12 @@ export function SourcePanel({ source }: { source: ThreatSource }) {
   const verdict = verdictOf(source);
   const Glyph = glyphForSource(source.name);
   const Body = BODY_REGISTRY[source.name];
-  const hasBody = Boolean(Body);
+  // Render the body up front: several body renderers return null when their
+  // fields are empty (e.g. a clean SafeBrowsing has no threat types). Only when
+  // the body actually produces content do we reserve space for it — otherwise
+  // the card is detail-only and centers its single line.
+  const bodyContent = Body ? Body({ source }) : null;
+  const hasBody = bodyContent != null;
 
   return (
     <div
@@ -225,11 +230,7 @@ export function SourcePanel({ source }: { source: ThreatSource }) {
         <span className="ti-spanel-name">{source.name}</span>
         <VerdictPip verdict={verdict} />
       </div>
-      {hasBody ? (
-        <div className="ti-spanel-body">
-          <Body source={source} />
-        </div>
-      ) : null}
+      {hasBody ? <div className="ti-spanel-body">{bodyContent}</div> : null}
       <p className="ti-spanel-detail">{source.detail}</p>
     </div>
   );
