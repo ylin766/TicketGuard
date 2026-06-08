@@ -4,6 +4,24 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* Neutralize the green clay tokens within this whole panel so nothing inside
+     (header, badges, count, dots, source cards) inherits the green cast. */
+  --clay-hi: rgba(255, 255, 255, 0.9);
+  --clay-lo: rgba(120, 124, 116, 0.32);
+  --clay-cast: rgba(40, 44, 38, 0.22);
+  --clay-top: #fbfbf9;
+  --clay-bottom: #eef0ea;
+}
+
+/* Override the shared green-tinted `.glass` surface: this panel is a large,
+   data-dense block where the global green clay cast reads as an overall green
+   wash. Use a neutral clay surface + neutral shadows instead (vertical gradient
+   so columns read evenly). */
+.ti-panel.glass {
+  background: linear-gradient(180deg, #fbfbf9, #eef0ea);
+  box-shadow: 0 12px 26px -8px rgba(40, 44, 38, 0.22),
+    inset 3px 3px 8px rgba(255, 255, 255, 0.9),
+    inset -4px -5px 10px rgba(120, 124, 116, 0.3);
 }
 
 /* ---------- Header button ---------- */
@@ -138,14 +156,14 @@
 .ti-badge--safe {
   color: var(--safe);
   background: rgba(255, 255, 255, 0.65);
-  box-shadow: inset 1px 1px 3px rgba(150, 178, 138, 0.4),
+  box-shadow: inset 1px 1px 3px rgba(120, 124, 116, 0.3),
     inset -1px -1px 3px rgba(255, 255, 255, 0.9);
 }
 
 .ti-badge--danger {
   color: var(--danger);
   background: rgba(255, 255, 255, 0.65);
-  box-shadow: inset 1px 1px 3px rgba(150, 178, 138, 0.4),
+  box-shadow: inset 1px 1px 3px rgba(120, 124, 116, 0.3),
     inset -1px -1px 3px rgba(255, 255, 255, 0.9);
 }
 
