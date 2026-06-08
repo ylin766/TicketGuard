@@ -38,25 +38,75 @@
 /* ---------- Category themes (tint the WHOLE block, used restrainedly) -------
    --ti-accent      : the saturated theme color (icon glyph + small accents)
    --ti-bg-top/bottom: a very light theme wash for the block background        */
-.ti-theme--malware {
+.ti-theme--virustotal {
+  --ti-accent: #5b6bd0;
+  --ti-bg-top: #f6f7fd;
+  --ti-bg-bottom: #e6e9f7;
+}
+.ti-theme--safebrowsing {
+  --ti-accent: #3d92cf;
+  --ti-bg-top: #f2f9fd;
+  --ti-bg-bottom: #e0eef7;
+}
+.ti-theme--urlhaus {
   --ti-accent: #d4694e;
   --ti-bg-top: #fdf6f3;
   --ti-bg-bottom: #f4e4de;
 }
-.ti-theme--reputation {
-  --ti-accent: #c79023;
-  --ti-bg-top: #fdfaf0;
-  --ti-bg-bottom: #f3ecd6;
+.ti-theme--checkphish {
+  --ti-accent: #23938e;
+  --ti-bg-top: #f1faf8;
+  --ti-bg-bottom: #e0f0ed;
 }
-.ti-theme--registry {
+.ti-theme--metadefender {
   --ti-accent: #8059bd;
   --ti-bg-top: #faf7fd;
   --ti-bg-bottom: #ebe3f4;
 }
-.ti-theme--network {
-  --ti-accent: #23938e;
-  --ti-bg-top: #f1faf8;
-  --ti-bg-bottom: #e0f0ed;
+.ti-theme--sucuri {
+  --ti-accent: #c4892a;
+  --ti-bg-top: #fdfaf1;
+  --ti-bg-bottom: #f3ead4;
+}
+.ti-theme--openphish {
+  --ti-accent: #cf5d86;
+  --ti-bg-top: #fdf5f8;
+  --ti-bg-bottom: #f6e2ea;
+}
+.ti-theme--phishstats {
+  --ti-accent: #2a9bb0;
+  --ti-bg-top: #f1fafc;
+  --ti-bg-bottom: #def0f4;
+}
+.ti-theme--tranco {
+  --ti-accent: #c79023;
+  --ti-bg-top: #fdfaf0;
+  --ti-bg-bottom: #f3ecd6;
+}
+.ti-theme--crtsh {
+  --ti-accent: #4ca35c;
+  --ti-bg-top: #f3fbf4;
+  --ti-bg-bottom: #e2f2e4;
+}
+.ti-theme--wayback {
+  --ti-accent: #9b5fb0;
+  --ti-bg-top: #fbf6fd;
+  --ti-bg-bottom: #efe1f3;
+}
+.ti-theme--rdap {
+  --ti-accent: #5a73c0;
+  --ti-bg-top: #f5f7fd;
+  --ti-bg-bottom: #e5eaf6;
+}
+.ti-theme--ipgeo {
+  --ti-accent: #2fa98a;
+  --ti-bg-top: #f1fbf7;
+  --ti-bg-bottom: #ddf1e9;
+}
+.ti-theme--default {
+  --ti-accent: #7a8a86;
+  --ti-bg-top: #fbfbf9;
+  --ti-bg-bottom: #eef0ea;
 }
 
 /* ---------- Head ---------- */

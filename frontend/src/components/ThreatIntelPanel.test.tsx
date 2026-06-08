@@ -235,19 +235,22 @@ describe("ThreatIntelPanel streaming placeholders", () => {
     expect(screen.getByText("Domain intelligence")).toBeInTheDocument();
   });
 
-  it("applies a category theme class to each source panel", async () => {
+  it("applies a distinct per-source theme class to each source panel", async () => {
     mockSse(CLEAN_SOURCES, false);
     render(<ThreatIntelPanel url={TEST_URL} />);
     await waitFor(() => screen.getByText("VirusTotal"));
 
     const vt = screen.getByText("VirusTotal").closest(".ti-spanel") as HTMLElement;
-    expect(vt.className).toContain("ti-theme--malware");
+    expect(vt.className).toContain("ti-theme--virustotal");
 
     const rdap = screen.getByText("RDAP").closest(".ti-spanel") as HTMLElement;
-    expect(rdap.className).toContain("ti-theme--registry");
+    expect(rdap.className).toContain("ti-theme--rdap");
 
     const geo = screen.getByText("IPGeo").closest(".ti-spanel") as HTMLElement;
-    expect(geo.className).toContain("ti-theme--network");
+    expect(geo.className).toContain("ti-theme--ipgeo");
+
+    // Sources differ from one another (multicolor, not one family).
+    expect(vt.className).not.toBe(rdap.className);
   });
 
   it("keeps an unreturned source as a timed-out panel once done", async () => {
