@@ -3,7 +3,10 @@
 .ti-spanel {
   position: relative;
   height: 100%;
-  background: linear-gradient(150deg, var(--clay-top), var(--clay-bottom));
+  /* Vertical (top→bottom) clay gradient: keeps the "lit from above" look but
+     has NO horizontal variation, so cards read equally bright across columns
+     (a diagonal gradient made one side look brighter than the other). */
+  background: linear-gradient(180deg, var(--clay-top), var(--clay-bottom));
   border-radius: var(--radius-sm);
   padding: 14px 16px;
   display: flex;
