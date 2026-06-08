@@ -178,6 +178,16 @@ export function GlyphGlobe({ className }: GlyphProps) {
   );
 }
 
+/** crt.sh — certificate seal. */
+export function GlyphCertificate({ className }: GlyphProps) {
+  return (
+    <Svg className={className}>
+      <rect x="4" y="4" width="16" height="12" rx="2" />
+      <path d="M8 19l2-2 2 2 2-2 2 2M12 8h.01M9 11h6" />
+    </Svg>
+  );
+}
+
 /** Chevron used by the panel header. */
 export function GlyphChevron({
   expanded,
@@ -225,6 +235,8 @@ export function glyphForSource(name: string): (props: GlyphProps) => JSX.Element
       return GlyphHistory;
     case "RDAP":
       return GlyphCalendar;
+    case "crt.sh":
+      return GlyphCertificate;
     case "IPGeo":
       return GlyphGlobe;
     default:
