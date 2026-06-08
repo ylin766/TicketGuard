@@ -215,7 +215,17 @@
 .ti-group-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: 1fr;
   gap: 10px;
+  align-items: stretch;
+}
+
+/* The motion wrapper must stretch so the panel fills the equal-height row. */
+.ti-group-grid > * {
+  display: flex;
+}
+.ti-group-grid > * > * {
+  width: 100%;
 }
 
 @media (max-width: 560px) {

@@ -8,6 +8,8 @@ import {
   waybackDate,
 } from "./fields";
 import { glyphForSource, GlyphCheck, GlyphAlert, GlyphInfo } from "./icons";
+import { themeClass } from "./theme";
+import { loaderForSource } from "./loaders";
 import "./SourcePanel.css";
 
 /**
@@ -210,7 +212,7 @@ export function SourcePanel({ source }: { source: ThreatSource }) {
   const Body = BODY_REGISTRY[source.name];
 
   return (
-    <div className={`ti-spanel ti-spanel--${verdict}`}>
+    <div className={`ti-spanel ti-spanel--${verdict} ${themeClass(source.name)}`}>
       <div className="ti-spanel-head">
         <span className="ti-spanel-glyph-wrap">
           <Glyph />
@@ -218,12 +220,41 @@ export function SourcePanel({ source }: { source: ThreatSource }) {
         <span className="ti-spanel-name">{source.name}</span>
         <VerdictPip verdict={verdict} />
       </div>
-      {Body ? (
-        <div className="ti-spanel-body">
-          <Body source={source} />
-        </div>
-      ) : null}
+      <div className="ti-spanel-body">
+        {Body ? <Body source={source} /> : null}
+      </div>
       <p className="ti-spanel-detail">{source.detail}</p>
+    </div>
+  );
+}
+
+/**
+ * Pending skeleton shown while a source's result is still streaming in. Keeps
+ * the same footprint as the real panel (stable layout) and shows the source's
+ * themed glyph plus a category-tinted looping loader for slow sources.
+ */
+export function SourcePanelSkeleton({ name }: { name: string }) {
+  const Glyph = glyphForSource(name);
+  const Loader = loaderForSource(name);
+  return (
+    <div
+      className={`ti-spanel ti-spanel--pending ${themeClass(name)}`}
+      aria-busy="true"
+      aria-label={`${name} loading`}
+    >
+      <div className="ti-spanel-head">
+        <span className="ti-spanel-glyph-wrap">
+          <Glyph />
+        </span>
+        <span className="ti-spanel-name">{name}</span>
+        <span className="ti-spanel-loader">
+          <Loader />
+        </span>
+      </div>
+      <div className="ti-spanel-body">
+        <span className="ti-skeleton-line ti-skeleton-line--lg" />
+        <span className="ti-skeleton-line" />
+      </div>
     </div>
   );
 }

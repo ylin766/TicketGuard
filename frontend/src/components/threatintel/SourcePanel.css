@@ -1,6 +1,8 @@
 /* SourcePanel — per-source clay sub-panels. Tokens from global.css. */
 
 .ti-spanel {
+  position: relative;
+  height: 100%;
   background: linear-gradient(150deg, var(--clay-top), var(--clay-bottom));
   border-radius: var(--radius-sm);
   padding: 14px 16px;
@@ -10,6 +12,19 @@
   box-shadow: 0 10px 22px -12px var(--clay-cast),
     inset 3px 3px 7px var(--clay-hi), inset -4px -5px 9px var(--clay-lo);
   border-left: 4px solid transparent;
+  overflow: hidden;
+}
+
+/* Category theme tint — a soft top accent bar across the whole block. */
+.ti-spanel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--ti-accent, var(--accent-soft));
+  opacity: 0.85;
 }
 
 .ti-spanel--danger {
@@ -20,6 +35,24 @@
 }
 .ti-spanel--info {
   border-left-color: var(--accent-soft);
+}
+
+/* ---------- Category themes (tint the whole block, not the verdict pip) ----- */
+.ti-theme--malware {
+  --ti-accent: #e8775a;
+  --ti-accent-soft: #f6cbbd;
+}
+.ti-theme--reputation {
+  --ti-accent: #e2a93b;
+  --ti-accent-soft: #f6e0a8;
+}
+.ti-theme--registry {
+  --ti-accent: #9166c9;
+  --ti-accent-soft: #d9c6ee;
+}
+.ti-theme--network {
+  --ti-accent: #2fa6a0;
+  --ti-accent-soft: #b6e3df;
 }
 
 /* ---------- Head ---------- */
@@ -36,8 +69,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--ink-soft);
-  background: linear-gradient(150deg, var(--clay-top), var(--clay-bottom));
+  color: var(--ti-accent, var(--ink-soft));
+  background: linear-gradient(
+    150deg,
+    var(--ti-accent-soft, var(--clay-top)),
+    var(--clay-bottom)
+  );
   box-shadow: inset 2px 2px 5px var(--clay-hi), inset -2px -3px 6px var(--clay-lo);
   flex-shrink: 0;
 }
@@ -74,6 +111,8 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex: 1; /* fill remaining height so cards in a row stay equal */
+  min-height: 34px;
 }
 
 .ti-stack {
@@ -86,6 +125,7 @@
   font-size: 12.5px;
   line-height: 1.45;
   color: var(--ink-soft);
+  margin-top: auto; /* pin detail to the bottom for a consistent baseline */
 }
 
 /* ---------- Ratio bar ---------- */
@@ -248,4 +288,165 @@
 }
 .text-safe {
   color: var(--safe);
+}
+
+/* =====================================================================
+   Pending skeleton + per-source loading animations (clay style)
+   ===================================================================== */
+
+.ti-spanel--pending {
+  /* Neutral border while waiting — verdict unknown. */
+  border-left-color: var(--ti-accent-soft, var(--clay-bottom));
+}
+
+.ti-spanel-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: var(--ti-accent, var(--accent));
+  flex-shrink: 0;
+}
+
+.ti-loader {
+  width: 22px;
+  height: 22px;
+}
+
+/* Breathing pill for fast sources (no special animation). */
+.ti-loader-breathe {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--clay-top), var(--clay-bottom));
+  box-shadow: inset 2px 2px 3px var(--clay-hi), inset -2px -2px 3px var(--clay-lo);
+  animation: ti-breathe 1.3s ease-in-out infinite;
+}
+
+/* Skeleton placeholder lines — soft inset clay pills with a sheen sweep. */
+.ti-skeleton-line {
+  height: 12px;
+  border-radius: 999px;
+  background: #e2ead4;
+  box-shadow: inset 2px 2px 4px rgba(150, 178, 138, 0.55),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.8);
+  position: relative;
+  overflow: hidden;
+  width: 70%;
+}
+.ti-skeleton-line--lg {
+  height: 18px;
+  width: 90%;
+}
+.ti-skeleton-line::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.55),
+    transparent
+  );
+  transform: translateX(-100%);
+  animation: ti-sheen 1.5s ease-in-out infinite;
+}
+
+/* ---- keyframes ---- */
+@keyframes ti-breathe {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.25); opacity: 1; }
+}
+
+@keyframes ti-sheen {
+  100% { transform: translateX(100%); }
+}
+
+/* VirusTotal radial scan: core pulses, dots light up in sequence. */
+.ti-scan-core {
+  animation: ti-breathe 1.4s ease-in-out infinite;
+  transform-origin: center;
+}
+.ti-scan-dot {
+  opacity: 0.3;
+  animation: ti-dot-blink 1.2s ease-in-out infinite;
+}
+@keyframes ti-dot-blink {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
+/* CheckPhish hook bobbing. */
+.ti-bob-group {
+  transform-origin: center;
+  animation: ti-bob 1.5s ease-in-out infinite;
+}
+@keyframes ti-bob {
+  0%, 100% { transform: translateY(-2px); }
+  50% { transform: translateY(3px); }
+}
+
+/* MetaDefender layer sweep. */
+.ti-sweep-layer {
+  opacity: 0.3;
+  animation: ti-sweep 1.5s ease-in-out infinite;
+}
+@keyframes ti-sweep {
+  0%, 100% { opacity: 0.25; }
+  40% { opacity: 1; }
+}
+
+/* crt.sh certificate outline drawing. */
+.ti-flow-path {
+  stroke-dasharray: 120;
+  stroke-dashoffset: 120;
+  animation: ti-flow 2s ease-in-out infinite;
+}
+@keyframes ti-flow {
+  0% { stroke-dashoffset: 120; }
+  60%, 100% { stroke-dashoffset: 0; }
+}
+
+/* Wayback clock hand rewinding. */
+.ti-clock-hand {
+  transform-origin: 24px 24px;
+  animation: ti-rewind 2s linear infinite;
+}
+@keyframes ti-rewind {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-360deg); }
+}
+
+/* RDAP calendar page flip. */
+.ti-flip-page {
+  transform-origin: center top;
+  animation: ti-flip 1.6s ease-in-out infinite;
+}
+@keyframes ti-flip {
+  0%, 100% { transform: scaleY(1); opacity: 1; }
+  50% { transform: scaleY(0.15); opacity: 0.6; }
+}
+
+/* ---- reduced motion: hold a calm static state ---- */
+@media (prefers-reduced-motion: reduce) {
+  .ti-loader-breathe,
+  .ti-scan-core,
+  .ti-scan-dot,
+  .ti-bob-group,
+  .ti-sweep-layer,
+  .ti-flow-path,
+  .ti-clock-hand,
+  .ti-flip-page,
+  .ti-skeleton-line::after {
+    animation: none !important;
+  }
+  .ti-scan-dot,
+  .ti-sweep-layer {
+    opacity: 0.7;
+  }
+  .ti-flow-path {
+    stroke-dashoffset: 0;
+  }
 }

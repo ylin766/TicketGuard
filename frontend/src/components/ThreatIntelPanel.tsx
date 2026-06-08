@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { ThreatSource } from "../types";
-import { SourcePanel } from "./threatintel/SourcePanel";
+import { SourcePanel, SourcePanelSkeleton } from "./threatintel/SourcePanel";
 import { GlyphShield, GlyphChevron } from "./threatintel/icons";
 import "./ThreatIntelPanel.css";
 
@@ -10,6 +10,21 @@ interface ThreatIntelPanelProps {
 }
 
 const STREAM_ENDPOINT = "http://localhost:8001/api/threat-intel/stream";
+
+/** Known source manifest (matches the backend ALL_SOURCES order) so skeleton
+ *  placeholders render immediately and are swapped in place as results stream,
+ *  keeping the layout stable. Each entry notes its group. */
+const FINDING_SOURCES = [
+  "VirusTotal",
+  "SafeBrowsing",
+  "URLhaus",
+  "CheckPhish",
+  "MetaDefender",
+  "Sucuri",
+  "OpenPhish",
+  "PhishStats",
+] as const;
+const CONTEXT_SOURCES = ["Tranco", "crt.sh", "Wayback", "RDAP", "IPGeo"] as const;
 
 /** Sources that carry a threat verdict render in the "scan" group; the rest
  *  (threat === null) are intelligence context. */
@@ -28,27 +43,51 @@ function ClayDots() {
   );
 }
 
-// A titled group of source panels.
-function Group({ title, sources }: { title: string; sources: ThreatSource[] }) {
-  if (sources.length === 0) return null;
+/**
+ * A titled group. While streaming, every manifest source renders as either its
+ * arrived panel or a themed skeleton, so the grid never shifts. Once done, only
+ * the sources that actually returned are shown.
+ */
+function Group({
+  title,
+  manifest,
+  arrived,
+  streaming,
+}: {
+  title: string;
+  manifest: readonly string[];
+  arrived: Map<string, ThreatSource>;
+  streaming: boolean;
+}) {
+  const names = streaming
+    ? manifest
+    : manifest.filter((n) => arrived.has(n));
+  if (names.length === 0) return null;
   return (
     <div className="ti-group">
       <span className="ti-group-title eyebrow">{title}</span>
       <div className="ti-group-grid">
-        {sources.map((src, i) => (
-          <motion.div
-            key={src.name}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: 0.28,
-              delay: Math.min(i * 0.04, 0.3),
-              ease: [0.22, 1, 0.36, 1],
-            }}
-          >
-            <SourcePanel source={src} />
-          </motion.div>
-        ))}
+        {names.map((name, i) => {
+          const src = arrived.get(name);
+          return (
+            <motion.div
+              key={name}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.28,
+                delay: Math.min(i * 0.04, 0.3),
+                ease: [0.22, 1, 0.36, 1],
+              }}
+            >
+              {src ? (
+                <SourcePanel source={src} />
+              ) : (
+                <SourcePanelSkeleton name={name} />
+              )}
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );
@@ -135,6 +174,10 @@ export function ThreatIntelPanel({ url }: ThreatIntelPanelProps) {
   const alerts = findings.filter((s) => s.threat === true).length;
   const passed = findings.filter((s) => s.threat === false).length;
 
+  // Index arrived sources by name so groups can swap skeletons in place.
+  const arrived = new Map(sources.map((s) => [s.name, s]));
+  const totalSources = FINDING_SOURCES.length + CONTEXT_SOURCES.length;
+
   return (
     <div className="ti-panel glass">
       {/* Header / verdict summary */}
@@ -153,7 +196,7 @@ export function ThreatIntelPanel({ url }: ThreatIntelPanelProps) {
             <span className="ti-header-title">Threat Intelligence</span>
             <span className="ti-header-sub">
               {isStreaming ? (
-                <>Scanning… {sources.length} sources in</>
+                <>Scanning… {sources.length} / {totalSources} sources</>
               ) : isDone || streamStatus === "unavailable" ? (
                 <>
                   {passed} passed
@@ -191,7 +234,7 @@ export function ThreatIntelPanel({ url }: ThreatIntelPanelProps) {
 
       {/* Grouped source panels */}
       <AnimatePresence initial={false}>
-        {expanded && sources.length > 0 && (
+        {expanded && (isStreaming || sources.length > 0) && (
           <motion.div
             className="ti-groups"
             initial={{ opacity: 0, height: 0 }}
@@ -199,8 +242,18 @@ export function ThreatIntelPanel({ url }: ThreatIntelPanelProps) {
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
-            <Group title="Threat scan" sources={findings} />
-            <Group title="Domain intelligence" sources={context} />
+            <Group
+              title="Threat scan"
+              manifest={FINDING_SOURCES}
+              arrived={arrived}
+              streaming={isStreaming}
+            />
+            <Group
+              title="Domain intelligence"
+              manifest={CONTEXT_SOURCES}
+              arrived={arrived}
+              streaming={isStreaming}
+            />
           </motion.div>
         )}
       </AnimatePresence>
