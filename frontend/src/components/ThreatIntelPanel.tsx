@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { ThreatSource } from "../types";
+import { SourcePanel } from "./threatintel/SourcePanel";
+import { GlyphShield, GlyphChevron } from "./threatintel/icons";
 import "./ThreatIntelPanel.css";
 
 interface ThreatIntelPanelProps {
@@ -9,64 +11,13 @@ interface ThreatIntelPanelProps {
 
 const STREAM_ENDPOINT = "http://localhost:8001/api/threat-intel/stream";
 
-// ---------------------------------------------------------------------------
-// SVG Icons — inline, no emoji, clay-compatible
-// ---------------------------------------------------------------------------
-
-function IconShield() {
-  return (
-    <svg className="ti-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2z"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+/** Sources that carry a threat verdict render in the "scan" group; the rest
+ *  (threat === null) are intelligence context. */
+function isFinding(source: ThreatSource): boolean {
+  return source.threat === true || source.threat === false;
 }
 
-function IconCheck() {
-  return (
-    <svg className="ti-source-icon-svg ti-icon--safe" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" strokeWidth="1.8" />
-      <path d="M8 12l3 3 5-5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function IconAlert() {
-  return (
-    <svg className="ti-source-icon-svg ti-icon--danger" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" strokeWidth="1.8" />
-      <path d="M12 8v4M12 16h.01" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconInfo() {
-  return (
-    <svg className="ti-source-icon-svg ti-icon--info" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" strokeWidth="1.8" />
-      <path d="M12 11v5M12 8h.01" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconChevron({ expanded }: { expanded: boolean }) {
-  return (
-    <svg
-      className={`ti-chevron-svg ${expanded ? "ti-chevron-svg--up" : ""}`}
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path d="M6 9l6 6 6-6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-// Three pulsing clay dots for loading state
+// Three pulsing clay dots for the streaming state.
 function ClayDots() {
   return (
     <span className="ti-clay-dots" aria-label="Loading">
@@ -77,36 +28,29 @@ function ClayDots() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Source row
-// ---------------------------------------------------------------------------
-
-function sourceIconComponent(source: ThreatSource) {
-  if (source.threat === true) return <IconAlert />;
-  if (source.threat === false) return <IconCheck />;
-  return <IconInfo />;
-}
-
-function sourceRowClass(source: ThreatSource): string {
-  if (source.threat === true) return "ti-source ti-source--danger";
-  if (source.threat === false) return "ti-source ti-source--safe";
-  return "ti-source ti-source--info";
-}
-
-function SourceRow({ source, index }: { source: ThreatSource; index: number }) {
+// A titled group of source panels.
+function Group({ title, sources }: { title: string; sources: ThreatSource[] }) {
+  if (sources.length === 0) return null;
   return (
-    <motion.div
-      className={sourceRowClass(source)}
-      initial={{ opacity: 0, x: -12 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.28, delay: index * 0.04, ease: [0.22, 1, 0.36, 1] }}
-    >
-      <span className="ti-source-icon-wrap">{sourceIconComponent(source)}</span>
-      <div className="ti-source-body">
-        <span className="ti-source-name">{source.name}</span>
-        <span className="ti-source-detail">{source.detail}</span>
+    <div className="ti-group">
+      <span className="ti-group-title eyebrow">{title}</span>
+      <div className="ti-group-grid">
+        {sources.map((src, i) => (
+          <motion.div
+            key={src.name}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.28,
+              delay: Math.min(i * 0.04, 0.3),
+              ease: [0.22, 1, 0.36, 1],
+            }}
+          >
+            <SourcePanel source={src} />
+          </motion.div>
+        ))}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -121,7 +65,7 @@ export function ThreatIntelPanel({ url }: ThreatIntelPanelProps) {
   const [streamStatus, setStreamStatus] = useState<StreamStatus>("idle");
   const [flagged, setFlagged] = useState<boolean | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const controllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -129,7 +73,7 @@ export function ThreatIntelPanel({ url }: ThreatIntelPanelProps) {
     setFlagged(null);
     setErrorMsg(null);
     setStreamStatus("streaming");
-    setExpanded(false);
+    setExpanded(true);
 
     const controller = new AbortController();
     controllerRef.current = controller;
@@ -170,7 +114,6 @@ export function ThreatIntelPanel({ url }: ThreatIntelPanelProps) {
             } else if (event.type === "done") {
               setFlagged(event.flagged ?? false);
               setStreamStatus(event.status === "unavailable" ? "unavailable" : "done");
-              setExpanded(true);
             }
           }
         }
@@ -187,9 +130,14 @@ export function ThreatIntelPanel({ url }: ThreatIntelPanelProps) {
   const isStreaming = streamStatus === "streaming";
   const isDone = streamStatus === "done";
 
+  const findings = sources.filter(isFinding);
+  const context = sources.filter((s) => !isFinding(s));
+  const alerts = findings.filter((s) => s.threat === true).length;
+  const passed = findings.filter((s) => s.threat === false).length;
+
   return (
     <div className="ti-panel glass">
-      {/* Header */}
+      {/* Header / verdict summary */}
       <button
         className="ti-header"
         onClick={() => setExpanded((v) => !v)}
@@ -199,20 +147,32 @@ export function ThreatIntelPanel({ url }: ThreatIntelPanelProps) {
       >
         <span className="ti-header-left">
           <span className="ti-header-icon-wrap">
-            <IconShield />
+            <GlyphShield className="ti-header-shield" />
           </span>
-          <span className="ti-header-title">Threat Intel Sources</span>
+          <span className="ti-header-titles">
+            <span className="ti-header-title">Threat Intelligence</span>
+            <span className="ti-header-sub">
+              {isStreaming ? (
+                <>Scanning… {sources.length} sources in</>
+              ) : isDone || streamStatus === "unavailable" ? (
+                <>
+                  {passed} passed
+                  {alerts > 0 ? ` · ${alerts} flagged` : ""} · {context.length}{" "}
+                  signals
+                </>
+              ) : (
+                <>Idle</>
+              )}
+            </span>
+          </span>
           {isStreaming && <ClayDots />}
           {isDone && flagged !== null && (
             <span className={`ti-badge ${flagged ? "ti-badge--danger" : "ti-badge--safe"}`}>
               {flagged ? "FLAGGED" : "CLEAN"}
             </span>
           )}
-          {sources.length > 0 && (
-            <span className="ti-count">{sources.length}</span>
-          )}
         </span>
-        {sources.length > 0 && <IconChevron expanded={expanded} />}
+        {sources.length > 0 && <GlyphChevron expanded={expanded} />}
       </button>
 
       {/* Error */}
@@ -223,25 +183,24 @@ export function ThreatIntelPanel({ url }: ThreatIntelPanelProps) {
       )}
 
       {/* Unavailable */}
-      {streamStatus === "unavailable" && (
+      {streamStatus === "unavailable" && sources.length === 0 && (
         <div className="ti-status">
           No threat-intel sources returned a result. Check that API keys are configured.
         </div>
       )}
 
-      {/* Source rows — appear one by one as stream delivers them */}
-      <AnimatePresence>
+      {/* Grouped source panels */}
+      <AnimatePresence initial={false}>
         {expanded && sources.length > 0 && (
           <motion.div
-            className="ti-sources"
+            className="ti-groups"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
-            {sources.map((src, i) => (
-              <SourceRow key={src.name} source={src} index={i} />
-            ))}
+            <Group title="Threat scan" sources={findings} />
+            <Group title="Domain intelligence" sources={context} />
           </motion.div>
         )}
       </AnimatePresence>
