@@ -37,6 +37,27 @@ function mockSse(sources: ThreatSource[], flagged: boolean, status = "ok") {
   );
 }
 
+/** A stream that emits the given sources then stays OPEN (no done event), so
+ *  the panel remains in the streaming/pending state for assertions. */
+function mockPartialSse(sources: ThreatSource[]) {
+  const encoder = new TextEncoder();
+  vi.spyOn(globalThis, "fetch").mockResolvedValue(
+    new Response(
+      new ReadableStream({
+        start(controller) {
+          for (const s of sources) {
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ type: "source", data: s })}\n\n`)
+            );
+          }
+          // Intentionally never close → stays "streaming".
+        },
+      }),
+      { headers: { "Content-Type": "text/event-stream" }, status: 200 }
+    )
+  );
+}
+
 beforeEach(() => {
   vi.restoreAllMocks();
 });
@@ -53,7 +74,9 @@ describe("ThreatIntelPanel", () => {
   it("shows a loading state while the stream is open", () => {
     vi.spyOn(globalThis, "fetch").mockReturnValue(new Promise(() => {}));
     render(<ThreatIntelPanel url={TEST_URL} />);
-    expect(screen.getByLabelText(/loading/i)).toBeInTheDocument();
+    // The streaming dots carry the exact "Loading" label (skeletons use
+    // "<name> loading", so match exactly to target the dots).
+    expect(screen.getByLabelText("Loading")).toBeInTheDocument();
   });
 
   it("shows CLEAN badge and groups sources when not flagged", async () => {
@@ -172,5 +195,55 @@ describe("SourcePanel field rendering (via the full panel)", () => {
 
     const geo = screen.getByText("IPGeo").closest(".ti-spanel") as HTMLElement;
     expect(within(geo).getByText("Canada")).toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Skeleton placeholders, themes, and stable layout while streaming
+// ---------------------------------------------------------------------------
+
+describe("ThreatIntelPanel streaming placeholders", () => {
+  it("shows themed skeletons for sources that have not arrived yet", async () => {
+    // Only VirusTotal has arrived; the rest stay pending.
+    const vt = CLEAN_SOURCES.find((s) => s.name === "VirusTotal")!;
+    mockPartialSse([vt]);
+    render(<ThreatIntelPanel url={TEST_URL} />);
+
+    // The arrived source renders as a real panel.
+    await waitFor(() => screen.getByText("VirusTotal"));
+
+    // A not-yet-arrived source renders a busy skeleton.
+    const sucuri = await screen.findByLabelText("Sucuri loading");
+    expect(sucuri).toHaveAttribute("aria-busy", "true");
+
+    // Both groups exist and every manifest source has a slot (stable layout).
+    expect(screen.getByText("Threat scan")).toBeInTheDocument();
+    expect(screen.getByText("Domain intelligence")).toBeInTheDocument();
+  });
+
+  it("applies a category theme class to each source panel", async () => {
+    mockSse(CLEAN_SOURCES, false);
+    render(<ThreatIntelPanel url={TEST_URL} />);
+    await waitFor(() => screen.getByText("VirusTotal"));
+
+    const vt = screen.getByText("VirusTotal").closest(".ti-spanel") as HTMLElement;
+    expect(vt.className).toContain("ti-theme--malware");
+
+    const rdap = screen.getByText("RDAP").closest(".ti-spanel") as HTMLElement;
+    expect(rdap.className).toContain("ti-theme--registry");
+
+    const geo = screen.getByText("IPGeo").closest(".ti-spanel") as HTMLElement;
+    expect(geo.className).toContain("ti-theme--network");
+  });
+
+  it("drops unreturned sources from the layout once done", async () => {
+    // crt.sh is omitted from the response (e.g. it errored server-side).
+    const withoutCrt = CLEAN_SOURCES.filter((s) => s.name !== "crt.sh");
+    mockSse(withoutCrt, false);
+    render(<ThreatIntelPanel url={TEST_URL} />);
+
+    await waitFor(() => expect(screen.getByText("CLEAN")).toBeInTheDocument());
+    // No lingering skeleton for crt.sh after completion.
+    expect(screen.queryByLabelText("crt.sh loading")).not.toBeInTheDocument();
   });
 });
