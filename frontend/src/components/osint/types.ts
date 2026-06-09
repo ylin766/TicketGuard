@@ -101,6 +101,8 @@ export interface OsintStep {
   durationMs: number | null;
   chars: number | null;
   preview: string | null;
+  /** Tokens spent on the model turn that decided this tool call (prompt+completion). */
+  tokens: number | null;
 }
 
 /** Running token totals. */

@@ -5,11 +5,23 @@ import { SourcePanel, SourcePanelSkeleton, SourcePanelTimeout } from "./threatin
 import { GlyphShield, GlyphChevron } from "./threatintel/icons";
 import "./ThreatIntelPanel.css";
 
+/** Verdict summary passed to onDone so callers can score-gate what comes next
+ *  (e.g. only escalate to the opinion agent for grey-zone results). */
+export interface ThreatScanSummary {
+  /** Backend's aggregate flag: any source reported a threat. */
+  flagged: boolean;
+  /** Number of sources that returned threat = true. */
+  alerts: number;
+  /** Number of sources that returned any verdict (true/false). */
+  reported: number;
+}
+
 interface ThreatIntelPanelProps {
   url: string;
   /** Fired once the stream settles (done / unavailable / error) — used by the
-   *  cinematic flow to advance past the pipeline phase on real completion. */
-  onDone?: () => void;
+   *  cinematic flow to advance past the pipeline phase on real completion.
+   *  Receives a verdict summary for score-gating the next step. */
+  onDone?: (summary: ThreatScanSummary) => void;
   /** Compact mode: single column, head-only source rows — fits a narrow 1/3
    *  column without an inner scrollbar. */
   compact?: boolean;
@@ -120,6 +132,10 @@ export function ThreatIntelPanel({ url, onDone, compact, variant = "full" }: Thr
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
   const doneFiredRef = useRef(false);
+  // Live verdict tallies (refs so the stream closure reads fresh values).
+  const alertsRef = useRef(0);
+  const reportedRef = useRef(0);
+  const flaggedRef = useRef(false);
 
   useEffect(() => {
     setSources([]);
@@ -128,6 +144,9 @@ export function ThreatIntelPanel({ url, onDone, compact, variant = "full" }: Thr
     setStreamStatus("streaming");
     setExpanded(true);
     doneFiredRef.current = false;
+    alertsRef.current = 0;
+    reportedRef.current = 0;
+    flaggedRef.current = false;
 
     const controller = new AbortController();
     controllerRef.current = controller;
@@ -135,7 +154,11 @@ export function ThreatIntelPanel({ url, onDone, compact, variant = "full" }: Thr
     const fireDone = () => {
       if (doneFiredRef.current) return;
       doneFiredRef.current = true;
-      onDoneRef.current?.();
+      onDoneRef.current?.({
+        flagged: flaggedRef.current,
+        alerts: alertsRef.current,
+        reported: reportedRef.current,
+      });
     };
 
     const streamUrl = `${STREAM_ENDPOINT}?url=${encodeURIComponent(url)}`;
@@ -170,8 +193,14 @@ export function ThreatIntelPanel({ url, onDone, compact, variant = "full" }: Thr
             };
 
             if (event.type === "source" && event.data) {
-              setSources((prev) => [...prev, event.data!]);
+              const src = event.data;
+              setSources((prev) => [...prev, src]);
+              if (src.threat === true || src.threat === false) {
+                reportedRef.current += 1;
+                if (src.threat === true) alertsRef.current += 1;
+              }
             } else if (event.type === "done") {
+              flaggedRef.current = event.flagged ?? false;
               setFlagged(event.flagged ?? false);
               setStreamStatus(event.status === "unavailable" ? "unavailable" : "done");
               fireDone();

@@ -113,6 +113,31 @@ function fmtMs(ms: number): string {
   return `${(ms / 1000).toFixed(1)}s`;
 }
 
+/** A clay-morphism duration meter: a pressed-in groove with a poured-clay fill
+ *  whose length maps to how long the step took (longer step = fuller bar),
+ *  followed by the elapsed seconds. Gives time a tactile, material readout. */
+const DUR_FULL_MS = 6000; // a step at/above this fills the whole groove
+function DurationBar({ ms, tone }: { ms: number; tone: "ok" | "fail" }) {
+  const pct = Math.max(8, Math.min(100, (ms / DUR_FULL_MS) * 100));
+  return (
+    <span className="osint-dur" title={`${ms} ms`}>
+      <span className="osint-dur-track" aria-hidden="true">
+        <span
+          className={`osint-dur-fill osint-dur-fill--${tone}`}
+          style={{ width: `${pct}%` }}
+        />
+      </span>
+      <span className="osint-dur-num">{fmtMs(ms)}</span>
+    </span>
+  );
+}
+
+/** Compact a token count, e.g. 1234 → "1.2k". */
+function compactTokens(n: number): string {
+  if (n < 1000) return String(n);
+  return `${(n / 1000).toFixed(1)}k`;
+}
+
 export function OsintPanel({ state }: { state: OsintState }) {
   const { status, steps, thoughts, tokens, stats, report, phoenixUrl, error } = state;
   const live = status === "streaming";
@@ -186,11 +211,26 @@ export function OsintPanel({ state }: { state: OsintState }) {
                     {s.source && <span className="osint-node-source">{s.source}</span>}
                   </div>
                   <ArgChips args={s.args} />
+                  {/* Per-step cost readout, shown once the step has finished:
+                      a clay duration meter (length ∝ time) + the token spend. */}
+                  {s.status !== "running" && (
+                    <div className="osint-node-cost">
+                      {s.durationMs != null && (
+                        <DurationBar
+                          ms={s.durationMs}
+                          tone={s.status === "fail" ? "fail" : "ok"}
+                        />
+                      )}
+                      {s.tokens != null && s.tokens > 0 && (
+                        <span className="osint-node-tok">
+                          <span className="osint-node-tok-dot" aria-hidden="true" />
+                          {compactTokens(s.tokens)} tok
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="osint-node-meta">
-                  {s.durationMs != null && (
-                    <span className="osint-node-dur">{fmtMs(s.durationMs)}</span>
-                  )}
                   <StatusPip status={s.status} />
                 </div>
               </motion.div>

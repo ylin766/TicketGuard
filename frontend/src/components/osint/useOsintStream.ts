@@ -57,12 +57,16 @@ export function useOsintStream(
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
   const doneFiredRef = useRef(false);
+  // The token frame for a model turn arrives just BEFORE the tool_call it
+  // produced; stash it so we can attribute that turn's cost to the step.
+  const pendingTokensRef = useRef(0);
 
   useEffect(() => {
     if (!enabled || !url) return;
 
     setState({ ...INITIAL, status: "streaming" });
     doneFiredRef.current = false;
+    pendingTokensRef.current = 0;
     const controller = new AbortController();
 
     const fireDone = () => {
@@ -93,6 +97,8 @@ export function useOsintStream(
                   durationMs: null,
                   chars: null,
                   preview: null,
+                  // Attribute the just-seen model turn's tokens to this step.
+                  tokens: pendingTokensRef.current || null,
                 },
               ],
             };
@@ -112,6 +118,7 @@ export function useOsintStream(
               ),
             };
           case "tokens":
+            pendingTokensRef.current = frame.total;
             return {
               ...prev,
               tokens: {
