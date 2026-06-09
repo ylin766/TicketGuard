@@ -25,7 +25,6 @@ import type { FlowState } from "./useFlow";
 
 const DISPATCH_MS = 850;
 const SPLIT_MS = 2200;
-const EASE = [0.22, 1, 0.36, 1] as const;
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 
 function shortHost(url: string): string {
@@ -41,7 +40,9 @@ function GooDefs() {
   return (
     <svg className="goo-defs" aria-hidden="true">
       <defs>
-        <filter id="flow-goo">
+        {/* sRGB interpolation (not the default linearRGB) is markedly cheaper to
+            rasterize each frame, so the live blob merge stays smooth. */}
+        <filter id="flow-goo" colorInterpolationFilters="sRGB">
           <feGaussianBlur in="SourceGraphic" stdDeviation="9" result="blur" />
           <feColorMatrix
             in="blur"
@@ -65,7 +66,7 @@ function GooDefs() {
  */
 const SRC_X = 12; // where the capsule melts (matches the capsule's split x)
 const NODE_X = 30; // the split node — trunk ends, branches begin
-const END_X = 42; // the units' left edge (injection point)
+const END_X = 45; // the units' left edge (matches .units-zone--right margin-left)
 
 /** Cubic-bezier point (all values in stage %). */
 function cubic(
@@ -134,6 +135,10 @@ function MeltBeads() {
     { top: 80, delay: 0.12 },
   ];
   const BEADS = 6;
+  // When the first bead of a stream reaches the unit edge (≈ travel start +
+  // duration), a clay "splash" blooms there: under the gooey filter it reads as
+  // the liquid pooling at the mould edge and being absorbed as the fill begins.
+  const SPLASH_AT = (sDelay: number) => 0.32 + sDelay + 1.05;
 
   return (
     <>
@@ -144,32 +149,52 @@ function MeltBeads() {
         const scaleKf = path.times.map((tt) =>
           tt < 0.12 ? tt / 0.12 : tt > 0.85 ? 0.85 - (tt - 0.85) * 4.6 : 1
         );
-        return Array.from({ length: BEADS }).map((_, bi) => {
-          const t = bi / (BEADS - 1); // 0..1 position in the chain
-          return (
+        return (
+          <span key={si}>
+            {Array.from({ length: BEADS }).map((_, bi) => {
+              const t = bi / (BEADS - 1); // 0..1 position in the chain
+              return (
+                <motion.span
+                  key={`${si}-${bi}`}
+                  className="melt-blob melt-bead"
+                  // Every bead is born AT the capsule's melt point, overlapping
+                  // it, so the gooey filter welds them into the capsule.
+                  initial={{ left: `${SRC_X}%`, top: "50%", scale: 0 }}
+                  animate={{
+                    left: path.left,
+                    top: path.top,
+                    scale: scaleKf,
+                  }}
+                  transition={{
+                    duration: 1.05,
+                    // later beads leave later -> one continuous travelling stream.
+                    delay: 0.32 + s.delay + t * 0.55,
+                    // LINEAR motion + arc-length-spaced times = constant speed
+                    // straight through the split node (no pause), along a curve.
+                    ease: "linear",
+                    times: path.times,
+                  }}
+                />
+              );
+            })}
+            {/* Injection splash at the unit edge — pools, spreads and is absorbed. */}
             <motion.span
-              key={`${si}-${bi}`}
-              className="melt-blob melt-bead"
-              // Every bead is born AT the capsule's melt point, overlapping it,
-              // so the gooey filter welds them into the capsule (one mass).
-              initial={{ left: `${SRC_X}%`, top: "50%", scale: 0 }}
+              className="melt-blob melt-splash"
+              style={{ left: `${END_X}%`, top: `${s.top}%` }}
+              initial={{ scale: 0, opacity: 0 }}
               animate={{
-                left: path.left,
-                top: path.top,
-                scale: scaleKf,
+                scale: [0, 1.15, 1.4, 0.6],
+                opacity: [0, 1, 1, 0],
               }}
               transition={{
-                duration: 1.05,
-                // later beads leave later -> one continuous travelling stream.
-                delay: 0.32 + s.delay + t * 0.55,
-                // LINEAR motion + arc-length-spaced times = constant speed
-                // straight through the split node (no pause), along a curve.
-                ease: "linear",
-                times: path.times,
+                duration: 0.9,
+                delay: SPLASH_AT(s.delay),
+                ease: EASE_OUT,
+                times: [0, 0.35, 0.7, 1],
               }}
             />
-          );
-        });
+          </span>
+        );
       })}
     </>
   );
@@ -213,21 +238,35 @@ export function DataFlow({ flow, url }: { flow: FlowState; url: string }) {
                 left: gooActive ? `${SRC_X}%` : "44%",
                 // The capsule itself melts: it squashes and shrinks to nothing
                 // exactly as the droplets pull out of it (no ball, no fade).
-                scaleX: gooActive ? [1, 0.85, 0.45, 0] : 1,
-                scaleY: gooActive ? [1, 0.7, 0.4, 0] : 1,
+                // A touch of stretch on the way (scaleX>scaleY) then a squash
+                // gives the melt weight and life rather than a rigid shrink.
+                scaleX: gooActive ? [1, 1.12, 0.5, 0] : 1,
+                scaleY: gooActive ? [1, 0.82, 0.42, 0] : 1,
               }}
               transition={{
-                left: { duration: 0.5, ease: EASE_OUT },
-                scaleX: { duration: SPLIT_MS / 1000, ease: EASE_OUT, times: [0, 0.28, 0.5, 0.72] },
-                scaleY: { duration: SPLIT_MS / 1000, ease: EASE_OUT, times: [0, 0.28, 0.5, 0.72] },
+                // The shared-element morph (input card -> capsule) rides a
+                // spring so the shape change has bounce and life, not a rigid
+                // tween. Spring-driven glide to the left does the same.
+                layout: { type: "spring", stiffness: 110, damping: 16, mass: 1 },
+                left: { type: "spring", stiffness: 90, damping: 14, mass: 1.1 },
+                scaleX: { duration: SPLIT_MS / 1000, ease: EASE_OUT, times: [0, 0.26, 0.5, 0.72] },
+                scaleY: { duration: SPLIT_MS / 1000, ease: EASE_OUT, times: [0, 0.26, 0.5, 0.72] },
               }}
             >
-              {/* The label fades fast the moment melting starts — only the clay
-                  body deforms. */}
+              {/* The label fades out smoothly as the clay body begins to
+                  squash — gradual, not an instant cut, so the melt feels fluid. */}
               <motion.div
                 className="carrier-pill"
-                animate={{ opacity: gooActive ? 0 : 1 }}
-                transition={{ duration: 0.18, ease: EASE_OUT }}
+                initial={false}
+                animate={{
+                  opacity: gooActive ? [1, 0.6, 0] : 1,
+                  scale: gooActive ? [1, 0.92, 0.8] : 1,
+                }}
+                transition={{
+                  duration: gooActive ? 0.6 : 0.3,
+                  ease: EASE_OUT,
+                  times: gooActive ? [0, 0.5, 1] : undefined,
+                }}
               >
                 <span className="carrier-dot" aria-hidden="true" />
                 <span className="carrier-url">{host}</span>
@@ -244,7 +283,7 @@ export function DataFlow({ flow, url }: { flow: FlowState; url: string }) {
       <motion.div
         className={`units-zone ${splitting ? "units-zone--right" : "units-zone--center"}`}
         layout
-        transition={{ layout: { duration: 0.8, ease: EASE } }}
+        transition={{ layout: { type: "spring", stiffness: 120, damping: 18, mass: 1 } }}
       >
         <ProcessUnits
           phase={phase}
