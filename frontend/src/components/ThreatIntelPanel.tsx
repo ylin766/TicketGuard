@@ -13,6 +13,10 @@ interface ThreatIntelPanelProps {
   /** Compact mode: single column, head-only source rows — fits a narrow 1/3
    *  column without an inner scrollbar. */
   compact?: boolean;
+  /** Runtime mode: a minimal live readout for the pipeline phase — just the
+   *  scanning animation, progress and the basic verdict. The full source list
+   *  is reserved for the report. */
+  variant?: "full" | "runtime";
 }
 
 const STREAM_ENDPOINT = "http://localhost:8001/api/threat-intel/stream";
@@ -105,7 +109,7 @@ function Group({
 
 type StreamStatus = "idle" | "streaming" | "done" | "error" | "unavailable";
 
-export function ThreatIntelPanel({ url, onDone, compact }: ThreatIntelPanelProps) {
+export function ThreatIntelPanel({ url, onDone, compact, variant = "full" }: ThreatIntelPanelProps) {
   const [sources, setSources] = useState<ThreatSource[]>([]);
   const [streamStatus, setStreamStatus] = useState<StreamStatus>("idle");
   const [flagged, setFlagged] = useState<boolean | null>(null);
@@ -196,6 +200,82 @@ export function ThreatIntelPanel({ url, onDone, compact }: ThreatIntelPanelProps
   // Index arrived sources by name so groups can swap skeletons in place.
   const arrived = new Map(sources.map((s) => [s.name, s]));
   const totalSources = FINDING_SOURCES.length + CONTEXT_SOURCES.length;
+
+  // ----- Runtime variant: minimal live readout (animation + basic info) -----
+  if (variant === "runtime") {
+    const pct = Math.round((sources.length / totalSources) * 100);
+    return (
+      <div className="ti-panel ti-panel--runtime glass">
+        <div className="ti-rt-head">
+          <span className="ti-header-icon-wrap">
+            <GlyphShield className="ti-header-shield" />
+          </span>
+          <span className="ti-header-titles">
+            <span className="ti-header-title">Threat Intelligence</span>
+            <span className="ti-header-sub">
+              {isStreaming ? (
+                <>Scanning… {sources.length} / {totalSources} sources</>
+              ) : isDone || streamStatus === "unavailable" ? (
+                <>
+                  {passed} passed
+                  {alerts > 0 ? ` · ${alerts} flagged` : ""} · {context.length}{" "}
+                  signals
+                </>
+              ) : streamStatus === "error" ? (
+                <>Connection error</>
+              ) : (
+                <>Idle</>
+              )}
+            </span>
+          </span>
+          {isStreaming && <ClayDots />}
+          {isDone && flagged !== null && (
+            <span className={`ti-badge ${flagged ? "ti-badge--danger" : "ti-badge--safe"}`}>
+              {flagged ? "FLAGGED" : "CLEAN"}
+            </span>
+          )}
+        </div>
+
+        {/* Live progress bar — the runtime's main motion. */}
+        <div className="ti-rt-bar" role="progressbar" aria-valuenow={pct}>
+          <motion.span
+            className="ti-rt-bar-fill"
+            animate={{ width: `${isDone ? 100 : pct}%` }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          />
+          {isStreaming && <span className="ti-rt-bar-sheen" aria-hidden="true" />}
+        </div>
+
+        {/* Compact multi-column grid of every source — same colours, icons and
+            loaders as the full report, just head-only rows. */}
+        <div className="ti-rt-grid">
+          {[...FINDING_SOURCES, ...CONTEXT_SOURCES].map((name, i) => {
+            const src = arrived.get(name);
+            return (
+              <motion.div
+                key={name}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.26,
+                  delay: Math.min(i * 0.03, 0.25),
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+              >
+                {src ? (
+                  <SourcePanel source={src} compact />
+                ) : isStreaming ? (
+                  <SourcePanelSkeleton name={name} compact />
+                ) : (
+                  <SourcePanelTimeout name={name} compact />
+                )}
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`ti-panel glass${compact ? " ti-panel--compact" : ""}`}>
