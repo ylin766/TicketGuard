@@ -115,7 +115,7 @@ export function ProcessUnits({
               <motion.div className="punit-body" layout>
                 {active ? (
                   isPipeline ? (
-                    <ThreatIntelPanel url={url} onDone={onSecurityDone} />
+                    <ThreatIntelPanel url={url} onDone={onSecurityDone} variant="runtime" />
                   ) : (
                     <div className="punit-process">
                       <span className="punit-process-dot" aria-hidden="true" />

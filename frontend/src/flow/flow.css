@@ -3,7 +3,7 @@
 .camera-stage {
   position: relative;
   width: 100%;
-  min-height: 100vh;
+  min-height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -32,26 +32,22 @@
   padding: 24px 0;
 }
 
-/* The flow (pipeline) scene can grow past the viewport once the security panel
-   expands; align it to the top and let it scroll instead of centring (which
-   pushes tall stacked content off the top of the screen). */
+/* The flow (pipeline) scene holds the compact runtime units, which fit within
+   the viewport — so it centres like the other scenes and needs no scrollbar. */
 .flow-scene--flow {
-  justify-content: flex-start;
-  overflow-y: auto;
+  justify-content: center;
   padding: 4vh 0;
 }
 
-/* ---------------- Horizontal pipe-split flow (16:9 stage) ---------------- */
-.dataflow {
-  position: relative;
-  width: 100%;
-  min-height: 84vh;
-}
-
 /* ---------------- Clay-liquid split & pour flow (16:9 stage) ------------- */
+/* The whole stage shares ONE bounded, centred coordinate system: the droplet
+   paths (% of .dataflow) and the units zone both scale within it, so they stay
+   aligned at every viewport width and cap together on very wide screens. */
 .dataflow {
   position: relative;
   width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
   min-height: 84vh;
 }
 
@@ -73,49 +69,59 @@
   pointer-events: none;
 }
 
-/* The clay liquid layer. The gooey filter fuses the overlapping blobs into one
-   soft mass that stretches and pinches off — a real liquid split. */
-.melt-goo {
+/* The single gooey stage holding BOTH the capsule and the droplets. Enabling
+   the filter welds overlapping clay shapes into one soft mass that stretches
+   and pinches off — a real liquid split, all from one substance. */
+.melt-stage {
   position: absolute;
   inset: 0;
   z-index: 5;
   pointer-events: none;
+}
+.melt-stage--goo {
   filter: url(#flow-goo);
 }
 .melt-blob {
   position: absolute;
-  width: 64px;
-  height: 64px;
-  margin: -32px 0 0 -32px;
+  /* Droplet size scales with the viewport so it stays proportional to the
+     stage at any width (and the gooey merge distance scales with it). */
+  width: clamp(34px, 4.4vw, 64px);
+  height: clamp(34px, 4.4vw, 64px);
+  /* Negative margin (half the size) centres the blob on its (left, top)
+     coordinate. We use margin — not transform — because Framer drives `scale`
+     through `transform`, which would otherwise clobber a translate here. */
+  margin-top: calc(clamp(34px, 4.4vw, 64px) * -0.5);
+  margin-left: calc(clamp(34px, 4.4vw, 64px) * -0.5);
   border-radius: 50%;
   /* Solid clay fill — the gooey filter needs an opaque alpha to merge. */
   background: #edefe9;
 }
-.melt-source {
-  width: 104px;
-  height: 104px;
-  margin: -52px 0 0 -52px;
-}
 .melt-bead {
-  width: 46px;
-  height: 46px;
-  margin: -23px 0 0 -23px;
+  width: clamp(28px, 3.6vw, 52px);
+  height: clamp(28px, 3.6vw, 52px);
+  margin-top: calc(clamp(28px, 3.6vw, 52px) * -0.5);
+  margin-left: calc(clamp(28px, 3.6vw, 52px) * -0.5);
 }
 
-/* The units zone: nudged right while the clay pours in from the left, then
-   glides to centre for the pipeline. */
+/* The units zone lives in the SAME bounded stage as the droplets, so pure
+   percentages keep the unit's left edge aligned with the injection point (42%)
+   at every width — no independent max-width that could drift out of sync.
+   During the pour it occupies the right lane (left ~44% reserved for the
+   capsule + streams); for the pipeline it expands to the full centred column. */
 .units-zone {
   width: 100%;
-  max-width: 820px;
   margin: 0 auto;
   padding-top: 4vh;
-  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .units-zone--right {
-  transform: translateX(13%);
+  /* Left edge at ~45% (matches END_X = 42% injection point, slightly inside);
+     right edge with a small gutter. Proportional at every width. */
+  width: 52%;
+  margin: 0 3% 0 45%;
 }
 .units-zone--center {
-  transform: translateX(0);
+  width: 100%;
+  margin: 0 auto;
 }
 
 .data-carrier {
@@ -172,7 +178,7 @@
   gap: 12px;
   padding: 16px;
   border-radius: var(--radius-md);
-  min-height: 200px;
+  min-height: 132px;
   background: rgba(238, 240, 234, 0.35);
   box-shadow: inset 3px 3px 8px rgba(120, 124, 116, 0.18),
     inset -3px -3px 8px rgba(255, 255, 255, 0.5);

@@ -56,76 +56,122 @@ function GooDefs() {
   );
 }
 
-/** The clay liquid: a source mass that feeds three chains of droplets. The
- *  chains share a common trunk (left -> the split node), then peel off along
- *  smooth curves to the LEFT EDGE of each unit — never straight to the centre.
+/**
+ * The clay droplet streams. There is NO separate source ball: the beads emerge
+ * directly from the capsule's melt point and, because they share the SAME gooey
+ * filter container as the capsule, they stick and stretch off it like one
+ * substance pulling apart. Three chains share a common trunk along the centre
+ * line, then peel off along smooth curves to each unit's LEFT EDGE.
  */
-function MeltGoo() {
-  // x positions (% of stage): source -> split node -> mid control -> unit edge.
-  const SRC_X = 9;
-  const NODE_X = 30;
-  const END_X = 42;
-  const MID_X = (NODE_X + END_X) / 2;
+const SRC_X = 12; // where the capsule melts (matches the capsule's split x)
+const NODE_X = 30; // the split node — trunk ends, branches begin
+const END_X = 42; // the units' left edge (injection point)
 
+/** Cubic-bezier point (all values in stage %). */
+function cubic(
+  p0: [number, number],
+  c1: [number, number],
+  c2: [number, number],
+  p3: [number, number],
+  t: number
+): [number, number] {
+  const u = 1 - t;
+  const a = u * u * u;
+  const b = 3 * u * u * t;
+  const c = 3 * u * t * t;
+  const d = t * t * t;
+  return [
+    a * p0[0] + b * c1[0] + c * c2[0] + d * p3[0],
+    a * p0[1] + b * c1[1] + c * c2[1] + d * p3[1],
+  ];
+}
+
+/**
+ * Build one stream's path as a dense set of {left%, top%} keyframes that move
+ * at CONSTANT speed (times spaced by cumulative arc length, ease: linear):
+ *   1. a straight trunk along the centre line (SRC_X -> NODE_X, top 50)
+ *   2. a smooth cubic branch (NODE_X -> END_X) whose control points are
+ *      horizontal at BOTH ends, so it leaves the node horizontally and arrives
+ *      at the unit horizontally — the S-curve in the user's sketch.
+ */
+function buildStreamPath(targetTop: number) {
+  const pts: [number, number][] = [];
+  // Trunk — a couple of points keep it dead straight.
+  pts.push([SRC_X, 50]);
+  pts.push([NODE_X, 50]);
+  // Branch — sample the cubic. Horizontal handles (same y as their anchor).
+  const p0: [number, number] = [NODE_X, 50];
+  const p3: [number, number] = [END_X, targetTop];
+  const handle = (END_X - NODE_X) * 0.6;
+  const c1: [number, number] = [NODE_X + handle, 50];
+  const c2: [number, number] = [END_X - handle, targetTop];
+  const SEGMENTS = 14;
+  for (let i = 1; i <= SEGMENTS; i++) {
+    pts.push(cubic(p0, c1, c2, p3, i / SEGMENTS));
+  }
+  // Cumulative arc length -> normalized times for constant speed.
+  const times: number[] = [0];
+  let total = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const dx = pts[i][0] - pts[i - 1][0];
+    const dy = pts[i][1] - pts[i - 1][1];
+    total += Math.hypot(dx, dy);
+    times.push(total);
+  }
+  for (let i = 0; i < times.length; i++) times[i] /= total;
+  return {
+    left: pts.map((p) => `${p[0]}%`),
+    top: pts.map((p) => `${p[1]}%`),
+    times,
+  };
+}
+
+function MeltBeads() {
   // Each stream ends at a different branch height; the middle one stays level.
   const streams = [
-    { top: 18, delay: 0.16 },
-    { top: 50, delay: 0.1 },
-    { top: 82, delay: 0.16 },
+    { top: 20, delay: 0.12 },
+    { top: 50, delay: 0.06 },
+    { top: 80, delay: 0.12 },
   ];
-  const BEADS = 5;
+  const BEADS = 6;
 
   return (
-    <motion.div
-      className="melt-goo"
-      aria-hidden="true"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.25, ease: EASE_OUT }}
-    >
-      {/* Source mass — pools where the capsule melted, then feeds the streams.
-          It grows large and FAST so it fully covers the shrinking capsule
-          before the capsule fades: same clay colour + full overlap = a seamless
-          handoff (one substance), not a crossfade between two components. */}
-      <motion.span
-        className="melt-blob melt-source"
-        initial={{ left: `${SRC_X}%`, top: "50%", scale: 0.5 }}
-        animate={{ left: `${SRC_X}%`, top: "50%", scale: [0.5, 1.25, 1.05, 0.85] }}
-        transition={{ duration: SPLIT_MS / 1000, ease: EASE_OUT, times: [0, 0.22, 0.55, 1] }}
-      />
+    <>
       {streams.map((s, si) => {
-        // Path keyframes: trunk (level) -> node -> curved branch -> unit edge.
-        const leftKf = [`${SRC_X}%`, `${NODE_X}%`, `${MID_X}%`, `${END_X}%`];
-        const midTop = (50 + s.top) / 2;
-        const topKf = ["50%", "50%", `${midTop}%`, `${s.top}%`];
+        const path = buildStreamPath(s.top);
+        // Scale keyframes sampled at the same count as the path so the bead
+        // swells out of the capsule then thins as it is absorbed at the unit.
+        const scaleKf = path.times.map((tt) =>
+          tt < 0.12 ? tt / 0.12 : tt > 0.85 ? 0.85 - (tt - 0.85) * 4.6 : 1
+        );
         return Array.from({ length: BEADS }).map((_, bi) => {
           const t = bi / (BEADS - 1); // 0..1 position in the chain
           return (
             <motion.span
               key={`${si}-${bi}`}
               className="melt-blob melt-bead"
+              // Every bead is born AT the capsule's melt point, overlapping it,
+              // so the gooey filter welds them into the capsule (one mass).
               initial={{ left: `${SRC_X}%`, top: "50%", scale: 0 }}
               animate={{
-                left: leftKf,
-                top: topKf,
-                // bead shrinks to nothing at the unit edge — absorbed into the
-                // mould as the water-level fill begins (continuous pour).
-                scale: [0, 0.95, 0.8, 0.15],
+                left: path.left,
+                top: path.top,
+                scale: scaleKf,
               }}
               transition={{
-                duration: 1.0,
-                // beads start only after the capsule has melted into the source,
-                // and later beads leave later -> one travelling chain of clay.
-                delay: 0.4 + s.delay + t * 0.5,
-                ease: EASE_OUT,
-                times: [0, 0.4, 0.75, 1],
+                duration: 1.05,
+                // later beads leave later -> one continuous travelling stream.
+                delay: 0.32 + s.delay + t * 0.55,
+                // LINEAR motion + arc-length-spaced times = constant speed
+                // straight through the split node (no pause), along a curve.
+                ease: "linear",
+                times: path.times,
               }}
             />
           );
         });
       })}
-    </motion.div>
+    </>
   );
 }
 
@@ -150,41 +196,49 @@ export function DataFlow({ flow, url }: { flow: FlowState; url: string }) {
     <div className={`dataflow ${splitting ? "dataflow--split" : "dataflow--center"}`}>
       <GooDefs />
 
-      {/* The capsule: morphs in at centre, glides left, then melts into clay. */}
-      <AnimatePresence>
-        {splitting && (
-          <motion.div
-            key="capsule"
-            layoutId="data-carrier"
-            className="data-carrier split-capsule"
-            style={{ borderRadius: 999 }}
-            initial={false}
-            animate={{
-              left: gooActive ? "9%" : "44%",
-              // Squash into the source blob; stays fully opaque until it is
-              // small enough to be hidden inside the (same-colour) blob, then
-              // cuts — so there is no visible crossfade, only a melt.
-              scaleX: gooActive ? [1, 1, 1.1, 0.2] : 1,
-              scaleY: gooActive ? [1, 1, 0.5, 0.2] : 1,
-              opacity: gooActive ? [1, 1, 1, 0] : 1,
-            }}
-            transition={{
-              left: { duration: 0.55, ease: EASE_OUT },
-              scaleX: { duration: SPLIT_MS / 1000, ease: EASE_OUT, times: [0, 0.18, 0.32, 0.46] },
-              scaleY: { duration: SPLIT_MS / 1000, ease: EASE_OUT, times: [0, 0.18, 0.32, 0.46] },
-              opacity: { duration: SPLIT_MS / 1000, times: [0, 0.32, 0.42, 0.48] },
-            }}
-          >
-            <div className="carrier-pill">
-              <span className="carrier-dot" aria-hidden="true" />
-              <span className="carrier-url">{host}</span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Capsule + droplets live in ONE gooey-filtered stage, so the beads
+          weld onto the capsule and pull off it like a single clay mass. The
+          filter is only enabled during the split (so the capsule's text stays
+          crisp while it morphs in during dispatch). */}
+      <div className={`melt-stage ${gooActive ? "melt-stage--goo" : ""}`}>
+        <AnimatePresence>
+          {splitting && (
+            <motion.div
+              key="capsule"
+              layoutId="data-carrier"
+              className="data-carrier split-capsule"
+              style={{ borderRadius: 999 }}
+              initial={false}
+              animate={{
+                left: gooActive ? `${SRC_X}%` : "44%",
+                // The capsule itself melts: it squashes and shrinks to nothing
+                // exactly as the droplets pull out of it (no ball, no fade).
+                scaleX: gooActive ? [1, 0.85, 0.45, 0] : 1,
+                scaleY: gooActive ? [1, 0.7, 0.4, 0] : 1,
+              }}
+              transition={{
+                left: { duration: 0.5, ease: EASE_OUT },
+                scaleX: { duration: SPLIT_MS / 1000, ease: EASE_OUT, times: [0, 0.28, 0.5, 0.72] },
+                scaleY: { duration: SPLIT_MS / 1000, ease: EASE_OUT, times: [0, 0.28, 0.5, 0.72] },
+              }}
+            >
+              {/* The label fades fast the moment melting starts — only the clay
+                  body deforms. */}
+              <motion.div
+                className="carrier-pill"
+                animate={{ opacity: gooActive ? 0 : 1 }}
+                transition={{ duration: 0.18, ease: EASE_OUT }}
+              >
+                <span className="carrier-dot" aria-hidden="true" />
+                <span className="carrier-url">{host}</span>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      {/* Clay liquid splitting into three streams. */}
-      <AnimatePresence>{gooActive && <MeltGoo />}</AnimatePresence>
+        {/* The droplet streams pulling off the melting capsule. */}
+        {gooActive && <MeltBeads />}
+      </div>
 
       {/* The three units: right-of-centre while pouring, then glide to centre. */}
       <motion.div
