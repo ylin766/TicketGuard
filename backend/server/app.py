@@ -34,7 +34,8 @@ app = FastAPI(title="TicketGuard API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    # Vite picks the next free port (5173/5174/5175…) so allow the local range.
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1):51(7[3-9]|8[0-9])",
     allow_methods=["POST", "GET", "OPTIONS"],
     allow_headers=["Content-Type"],
 )
