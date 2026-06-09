@@ -3,6 +3,8 @@
 Exposes:
     POST /api/threat-intel         → blocking, returns all results at once
     GET  /api/threat-intel/stream  → SSE stream, yields one source per event
+    GET  /api/osint/stream         → SSE stream, the social/opinion agent's
+                                     multi-step trace (tool calls, tokens, time)
 
 Run from the project root (GG Cloud Hackathon/):
     uvicorn backend.server.app:app --port 8001 --reload
@@ -21,6 +23,7 @@ from pydantic import BaseModel
 
 from ..features.security.pipeline import run_pipeline
 from ..features.security.pipeline.threatintel import stream_threatintel
+from ..features.security.agent.osint_stream import stream_osint
 
 _env_path = Path(__file__).parent.parent / ".env"
 load_dotenv(_env_path)
@@ -74,6 +77,45 @@ async def threat_intel_stream(url: str) -> StreamingResponse:
             if event is None:
                 break
             yield f"data: {json.dumps(event)}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+@app.get("/api/osint/stream")
+async def osint_stream(url: str) -> StreamingResponse:
+    """SSE stream of the social/public-opinion OSINT agent's investigation.
+
+    Surfaces the agent's multi-step trace as it runs — interim reasoning, each
+    tool call + its result, per-turn token usage, and timing — followed by the
+    final structured report and aggregate stats. This is the same telemetry
+    OpenInference reports to Arize Phoenix, exposed directly to the client.
+
+    Event format (text/event-stream), see osint_stream.stream_osint for the
+    full frame contract:
+        data: {"type":"start", ...}\n\n
+        data: {"type":"tool_call", "tool":..., "args":..., ...}\n\n
+        data: {"type":"tool_result", "preview":..., "duration_ms":..., ...}\n\n
+        data: {"type":"tokens", "prompt":..., "completion":..., "total":...}\n\n
+        data: {"type":"report", "score":..., "tier":..., "text":...}\n\n
+        data: {"type":"done", "stats":{...}, "phoenix_url":...}\n\n
+    """
+
+    async def event_generator():
+        try:
+            async for event in stream_osint(url):
+                yield f"data: {json.dumps(event)}\n\n"
+        except asyncio.CancelledError:  # client disconnected
+            raise
+        except Exception as exc:  # noqa: BLE001 - last-resort error frame
+            logger.exception("OSINT stream error")
+            yield f"data: {json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
 
     return StreamingResponse(
         event_generator(),
