@@ -51,14 +51,15 @@
   min-height: 84vh;
 }
 
-/* The capsule rides on `left` (centre -> far left); vertical centring is done
-   with top + margin so Framer's transform stays free for the morph & melt. */
+/* The capsule rides on `left` (centre -> far left). Vertical centring is done
+   with translateY(-50%) injected via Framer's transformTemplate (so it survives
+   the animated scale), letting `top: 50%` centre it without a fixed height. */
 .split-capsule {
   position: absolute;
   left: 44%;
   top: 50%;
-  margin-top: -24px;
   z-index: 6;
+  transform-origin: center center;
   will-change: transform, left;
 }
 

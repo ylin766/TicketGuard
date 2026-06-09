@@ -23,8 +23,8 @@ import type { FlowState } from "./useFlow";
  * than separate dots. No thin SVG strokes anywhere; every moving mass is clay.
  */
 
-const DISPATCH_MS = 850;
-const SPLIT_MS = 2200;
+const DISPATCH_MS = 650; // capsule morphs in at centre and holds a beat
+const SPLIT_MS = 2400; // glide-left (~0–0.3) then melt + droplet streams fit inside
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 
 function shortHost(url: string): string {
@@ -138,7 +138,7 @@ function MeltBeads() {
   // When the first bead of a stream reaches the unit edge (≈ travel start +
   // duration), a clay "splash" blooms there: under the gooey filter it reads as
   // the liquid pooling at the mould edge and being absorbed as the fill begins.
-  const SPLASH_AT = (sDelay: number) => 0.32 + sDelay + 1.05;
+  const SPLASH_AT = (sDelay: number) => 0.72 + sDelay + 1.05;
 
   return (
     <>
@@ -167,8 +167,10 @@ function MeltBeads() {
                   }}
                   transition={{
                     duration: 1.05,
-                    // later beads leave later -> one continuous travelling stream.
-                    delay: 0.32 + s.delay + t * 0.55,
+                    // beads start pulling out only once the capsule has glided
+                    // to the source point and begins to melt (~0.72s); later
+                    // beads leave later -> one continuous travelling stream.
+                    delay: 0.72 + s.delay + t * 0.5,
                     // LINEAR motion + arc-length-spaced times = constant speed
                     // straight through the split node (no pause), along a curve.
                     ease: "linear",
@@ -234,38 +236,61 @@ export function DataFlow({ flow, url }: { flow: FlowState; url: string }) {
               className="data-carrier split-capsule"
               style={{ borderRadius: 999 }}
               initial={false}
+              // Vertical centring (translateY -50%) is prepended to whatever
+              // transform Framer generates (the layout-morph projection + the
+              // animated scale), so the capsule stays on the stage's mid-line
+              // for any height — unlike a fixed margin — without breaking the
+              // shared-element morph.
+              transformTemplate={(_latest, generated) =>
+                `translateY(-50%) ${generated}`
+              }
               animate={{
-                left: gooActive ? `${SRC_X}%` : "44%",
-                // The capsule itself melts: it squashes and shrinks to nothing
-                // exactly as the droplets pull out of it (no ball, no fade).
-                // A touch of stretch on the way (scaleX>scaleY) then a squash
-                // gives the melt weight and life rather than a rigid shrink.
-                scaleX: gooActive ? [1, 1.12, 0.5, 0] : 1,
-                scaleY: gooActive ? [1, 0.82, 0.42, 0] : 1,
+                // ONE synced timeline: first the capsule glides to the source
+                // point (scale held at 1), and only AFTER it arrives does it
+                // squash and melt to nothing — so it never shrinks mid-flight
+                // and always vanishes at the correct left position.
+                left: gooActive
+                  ? ["44%", `${SRC_X}%`, `${SRC_X}%`, `${SRC_X}%`]
+                  : "44%",
+                scaleX: gooActive ? [1, 1, 1.12, 0.5, 0] : 1,
+                scaleY: gooActive ? [1, 1, 0.82, 0.42, 0] : 1,
               }}
               transition={{
-                // The shared-element morph (input card -> capsule) rides a
-                // spring so the shape change has bounce and life, not a rigid
-                // tween. Spring-driven glide to the left does the same.
+                // Shared-element morph (input card -> capsule) keeps its spring.
                 layout: { type: "spring", stiffness: 110, damping: 16, mass: 1 },
-                left: { type: "spring", stiffness: 90, damping: 14, mass: 1.1 },
-                scaleX: { duration: SPLIT_MS / 1000, ease: EASE_OUT, times: [0, 0.26, 0.5, 0.72] },
-                scaleY: { duration: SPLIT_MS / 1000, ease: EASE_OUT, times: [0, 0.26, 0.5, 0.72] },
+                // Glide + melt share the SAME tween timeline (no spring) so the
+                // keyframe times stay in lock-step: 0–0.3 glide, then melt.
+                left: {
+                  duration: SPLIT_MS / 1000,
+                  ease: EASE_OUT,
+                  times: [0, 0.3, 0.6, 1],
+                },
+                scaleX: {
+                  duration: SPLIT_MS / 1000,
+                  ease: EASE_OUT,
+                  times: [0, 0.3, 0.42, 0.55, 0.62],
+                },
+                scaleY: {
+                  duration: SPLIT_MS / 1000,
+                  ease: EASE_OUT,
+                  times: [0, 0.3, 0.42, 0.55, 0.62],
+                },
               }}
             >
-              {/* The label fades out smoothly as the clay body begins to
-                  squash — gradual, not an instant cut, so the melt feels fluid. */}
+              {/* The label stays crisp while the capsule glides, then fades as
+                  the body begins to squash/melt — not an instant cut. */}
               <motion.div
                 className="carrier-pill"
                 initial={false}
                 animate={{
-                  opacity: gooActive ? [1, 0.6, 0] : 1,
-                  scale: gooActive ? [1, 0.92, 0.8] : 1,
+                  opacity: gooActive ? [1, 1, 0] : 1,
+                  scale: gooActive ? [1, 1, 0.85] : 1,
                 }}
                 transition={{
-                  duration: gooActive ? 0.6 : 0.3,
+                  duration: gooActive ? SPLIT_MS / 1000 : 0.3,
                   ease: EASE_OUT,
-                  times: gooActive ? [0, 0.5, 1] : undefined,
+                  // hold during the glide (0–0.3), fade out across the melt.
+                  times: gooActive ? [0, 0.3, 0.6] : undefined,
                 }}
               >
                 <span className="carrier-dot" aria-hidden="true" />

@@ -64,11 +64,11 @@ export function ProcessUnits({
   // so the clay surface rises until the mould is full.
   const fillEmpty = "inset(100% 0 0 0 round 24px)";
   const fillFull = "inset(0% 0 0 0 round 24px)";
-  // Fills begin the moment that unit's clay stream ARRIVES at its edge (~1.5s,
-  // matching the bead travel in DataFlow), so the pour is continuous — the
-  // droplet is absorbed and the level rises. Each mould then fills at its own
-  // pace (durations vary) so the three top out at slightly different times.
-  const fillDelay = [1.5, 1.45, 1.5];
+  // Fills begin the moment that unit's clay stream ARRIVES at its edge (matching
+  // the bead travel + splash in DataFlow: ≈0.72 glide + 1.05 travel), so the
+  // pour is continuous. Each mould then fills at its own pace (durations vary)
+  // so the three top out at slightly different times.
+  const fillDelay = [1.85, 1.78, 1.85];
   const fillDur = [0.7, 0.95, 1.2];
 
   return (
