@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ThreatIntelPanel } from "../components/ThreatIntelPanel";
+import { SecurityRuntime } from "../components/osint/SecurityRuntime";
 import type { FlowPhase } from "./useFlow";
 
 /**
@@ -82,23 +82,35 @@ export function ProcessUnits({
           <motion.div
             key={u.key}
             className={`punit ${active ? "punit--active" : "punit--soon"} punit--${u.key}`}
-            layout
+            // The whole unit (its empty clay mould included) stays invisible
+            // until that stream's droplet reaches its edge, then reveals as ONE
+            // piece. No `layout` and no scale here: nested layout projection +
+            // a scale spring were fighting each other (the stutter) and made the
+            // content pop before its frame. A single opacity+y spring is smooth.
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: filled ? 1 : 0, y: filled ? 0 : 10 }}
+            transition={{
+              delay: filled ? fillDelay[i] : 0,
+              opacity: { duration: 0.35, ease: EASE },
+              y: { type: "spring", stiffness: 220, damping: 22, mass: 0.9 },
+            }}
           >
             {/* The clay body poured into the mould, rising like a water level
-                from the bottom until full — a real material fill. */}
+                from the bottom until full — this IS the visible frame, so it
+                leads; the content surfaces just behind it. */}
             <motion.div
               className="punit-fill"
               initial={{ clipPath: fillEmpty }}
               animate={{ clipPath: filled ? fillFull : fillEmpty }}
-              transition={{ duration: fillDur[i], delay: fillDelay[i], ease: EASE }}
+              transition={{ duration: fillDur[i], delay: fillDelay[i] + 0.1, ease: EASE }}
             />
 
-            {/* Content surfaces with the rising clay; only legible once full. */}
+            {/* Content surfaces with the rising clay, a beat after the fill. */}
             <motion.div
               className="punit-content"
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: filled ? 1 : 0, y: filled ? 0 : 14 }}
-              transition={{ duration: 0.6, delay: fillDelay[i] + fillDur[i] * 0.55, ease: EASE }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: filled ? 1 : 0, y: filled ? 0 : 10 }}
+              transition={{ duration: 0.5, delay: fillDelay[i] + fillDur[i] * 0.5, ease: EASE }}
             >
               {showHead && (
                 <div className="punit-head">
@@ -115,7 +127,7 @@ export function ProcessUnits({
               <motion.div className="punit-body" layout>
                 {active ? (
                   isPipeline ? (
-                    <ThreatIntelPanel url={url} onDone={onSecurityDone} variant="runtime" />
+                    <SecurityRuntime url={url} onDone={onSecurityDone} />
                   ) : (
                     <div className="punit-process">
                       <span className="punit-process-dot" aria-hidden="true" />

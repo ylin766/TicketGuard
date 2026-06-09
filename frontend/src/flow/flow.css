@@ -59,6 +59,7 @@
   top: 50%;
   margin-top: -24px;
   z-index: 6;
+  will-change: transform, left;
 }
 
 /* Hidden filter holder. */
@@ -95,12 +96,22 @@
   border-radius: 50%;
   /* Solid clay fill — the gooey filter needs an opaque alpha to merge. */
   background: #edefe9;
+  /* Promote to a GPU layer so the constant left/top/scale animation under the
+     gooey filter composites smoothly instead of repainting on the main thread. */
+  will-change: transform, left, top;
 }
 .melt-bead {
   width: clamp(28px, 3.6vw, 52px);
   height: clamp(28px, 3.6vw, 52px);
   margin-top: calc(clamp(28px, 3.6vw, 52px) * -0.5);
   margin-left: calc(clamp(28px, 3.6vw, 52px) * -0.5);
+}
+/* Splash that pools at the unit edge as the stream lands and is absorbed. */
+.melt-splash {
+  width: clamp(40px, 5vw, 72px);
+  height: clamp(40px, 5vw, 72px);
+  margin-top: calc(clamp(40px, 5vw, 72px) * -0.5);
+  margin-left: calc(clamp(40px, 5vw, 72px) * -0.5);
 }
 
 /* The units zone lives in the SAME bounded stage as the droplets, so pure
@@ -257,6 +268,13 @@
 .punit-body {
   display: flex;
   flex-direction: column;
+}
+
+/* Security runtime stacks the threat scan and the public-opinion agent trace. */
+.security-runtime {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 /* Security row's panel fills the full width with a wide multi-column grid so the

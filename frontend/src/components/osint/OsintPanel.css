@@ -1,0 +1,329 @@
+/* OSINT public-opinion agent — live multi-step trace, clay-styled to match the
+   threat-intel runtime panel. Neutralised clay tokens (no green wash). */
+
+.osint-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, #fbfbf9, #eef0ea);
+  box-shadow: 0 12px 26px -10px rgba(40, 44, 38, 0.2),
+    inset 3px 3px 8px rgba(255, 255, 255, 0.9),
+    inset -4px -5px 10px rgba(120, 124, 116, 0.3);
+  --osint-danger: #d2483c;
+  --osint-caution: #c98a1e;
+  --osint-safe: #2e9e54;
+}
+
+/* ---------- Head ---------- */
+.osint-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.osint-head-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: inset 2px 2px 5px rgba(255, 255, 255, 0.85),
+    inset -2px -3px 6px rgba(120, 124, 116, 0.28);
+  flex-shrink: 0;
+}
+.osint-tool-svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.osint-head-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+.osint-head-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.osint-head-sub {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-faint);
+}
+
+.osint-dots {
+  display: inline-flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.osint-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: osint-blink 1.2s ease-in-out infinite;
+}
+.osint-dot:nth-child(2) { animation-delay: 0.18s; }
+.osint-dot:nth-child(3) { animation-delay: 0.36s; }
+@keyframes osint-blink {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+.osint-score {
+  font-size: 16px;
+  font-weight: 900;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: inset 1px 1px 3px rgba(120, 124, 116, 0.3),
+    inset -1px -1px 3px rgba(255, 255, 255, 0.9);
+  flex-shrink: 0;
+}
+.osint-score--danger { color: var(--osint-danger); }
+.osint-score--caution { color: var(--osint-caution); }
+.osint-score--safe { color: var(--osint-safe); }
+
+/* ---------- Telemetry strip ---------- */
+.osint-stats {
+  display: flex;
+  gap: 8px;
+}
+.osint-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 8px 6px;
+  border-radius: 14px;
+  background: var(--clay-bottom);
+  box-shadow: inset 2px 2px 5px rgba(120, 124, 116, 0.22),
+    inset -2px -2px 5px rgba(255, 255, 255, 0.8);
+}
+.osint-stat-value {
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.osint-stat-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.osint-error {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--osint-danger);
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(210, 72, 60, 0.08);
+}
+
+/* ---------- Trace timeline ---------- */
+.osint-trace {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+/* the connecting spine */
+.osint-trace::before {
+  content: "";
+  position: absolute;
+  left: 17px;
+  top: 14px;
+  bottom: 14px;
+  width: 2px;
+  background: rgba(120, 124, 116, 0.22);
+  border-radius: 2px;
+}
+
+.osint-node {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: inset 1px 1px 3px rgba(255, 255, 255, 0.7),
+    inset -1px -2px 4px rgba(120, 124, 116, 0.18);
+}
+.osint-node-icon {
+  position: relative;
+  z-index: 1;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  color: var(--ink-soft);
+  background: linear-gradient(150deg, #fbfbf9, #eef0ea);
+  box-shadow: 0 4px 10px -4px rgba(40, 44, 38, 0.25),
+    inset 2px 2px 4px rgba(255, 255, 255, 0.85),
+    inset -2px -2px 5px rgba(120, 124, 116, 0.28);
+  flex-shrink: 0;
+}
+.osint-node--running .osint-node-icon {
+  color: var(--accent);
+  animation: osint-node-pulse 1.3s ease-in-out infinite;
+}
+@keyframes osint-node-pulse {
+  0%, 100% { box-shadow: 0 4px 10px -4px rgba(40, 44, 38, 0.25), inset 2px 2px 4px rgba(255, 255, 255, 0.85), inset -2px -2px 5px rgba(120, 124, 116, 0.28); }
+  50% { box-shadow: 0 0 0 4px rgba(46, 158, 84, 0.16), inset 2px 2px 4px rgba(255, 255, 255, 0.85), inset -2px -2px 5px rgba(120, 124, 116, 0.28); }
+}
+.osint-node-svg { width: 16px; height: 16px; }
+
+.osint-node-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.osint-node-headline {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.osint-node-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.osint-node-source {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-faint);
+}
+.osint-args {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.osint-arg {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--clay-bottom);
+  box-shadow: inset 1px 1px 2px rgba(120, 124, 116, 0.25),
+    inset -1px -1px 2px rgba(255, 255, 255, 0.7);
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.osint-node-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.osint-node-dur {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.osint-pip {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  fill: none;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.osint-pip--ok { stroke: var(--osint-safe); }
+.osint-pip--fail { stroke: var(--osint-danger); }
+.osint-pip--run {
+  border-radius: 50%;
+  border: 2.4px solid rgba(120, 124, 116, 0.3);
+  border-top-color: var(--accent);
+  animation: osint-spin 0.8s linear infinite;
+}
+@keyframes osint-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------- Final verdict ---------- */
+.osint-verdict {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--clay-bottom);
+  box-shadow: inset 2px 2px 6px rgba(120, 124, 116, 0.22),
+    inset -2px -2px 6px rgba(255, 255, 255, 0.8);
+}
+.osint-verdict-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.osint-tier {
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+}
+.osint-tier--danger { color: var(--osint-danger); }
+.osint-tier--caution { color: var(--osint-caution); }
+.osint-tier--safe { color: var(--osint-safe); }
+
+.osint-meter {
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(120, 124, 116, 0.18);
+  box-shadow: inset 1px 1px 3px rgba(120, 124, 116, 0.3);
+}
+.osint-meter-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+.osint-meter-fill--danger { background: linear-gradient(90deg, #e0796f, var(--osint-danger)); }
+.osint-meter-fill--caution { background: linear-gradient(90deg, #e3b15f, var(--osint-caution)); }
+.osint-meter-fill--safe { background: linear-gradient(90deg, var(--accent-soft), var(--osint-safe)); }
+
+.osint-phoenix {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--accent);
+  text-decoration: none;
+  align-self: flex-start;
+}
+.osint-phoenix:hover { text-decoration: underline; }
+
+@media (prefers-reduced-motion: reduce) {
+  .osint-dot,
+  .osint-node--running .osint-node-icon,
+  .osint-pip--run {
+    animation: none !important;
+  }
+}
