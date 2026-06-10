@@ -37,6 +37,21 @@ def _detect_source(url: str) -> str:
     return "stubhub"  # default
 
 
+def _reference_event(url: str) -> tuple[str, str] | None:
+    """If ``url`` is already a StubHub/Ticketmaster page, return (source, url).
+
+    Those are the marketplaces our scrapers can read, so we scrape them directly
+    (no resolution detour). Any OTHER host is a buyer page we can't parse, so the
+    caller must extract the event with vision and resolve a reference URL.
+    """
+    u = (url or "").lower()
+    if "ticketmaster.com" in u:
+        return ("ticketmaster", url)
+    if "stubhub.com" in u:
+        return ("stubhub", url)
+    return None
+
+
 def _normalize_url(url: str) -> str:
     """Ensure the URL has a scheme so Playwright can navigate to it.
 
@@ -88,21 +103,20 @@ async def stream_price(url: str, qty: int = 2) -> AsyncGenerator[dict, None]:
          "user_listing":{...},"stats":{...},"analysis":{...},"recommendations":[...]}
         {"type":"error","message":str}
     """
-    source = _detect_source(url)
-    fetcher = _FETCHERS.get(source, fetch_stubhub)
-    url = _normalize_url(url)
-    yield {"type": "start", "url": url, "source": source}
+    user_url = _normalize_url(url)
+    yield {"type": "start", "url": user_url, "source": "stubhub"}
 
     # Bridge the scraper's synchronous-ish on_frame callback (called from the
     # scraper coroutine) into our async generator via a queue.
     queue: asyncio.Queue = asyncio.Queue()
-    # Keep the first screenshot (the user's page as loaded) for vision extraction.
-    first_shot: dict = {"bytes": None}
+    # Track the most recent screenshot so phase "status" frames (extract/resolve,
+    # which produce no new shot) can reuse the last image to stay on the viewport.
+    last_png: dict = {"bytes": None}
 
     def on_frame(step: int, png_bytes: bytes, action: str) -> None:
-        if first_shot["bytes"] is None and png_bytes:
-            first_shot["bytes"] = png_bytes
-        b64 = base64.b64encode(png_bytes).decode("ascii")
+        if png_bytes:
+            last_png["bytes"] = png_bytes
+        b64 = base64.b64encode(png_bytes).decode("ascii") if png_bytes else ""
         queue.put_nowait(
             {
                 "type": "frame",
@@ -113,6 +127,12 @@ async def stream_price(url: str, qty: int = 2) -> AsyncGenerator[dict, None]:
             }
         )
 
+    def emit_status(step: int, action: str) -> None:
+        """Add a timeline step that reuses the last screenshot (no new shot)."""
+        png = last_png["bytes"]
+        if png:
+            on_frame(step, png, action)
+
     tracer = _tracer()
     span_cm = (
         tracer.start_as_current_span("price.collect") if tracer else None
@@ -120,14 +140,75 @@ async def stream_price(url: str, qty: int = 2) -> AsyncGenerator[dict, None]:
     if span_cm is not None:
         span = span_cm.__enter__()
         try:
-            span.set_attribute("price.source", source)
-            span.set_attribute("price.url", url)
+            span.set_attribute("price.url", user_url)
             span.set_attribute("price.qty", qty)
         except Exception:  # noqa: BLE001
             pass
 
-    task = asyncio.create_task(fetcher(url, qty, on_frame))
+    task: asyncio.Task | None = None
+    user_listing: dict = {}
     try:
+        # ------------------------------------------------------------------
+        # Resolve which marketplace event to price against.
+        #   * A StubHub/Ticketmaster URL is already readable -> scrape directly.
+        #   * Any other host is a buyer page our scrapers can't parse, so we
+        #     screenshot it, let Gemini read the event + seat, then search for
+        #     the SAME event on a reference marketplace we can scrape.
+        # ------------------------------------------------------------------
+        direct = _reference_event(user_url)
+        if direct is not None:
+            ref_source, ref_url = direct
+        else:
+            ref_source = "stubhub"
+            # Phase 1 — screenshot the buyer's page for vision.
+            from .capture import capture_screenshot
+
+            user_png = await capture_screenshot(
+                user_url, on_frame, "Reading your ticket page"
+            )
+            while not queue.empty():
+                yield queue.get_nowait()
+
+            # Phase 2 — Gemini reads the buyer's event + seat off the page.
+            user_listing = {}
+            if user_png:
+                from .analysis import extract_user_listing
+
+                user_listing = (
+                    await asyncio.to_thread(
+                        extract_user_listing, user_png, user_url
+                    )
+                    or {}
+                )
+            ev_name = user_listing.get("event_name") or "this event"
+            emit_status(1, f"Identified event · {ev_name}")
+            while not queue.empty():
+                yield queue.get_nowait()
+
+            # Phase 3 — find the SAME event on the reference marketplace.
+            emit_status(2, "Searching StubHub for the same match")
+            while not queue.empty():
+                yield queue.get_nowait()
+            from .market_resolver import resolve_market_url
+
+            ref_url = await asyncio.to_thread(
+                resolve_market_url, user_listing, ref_source
+            )
+            # ref_url may be None -> the scraper falls back to its DEFAULT_URL.
+
+        if span_cm is not None:
+            try:
+                span.set_attribute("price.source", ref_source)
+                if ref_url:
+                    span.set_attribute("price.reference_url", ref_url)
+            except Exception:  # noqa: BLE001
+                pass
+
+        # ------------------------------------------------------------------
+        # Phase 4 — scrape the reference marketplace event.
+        # ------------------------------------------------------------------
+        fetcher = _FETCHERS.get(ref_source, fetch_stubhub)
+        task = asyncio.create_task(fetcher(ref_url, qty, on_frame))
         # Drain frames until the scrape task finishes and the queue is empty.
         while True:
             if task.done() and queue.empty():
@@ -149,15 +230,21 @@ async def stream_price(url: str, qty: int = 2) -> AsyncGenerator[dict, None]:
             except Exception:  # noqa: BLE001
                 pass
 
-        # Grounded analysis: extract the buyer's ticket (vision) + evaluate vs
-        # market. Best-effort and off the event loop (blocking Gemini calls).
+        # ------------------------------------------------------------------
+        # Phase 5 — compare the buyer's ticket against the reference market.
+        # ------------------------------------------------------------------
         yield {"type": "analyzing", "ts": time.time()}
         analysis_out: dict = {}
         try:
             from .analysis import analyze
 
             analysis_out = await asyncio.to_thread(
-                analyze, first_shot["bytes"], url, listings, qty
+                analyze,
+                last_png["bytes"],
+                ref_url or user_url,
+                listings,
+                qty,
+                user_listing or None,
             )
             if span_cm is not None:
                 try:
@@ -191,7 +278,7 @@ async def stream_price(url: str, qty: int = 2) -> AsyncGenerator[dict, None]:
         # try/finally close the browser. (We do NOT broadly sweep here: price and
         # the security browser-check can run concurrently, so killing all
         # descendant Chromium would take out the other flow's live browser.)
-        if not task.done():
+        if task is not None and not task.done():
             task.cancel()
             try:
                 await task

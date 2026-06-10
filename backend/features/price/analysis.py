@@ -24,6 +24,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 from statistics import median as _median
 from typing import Optional
 
@@ -173,6 +174,32 @@ def _seat_key(section, row, seat=None) -> tuple:
     return (norm(section), norm(row), norm(seat))
 
 
+_SECTION_NUM_RE = re.compile(r"\d+")
+
+
+def _section_number(v) -> str:
+    """The numeric token of a section label, e.g. 'Upper Corner 304' -> '304'."""
+    if v in (None, ""):
+        return ""
+    m = _SECTION_NUM_RE.search(str(v))
+    return m.group(0) if m else ""
+
+
+def _section_match(a, b) -> bool:
+    """True when two section labels refer to the same section.
+
+    Different sites label sections differently (e.g. the buyer page says
+    'Upper Corner 304' while StubHub says '304'), so we match either on the
+    normalized label OR on a shared numeric token.
+    """
+    na = str(a).strip().lower() if a not in (None, "") else ""
+    nb = str(b).strip().lower() if b not in (None, "") else ""
+    if na and na == nb:
+        return True
+    sa, sb = _section_number(a), _section_number(b)
+    return bool(sa) and sa == sb
+
+
 def find_same_seat(user: dict, listings: list[dict]) -> dict:
     """Find the market listing for the *exact same seat* the buyer is looking at.
 
@@ -186,21 +213,24 @@ def find_same_seat(user: dict, listings: list[dict]) -> dict:
     u_row = user.get("row")
     if not u_section:  # without at least a section we can't claim "same seat"
         return {}
-    u_seat = user.get("seat")
-    want_full = _seat_key(u_section, u_row, u_seat)
-    want_sr = _seat_key(u_section, u_row)
+    u_seat = str(user.get("seat")).strip().lower() if user.get("seat") else ""
+    u_row_n = str(u_row).strip().lower() if u_row not in (None, "") else ""
 
     best: dict = {}
     for x in listings:
         if not isinstance(x, dict):
             continue
-        have_section = x.get("section")
-        have_row = x.get("row")
+        if not _section_match(x.get("section"), u_section):
+            continue
+        have_row = str(x.get("row")).strip().lower() if x.get("row") not in (None, "") else ""
+        have_seat = (
+            str(x.get("seat_start")).strip().lower() if x.get("seat_start") else ""
+        )
         # Exact section+row+seat match (strongest).
-        if u_seat and _seat_key(have_section, have_row, x.get("seat_start")) == want_full:
+        if u_seat and have_row == u_row_n and have_seat == u_seat:
             return x
         # Section+row match (strong, seat often not exposed in listings).
-        if u_row and _seat_key(have_section, have_row) == want_sr:
+        if u_row_n and have_row == u_row_n:
             best = best or x
     return best
 
@@ -298,11 +328,6 @@ def detect_currency(listings: list[dict], default: str = "USD") -> str:
     return default
 
 
-
-def _norm(v) -> str:
-    return str(v).strip().lower() if v is not None else ""
-
-
 def compute_market_stats(
     listings: list[dict],
     user_price: Optional[float],
@@ -333,9 +358,8 @@ def compute_market_stats(
         stats["percentile"] = round(100 * below / len(prices))
 
     if user_section:
-        sec = _norm(user_section)
         same = _prices(
-            [x for x in listings if _norm(x.get("section")) == sec]
+            [x for x in listings if _section_match(x.get("section"), user_section)]
         )
         stats["same_section_count"] = len(same)
         if same:
@@ -354,9 +378,8 @@ def recommend_cheaper(
     if isinstance(user_price, (int, float)):
         cand = [x for x in cand if x["price"] < user_price]
     # Prefer same section, then lowest price.
-    sec = _norm(user_section)
     cand.sort(
-        key=lambda x: (0 if _norm(x.get("section")) == sec else 1, x["price"])
+        key=lambda x: (0 if _section_match(x.get("section"), user_section) else 1, x["price"])
     )
     out = []
     for x in cand[:limit]:
@@ -454,8 +477,14 @@ def analyze(
     url: str,
     listings: list[dict],
     qty: int = 2,
+    user_listing: Optional[dict] = None,
 ) -> dict:
     """Full pipeline: extract user's ticket, compute stats, evaluate, recommend.
+
+    Args:
+        user_listing: A pre-extracted buyer ticket (e.g. from a vision pass over
+            the buyer's own page before the reference market was scraped). When
+            given, the in-function extraction is skipped.
 
     Returns a frontend-ready dict:
         {
@@ -466,10 +495,14 @@ def analyze(
           "recommendations": [...],     # better-value listings
         }
     """
-    # Prefer a deterministic URL match (exact, free); fall back to vision.
-    user = match_user_listing(url, listings)
-    if not user:
-        user = extract_user_listing(image_bytes, url)
+    # Use the caller-supplied extraction if present; else a deterministic URL
+    # match (exact, free); else a fresh vision pass.
+    if user_listing:
+        user = dict(user_listing)
+    else:
+        user = match_user_listing(url, listings)
+        if not user:
+            user = extract_user_listing(image_bytes, url)
     # Override quantity with the caller's explicit choice when the user picked one.
     if qty and not user.get("quantity"):
         user["quantity"] = qty

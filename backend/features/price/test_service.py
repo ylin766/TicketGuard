@@ -62,7 +62,7 @@ def test_stream_price_frames(monkeypatch):
     # Fake the analysis layer so no real Gemini call is made.
     import backend.features.price.analysis as analysis
 
-    def fake_analyze(image_bytes, url, listings, qty=2):
+    def fake_analyze(image_bytes, url, listings, qty=2, user_listing=None):
         return {
             "user_listing": {"section": "A", "price_per_ticket": 150},
             "stats": {"median": 200.0, "percentile": 40},
@@ -94,3 +94,68 @@ def test_stream_price_frames(monkeypatch):
     # frame events carry a base64 data-URL image
     frame_events = [f for f in frames if f["type"] == "frame"]
     assert frame_events and frame_events[0]["image"].startswith("data:image/png;base64,")
+
+
+def test_stream_price_resolver_path(monkeypatch):
+    """A non-StubHub buyer URL triggers screenshot → vision extract → Tavily
+    resolve → scrape the resolved reference event, then compare."""
+
+    seen = {}
+
+    async def fake_capture(url, on_frame=None, action="x"):
+        if on_frame:
+            on_frame(0, b"\x89PNG-user", action)
+        return b"\x89PNG-user"
+
+    def fake_extract(image_bytes, url):
+        return {"event_name": "Spain vs Cape Verde", "section": "120"}
+
+    def fake_resolve(user_listing, source):
+        seen["resolved_event"] = user_listing.get("event_name")
+        return "https://www.stubhub.com/world-cup-atlanta/event/153022393"
+
+    async def fake_fetch(url, qty, on_frame=None):
+        seen["scraped_url"] = url
+        if on_frame:
+            on_frame(1, b"\x89PNG-ref", "Opened event page")
+        return {"source": "stubhub", "metadata": {}, "listings": [{"price": 400}]}
+
+    def fake_analyze(image_bytes, url, listings, qty=2, user_listing=None):
+        seen["analyze_user_listing"] = user_listing
+        return {
+            "user_listing": user_listing or {},
+            "stats": {"median": 400.0},
+            "analysis": {"verdict": "fair"},
+            "recommendations": [],
+        }
+
+    import backend.features.price.capture as capture
+    import backend.features.price.market_resolver as resolver
+    import backend.features.price.analysis as analysis
+
+    monkeypatch.setattr(capture, "capture_screenshot", fake_capture)
+    monkeypatch.setattr(analysis, "extract_user_listing", fake_extract)
+    monkeypatch.setattr(resolver, "resolve_market_url", fake_resolve)
+    monkeypatch.setattr(analysis, "analyze", fake_analyze)
+    monkeypatch.setitem(service._FETCHERS, "stubhub", fake_fetch)
+
+    async def run():
+        out = []
+        async for f in service.stream_price(
+            "https://www.boxofficeticketsales.com/123/spain-vs-cape-verde", 2
+        ):
+            out.append(f)
+        return out
+
+    frames = asyncio.run(run())
+    done = frames[-1]
+
+    assert done["type"] == "done"
+    # The event Gemini read off the buyer page was passed to the resolver…
+    assert seen["resolved_event"] == "Spain vs Cape Verde"
+    # …the resolved StubHub URL was the one actually scraped…
+    assert seen["scraped_url"].endswith("/event/153022393")
+    # …and the pre-extracted user listing flowed into analyze.
+    assert seen["analyze_user_listing"]["event_name"] == "Spain vs Cape Verde"
+    assert done["analysis"]["verdict"] == "fair"
+
