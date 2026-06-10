@@ -6,7 +6,7 @@ import type {
   AgentStatus,
 } from "./types";
 
-const AGENT_ENDPOINT = "http://localhost:8001/api/agent/stream";
+const AGENT_ENDPOINT = "http://localhost:8001/api/osint/stream";
 
 export interface AgentState {
   status: AgentStatus;

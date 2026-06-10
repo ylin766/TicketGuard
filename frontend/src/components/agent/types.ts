@@ -1,7 +1,7 @@
 /**
  * AGENT social-opinion agent stream — frontend contract.
  *
- * Mirrors the SSE frames emitted by GET /api/agent/stream (see backend
+ * Mirrors the SSE frames emitted by GET /api/osint/stream (see backend
  * agent_stream.py). Each frame is one `data: {...}` line.
  */
 
