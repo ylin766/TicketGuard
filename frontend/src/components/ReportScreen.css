@@ -138,6 +138,20 @@
   font-size: 15px;
 }
 
+.phoenix-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted, #7a7f8c);
+  text-decoration: none;
+  border-bottom: 1px dashed currentColor;
+  transition: color 0.2s ease;
+}
+
+.phoenix-link:hover {
+  color: var(--text, #2c2f36);
+}
+
+
 /* ---------- Recommendation banner ---------- */
 .recommendation {
   display: flex;

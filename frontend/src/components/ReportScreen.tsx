@@ -6,6 +6,8 @@ import { RiskGauge } from "./RiskGauge";
 import { ScoreCard } from "./ScoreCard";
 import { ThreatIntelPanel } from "./ThreatIntelPanel";
 import { AgentPanel } from "./agent/AgentPanel";
+import { LiveBrowserViewport } from "./price/LiveBrowserViewport";
+import { usePriceStream } from "./price/usePriceStream";
 import "./ReportScreen.css";
 
 interface ReportScreenProps {
@@ -39,8 +41,12 @@ export function ReportScreen({
   agentCache,
 }: ReportScreenProps) {
   const { dimensions } = report;
+  // Live market median from the price stream takes precedence over the mock
+  // placeholder once it arrives.
+  const price = usePriceStream(report.url, 2, true);
+  const marketMedian = price.median ?? report.marketMedian;
   const markup = Math.round(
-    ((report.listingPrice - report.marketMedian) / report.marketMedian) * 100
+    ((report.listingPrice - marketMedian) / marketMedian) * 100
   );
 
   return (
@@ -80,7 +86,7 @@ export function ReportScreen({
                 </div>
                 <div className="price-pill neu-inset">
                   <span className="eyebrow">Market median</span>
-                  <strong>{formatUsd(report.marketMedian)}</strong>
+                  <strong>{formatUsd(marketMedian)}</strong>
                 </div>
                 <div className="price-pill neu-inset">
                   <span className="eyebrow">Markup</span>
@@ -137,7 +143,19 @@ export function ReportScreen({
           <div className="report-gauge-card clay">
             <span className="eyebrow">Trust Assessment</span>
             <RiskGauge score={report.overallScore} verdict={report.verdict} />
+            {report.security?.phoenix_url && (
+              <a
+                className="phoenix-link"
+                href={report.security.phoenix_url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                View agent trace ↗
+              </a>
+            )}
           </div>
+
+          <LiveBrowserViewport state={price} />
 
           <ThreatIntelPanel
             url={report.url}
