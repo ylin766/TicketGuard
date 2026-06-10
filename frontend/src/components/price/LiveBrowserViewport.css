@@ -6,6 +6,13 @@
   flex-direction: column;
   gap: 10px;
   padding: 14px;
+  /* In the wide pipeline column the unit is ~1180px; without a cap the 16:10
+     screen stretches ultra-wide and the screenshot ends up heavily pillarboxed.
+     Cap the card and centre it so the screen keeps a sane aspect on any column;
+     it still fills a narrow report side-column (max-width: 100%). */
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
   border-radius: var(--radius-md);
   background: linear-gradient(180deg, #fbfbf9, #eef0ea);
   box-shadow: 0 12px 26px -10px rgba(40, 44, 38, 0.2),
@@ -79,10 +86,6 @@
 .lbv-screen {
   position: relative;
   aspect-ratio: 16 / 10;
-  /* Cap the height so a wide column can't stretch the viewport tall enough to
-     push sibling units out of view; the frame uses object-fit: contain, so the
-     screenshot just letterboxes instead of distorting. */
-  max-height: 240px;
   border-radius: var(--radius-sm, 14px);
   overflow: hidden;
   background: var(--clay-bottom, #eef0ea);

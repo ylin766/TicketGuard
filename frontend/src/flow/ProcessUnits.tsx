@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { SecurityRuntime } from "../components/agent/SecurityRuntime";
 import { LiveBrowserViewport } from "../components/price/LiveBrowserViewport";
+import { PriceActivityPanel } from "../components/price/PriceActivityPanel";
 import type { PriceState } from "../components/price/usePriceStream";
 import type { ThreatScanCache } from "../components/ThreatIntelPanel";
 import type { FlowPhase } from "./useFlow";
@@ -151,7 +152,10 @@ export function ProcessUnits({
                   )
                 ) : u.key === "price" ? (
                   isPipeline && price ? (
-                    <LiveBrowserViewport state={price} />
+                    <div className="price-runtime">
+                      <LiveBrowserViewport state={price} />
+                      <PriceActivityPanel state={price} />
+                    </div>
                   ) : (
                     <div className="punit-process">
                       <span className="punit-process-dot" aria-hidden="true" />

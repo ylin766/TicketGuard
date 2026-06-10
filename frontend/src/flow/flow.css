@@ -278,6 +278,31 @@
   overflow-y: auto;
 }
 
+/* Price runtime: the live browser viewport (left) beside the price agent's
+   activity timeline (right), so the wide column is used and the agent's actions
+   are surfaced — mirroring the security column's scan + agent layout. */
+.price-runtime {
+  display: flex;
+  flex-direction: row;
+  gap: 14px;
+  align-items: flex-start;
+}
+.price-runtime .lbv {
+  flex: 0 0 auto;
+  width: 360px;
+  max-width: 48%;
+  margin: 0;
+}
+@media (max-width: 900px) {
+  .price-runtime {
+    flex-direction: column;
+  }
+  .price-runtime .lbv {
+    width: 100%;
+    max-width: 460px;
+  }
+}
+
 /* Security runtime stacks the threat scan and the public-opinion agent trace. */
 .security-runtime {
   display: flex;
