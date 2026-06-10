@@ -193,6 +193,7 @@ export function loaderForSource(name: string): (p: LoaderProps) => JSX.Element {
     case "SafeBrowsing":
       return LoaderScanWindow;
     case "URLhaus":
+      return LoaderStrokeFlow; // Swapped with crt.sh
     case "OpenPhish":
       return LoaderFeedStream;
     case "CheckPhish":
@@ -202,15 +203,15 @@ export function loaderForSource(name: string): (p: LoaderProps) => JSX.Element {
     case "Sucuri":
       return LoaderBugCrawl;
     case "PhishStats":
-      return LoaderBars;
+      return LoaderPageFlip; // Swapped with RDAP
     case "Tranco":
       return LoaderTrophyPulse;
     case "crt.sh":
-      return LoaderStrokeFlow;
+      return LoaderFeedStream; // Swapped with URLhaus
     case "Wayback":
       return LoaderClockRewind;
     case "RDAP":
-      return LoaderPageFlip;
+      return LoaderBars; // Swapped with PhishStats
     case "IPGeo":
       return LoaderRadar;
     default:

@@ -16,6 +16,12 @@ export interface ThreatScanSummary {
   reported: number;
 }
 
+/** Full scan result cache — sources + flagged — passed from pipeline to report. */
+export interface ThreatScanCache {
+  sources: import("../types").ThreatSource[];
+  flagged: boolean;
+}
+
 interface ThreatIntelPanelProps {
   url: string;
   /** Fired once the stream settles (done / unavailable / error) — used by the
@@ -29,6 +35,15 @@ interface ThreatIntelPanelProps {
    *  scanning animation, progress and the basic verdict. The full source list
    *  is reserved for the report. */
   variant?: "full" | "runtime";
+  /**
+   * Pre-fetched sources from the pipeline phase. When provided the component
+   * skips the network stream and renders the cached data directly as "done".
+   */
+  cachedSources?: ThreatSource[];
+  cachedFlagged?: boolean;
+  /** Called when the stream completes, passing all received sources + flagged.
+   *  Use this in the pipeline stage to build the cache for the report page. */
+  onComplete?: (sources: ThreatSource[], flagged: boolean) => void;
 }
 
 const STREAM_ENDPOINT = "http://localhost:8001/api/threat-intel/stream";
@@ -121,23 +136,43 @@ function Group({
 
 type StreamStatus = "idle" | "streaming" | "done" | "error" | "unavailable";
 
-export function ThreatIntelPanel({ url, onDone, compact, variant = "full" }: ThreatIntelPanelProps) {
-  const [sources, setSources] = useState<ThreatSource[]>([]);
-  const [streamStatus, setStreamStatus] = useState<StreamStatus>("idle");
-  const [flagged, setFlagged] = useState<boolean | null>(null);
+export function ThreatIntelPanel({
+  url,
+  onDone,
+  compact,
+  variant = "full",
+  cachedSources,
+  cachedFlagged,
+  onComplete,
+}: ThreatIntelPanelProps) {
+  // If we have cached data, start directly in "done" state — no stream.
+  const [sources, setSources] = useState<ThreatSource[]>(cachedSources ?? []);
+  const [streamStatus, setStreamStatus] = useState<StreamStatus>(
+    cachedSources ? "done" : "idle"
+  );
+  const [flagged, setFlagged] = useState<boolean | null>(
+    cachedSources ? (cachedFlagged ?? false) : null
+  );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(true);
   const controllerRef = useRef<AbortController | null>(null);
   // Keep the latest onDone without re-running the stream effect.
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
   const doneFiredRef = useRef(false);
   // Live verdict tallies (refs so the stream closure reads fresh values).
   const alertsRef = useRef(0);
   const reportedRef = useRef(0);
   const flaggedRef = useRef(false);
+  // Accumulates all received sources so onComplete gets the full list.
+  const sourcesRef = useRef<ThreatSource[]>([]);
 
   useEffect(() => {
+    // Skip streaming if cached data was provided.
+    if (cachedSources) return;
+
     setSources([]);
     setFlagged(null);
     setErrorMsg(null);
@@ -154,6 +189,7 @@ export function ThreatIntelPanel({ url, onDone, compact, variant = "full" }: Thr
     const fireDone = () => {
       if (doneFiredRef.current) return;
       doneFiredRef.current = true;
+      onCompleteRef.current?.(sourcesRef.current, flaggedRef.current);
       onDoneRef.current?.({
         flagged: flaggedRef.current,
         alerts: alertsRef.current,
@@ -194,7 +230,9 @@ export function ThreatIntelPanel({ url, onDone, compact, variant = "full" }: Thr
 
             if (event.type === "source" && event.data) {
               const src = event.data;
+              sourcesRef.current = [...sourcesRef.current, src];
               setSources((prev) => [...prev, src]);
+
               if (src.threat === true || src.threat === false) {
                 reportedRef.current += 1;
                 if (src.threat === true) alertsRef.current += 1;

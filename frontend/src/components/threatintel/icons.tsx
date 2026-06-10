@@ -219,6 +219,7 @@ export function glyphForSource(name: string): (props: GlyphProps) => JSX.Element
     case "SafeBrowsing":
       return GlyphBrowser;
     case "URLhaus":
+      return GlyphCertificate; // Swapped with crt.sh
     case "OpenPhish":
       return GlyphFeed;
     case "CheckPhish":
@@ -228,15 +229,15 @@ export function glyphForSource(name: string): (props: GlyphProps) => JSX.Element
     case "Sucuri":
       return GlyphBug;
     case "PhishStats":
-      return GlyphChart;
+      return GlyphCalendar; // Swapped with RDAP
     case "Tranco":
       return GlyphRank;
     case "Wayback":
       return GlyphHistory;
     case "RDAP":
-      return GlyphCalendar;
+      return GlyphChart; // Swapped with PhishStats
     case "crt.sh":
-      return GlyphCertificate;
+      return GlyphFeed; // Swapped with URLhaus
     case "IPGeo":
       return GlyphGlobe;
     default:
