@@ -19,8 +19,19 @@ function looksLikeUrl(value: string): boolean {
   return /^(https?:\/\/)?[\w-]+(\.[\w-]+)+/.test(trimmed);
 }
 
+/**
+ * Seat-precise demo URL prefilled in the input. Points at a specific World Cup
+ * 2026 match (Spain vs. Cape Verde, Mercedes-Benz Stadium, Atlanta) on a smaller
+ * resale marketplace whose domain reputation lands in the security grey zone
+ * (verified score ≈87 < SAFE_MIN), so the audit escalates to the Layer-2
+ * browser agent — while the page still exposes real seat-level prices that the
+ * price flow compares against the StubHub/Ticketmaster reference market.
+ */
+const DEFAULT_URL =
+  "https://www.boxofficeticketsales.com/6259536/fifa-world-cup-26-group-h-spain-vs-cape-verde-match-14-tickets-mon-6-15-2026-mercedes-benz-stadium";
+
 export function UrlInputScreen({ onAudit, loading, error }: UrlInputScreenProps) {
-  const [url, setUrl] = useState("");
+  const [url, setUrl] = useState(DEFAULT_URL);
   const [qty, setQty] = useState(2);
   const [touched, setTouched] = useState(false);
 

@@ -27,7 +27,7 @@ import logging
 import os
 import tempfile
 import uuid
-from typing import Optional
+from typing import Callable, Optional
 
 from .rules.domain_rules import evaluate_trust_and_score, is_trusted_domain, registered_domain
 from .llm.gemini_client import classify_claim, classify_sensitive_action
@@ -122,11 +122,17 @@ def _is_necessary_button(label: Optional[str]) -> bool:
 class BrowserCheckRunner:
     """Guard-railed, agent-driven browser probe for one ticket URL."""
 
-    def __init__(self, max_actions: int = 8, headless: bool = True):
+    def __init__(self, max_actions: int = 8, headless: bool = True,
+                 on_frame: Optional[Callable[[int, bytes, str], None]] = None):
         self.max_actions = max(1, min(max_actions, _HARD_ACTION_CAP))
         self.headless = headless
         self.workdir = tempfile.mkdtemp(prefix="ticket_browser_check_")
         self._session = None
+        # Optional live-frame sink: called as on_frame(step, png_bytes, action)
+        # after each page observation so a UI can play the agent's exploration.
+        # Must never raise.
+        self._on_frame = on_frame
+        self._frame_seq = 0
 
     # ----------------------------------------------------------------- #
     # Public entry points                                               #
@@ -161,11 +167,17 @@ class BrowserCheckRunner:
 
             # highlight_elements=False keeps screenshots clean; we draw our own
             # marker around only the element the agent is about to click.
+            # enable_default_extensions=False skips downloading/loading uBlock,
+            # cookie-consent and ClearURLs add-ons — they add nothing to a
+            # read-only fraud probe but make the (headed, Windows) Chromium cold
+            # start blow past browser-use's 30s launch timeout.
             self._session = BrowserSession(
-                headless=self.headless, highlight_elements=False
+                headless=self.headless,
+                highlight_elements=False,
+                enable_default_extensions=False,
             )
             await self._session.start()
-            await self._session.navigate(url)
+            await self._session.navigate_to(url)
             await self._settle()
 
             if not await self._observe_into_state():
@@ -248,7 +260,31 @@ class BrowserCheckRunner:
                 self._surfaces, snapshot, claim, sensitive, reached=at_decision_point
             )
         self._cur = (snapshot, claim, sensitive, restricted)
+        self._emit_frame(snapshot, claim, sensitive)
         return True
+
+    def _emit_frame(self, snapshot, claim, sensitive) -> None:
+        """Push the just-observed page to the live-frame sink, if any.
+
+        Best-effort: a missing screenshot or a raising sink never breaks the run.
+        """
+        if self._on_frame is None:
+            return
+        b64 = getattr(self, "_last_screenshot_b64", None)
+        if not b64:
+            return
+        # A short, human-readable label of what the agent is looking at.
+        state = getattr(claim, "page_state", "") or "page"
+        if getattr(sensitive, "is_sensitive_action_page", False):
+            action = f"Inspecting sensitive page: {state}"
+        else:
+            action = f"Observing {state}"
+        try:
+            png = base64.b64decode(b64)
+            self._on_frame(self._frame_seq, png, action)
+            self._frame_seq += 1
+        except Exception as exc:  # noqa: BLE001 - the sink must never break the probe
+            logger.debug("on_frame sink failed: %s", exc)
 
     def _observe_text(self) -> str:
         """Render the current page for the agent: state + safe click candidates."""
@@ -427,7 +463,7 @@ class BrowserCheckRunner:
             step=self._action_count, before_url=snapshot.url, clicked_text="<go_back>",
             after_url=prev, page_state_before=claim.page_state, reason=reason,
         ))
-        await self._safe(self._session.navigate(prev))
+        await self._safe(self._session.navigate_to(prev))
         await self._settle()
         if not await self._observe_into_state():
             return "Went back, but the page could not be inspected. Call finish(summary)."
@@ -597,14 +633,19 @@ class BrowserCheckRunner:
 
     async def _capture_snapshot(self, step: int) -> BrowserSnapshot:
         """Observe the current page into a ``BrowserSnapshot``."""
-        state = await self._session.get_browser_state_with_recovery(
-            cache_clickable_elements_hashes=True, include_screenshot=True
+        state = await self._session.get_browser_state_summary(
+            include_screenshot=True
         )
         url = getattr(state, "url", "") or ""
         title = getattr(state, "title", "") or ""
 
-        screenshot_path = self._save_screenshot(step, getattr(state, "screenshot", None))
-        clickables = self._build_clickables(getattr(state, "selector_map", {}) or {})
+        screenshot_b64 = getattr(state, "screenshot", None)
+        self._last_screenshot_b64 = screenshot_b64  # for the live-frame sink
+        screenshot_path = self._save_screenshot(step, screenshot_b64)
+        # browser-use 0.13: the selector map moved under ``dom_state``.
+        dom_state = getattr(state, "dom_state", None)
+        selector_map = getattr(dom_state, "selector_map", None) or {}
+        clickables = self._build_clickables(selector_map)
         body_text = await self._body_text()
 
         return BrowserSnapshot(
@@ -661,12 +702,21 @@ class BrowserCheckRunner:
             return ""
 
     async def _click_index(self, index: int) -> bool:
-        """Click the element at ``index`` via its DOM node; True on success."""
+        """Click the element at ``index`` via its DOM node; True on success.
+
+        browser-use 0.13 replaced the direct ``_click_element_node`` helper with
+        an event on the session's bus, so we dispatch a ``ClickElementEvent`` and
+        await its result.
+        """
         try:
             node = await self._session.get_dom_element_by_index(index)
             if node is None:
                 return False
-            await self._session._click_element_node(node)
+            from browser_use.browser.events import ClickElementEvent
+
+            event = self._session.event_bus.dispatch(ClickElementEvent(node=node))
+            await event
+            await event.event_result(raise_if_any=True, raise_if_none=False)
             return True
         except Exception as exc:  # noqa: BLE001
             logger.debug("click failed at index %s: %s", index, exc)
