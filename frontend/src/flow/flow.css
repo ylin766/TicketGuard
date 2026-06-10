@@ -270,22 +270,22 @@
 .punit-body {
   display: flex;
   flex-direction: column;
-  /* Keep a tall live child (the browser viewport + its narration, the price
-     analysis panel) from stretching the column and pushing sibling units out of
-     view — overflow scrolls inside the unit instead. */
-  max-height: 46vh;
   min-height: 0;
-  overflow-y: auto;
 }
 
 /* Price runtime: the live browser viewport (left) beside the price agent's
    activity timeline (right), so the wide column is used and the agent's actions
-   are surfaced — mirroring the security column's scan + agent layout. */
+   are surfaced — mirroring the security column's scan + agent layout. Only this
+   (potentially tall) live child is height-capped + scrolled; the other units
+   size to their content so they don't show a stray inner scrollbar. */
 .price-runtime {
   display: flex;
   flex-direction: row;
   gap: 14px;
   align-items: flex-start;
+  width: 100%;
+  max-height: 46vh;
+  overflow: hidden auto;
 }
 .price-runtime .lbv {
   flex: 0 0 auto;
