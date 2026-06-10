@@ -14,6 +14,13 @@ dependencies = [
     "google-genai>=1.0.0",
     "tldextract>=5.0.0",
     "Pillow>=10.0.0",
+    # Observability (Arize Phoenix): telemetry is bootstrapped at server startup
+    # for every LLM path, so the instrumentation packages are core, not optional.
+    # The OTLP exporter ships the spans; the two OpenInference instrumentors
+    # cover ADK agents and direct google.genai calls respectively.
+    "opentelemetry-exporter-otlp-proto-http>=1.36,<=1.41.1",
+    "openinference-instrumentation-google-adk>=0.1.0",
+    "openinference-instrumentation-google-genai>=0.1.0",
 ]
 
 [project.optional-dependencies]
@@ -21,11 +28,6 @@ dependencies = [
 browser = ["selenium>=4.20.0"]
 # Security detectors use only `requests` (already a core dependency).
 security = []
-# Arize observability (partner integration).
-observability = [
-    "arize-otel>=0.7.0",
-    "openinference-instrumentation-google-adk>=0.1.0",
-]
 
 [tool.setuptools.packages.find]
 where = ["."]
