@@ -323,7 +323,12 @@
      collapsing to two then one as the container narrows — keeps the per-source
      cards compact instead of stacking into one tall column. */
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-auto-rows: 1fr;
+  /* Each category is its own grid, so 1fr alone only equalizes rows WITHIN a
+     group — leaving short groups (e.g. threat sources) visibly shorter than
+     tall ones (domain intelligence, whose RDAP card carries wrapping chips).
+     A shared minimum row height gives every card the same baseline across all
+     groups; 1fr still equalizes taller rows within a group. */
+  grid-auto-rows: minmax(140px, 1fr);
   gap: 10px;
   align-items: stretch;
 }
