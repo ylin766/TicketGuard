@@ -65,3 +65,38 @@ def test_extract_json_tolerates_fences():
     assert analysis.extract_json('```json\n{"a":1}\n```') == {"a": 1}
     assert analysis.extract_json("prose {\"b\": 2} more") == {"b": 2}
     assert analysis.extract_json("nothing") == {}
+
+
+def test_parse_listing_id_query_and_path():
+    assert (
+        analysis.parse_listing_id(
+            "https://www.stubhub.com/event/153022393/?listingId=12442049570&quantity=2"
+        )
+        == "12442049570"
+    )
+    assert analysis.parse_listing_id("https://x/listing/98765") == "98765"
+    assert analysis.parse_listing_id("https://www.stubhub.com/event/153022393/") is None
+    assert analysis.parse_listing_id("") is None
+
+
+def test_match_user_listing_by_id():
+    url = "https://stubhub.com/event/1/?listingId=l3"
+    user = analysis.match_user_listing(url, _LISTINGS)
+    assert user["listing_id"] == "l3"
+    assert user["section"] == "B"
+    assert user["price_per_ticket"] == 300
+    assert user["source"] == "url_match"
+    # No id in URL -> no match.
+    assert analysis.match_user_listing("https://stubhub.com/event/1/", _LISTINGS) == {}
+
+
+def test_find_same_seat_cross_site():
+    # Buyer (from another site) is looking at Section A, Row 2.
+    user = {"section": "A", "row": "2"}
+    seat = analysis.find_same_seat(user, _LISTINGS)
+    assert seat.get("listing_id") == "l2"
+    assert seat.get("price") == 200
+    # Unknown section -> no claim.
+    assert analysis.find_same_seat({"section": None, "row": "2"}, _LISTINGS) == {}
+    # Section with no matching row -> empty.
+    assert analysis.find_same_seat({"section": "Z", "row": "9"}, _LISTINGS) == {}

@@ -99,7 +99,114 @@ def _gemini_json(prompt: str, image_bytes: Optional[bytes] = None) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# 1. Multimodal extraction of the user's own listing
+# 1a. Deterministic match: find the buyer's listing straight from the URL
+# ---------------------------------------------------------------------------
+
+# Query keys various sites use to deep-link a single resale listing.
+_LISTING_ID_KEYS = ("listingid", "listing_id", "lid", "sellerlistingid")
+
+
+def parse_listing_id(url: str) -> Optional[str]:
+    """Extract a listing id from a ticket URL, if present (query or path).
+
+    StubHub/Ticketmaster deep-links to one listing look like
+    ``.../event/153022393/?listingId=12442049570&quantity=2``. Returns the id as
+    a string, or None when the URL is just an event/listing page.
+    """
+    if not url:
+        return None
+    try:
+        from urllib.parse import urlparse, parse_qs
+
+        parsed = urlparse(url)
+        qs = {k.lower(): v for k, v in parse_qs(parsed.query).items()}
+        for key in _LISTING_ID_KEYS:
+            if key in qs and qs[key]:
+                return str(qs[key][0]).strip()
+        # Path form: .../listing/12442049570
+        import re
+
+        m = re.search(r"/listing[s]?/(\d{5,})", parsed.path)
+        if m:
+            return m.group(1)
+    except Exception:  # noqa: BLE001
+        return None
+    return None
+
+
+def match_user_listing(url: str, listings: list[dict]) -> dict:
+    """Deterministically match the buyer's listing from the URL's listing id.
+
+    Returns a normalized user-listing dict (same shape as the vision output) when
+    a scraped listing matches the URL's id, else ``{}``.
+    """
+    lid = parse_listing_id(url)
+    if not lid:
+        return {}
+    for x in listings:
+        if not isinstance(x, dict):
+            continue
+        if str(x.get("listing_id") or "").strip() == lid:
+            price = x.get("price")
+            qty = x.get("ticket_count")
+            return {
+                "section": x.get("section"),
+                "row": x.get("row"),
+                "seat": None,
+                "quantity": qty if isinstance(qty, int) else None,
+                "price_per_ticket": price if isinstance(price, (int, float)) else None,
+                "total_price": None,
+                "currency": None,
+                "seller_notes": None,
+                "listing_id": lid,
+                "confidence": "high",
+                "source": "url_match",
+            }
+    return {}
+
+
+def _seat_key(section, row, seat=None) -> tuple:
+    """Normalized identity for a seat: (section, row, seat) lower/stripped."""
+    def norm(v):
+        return str(v).strip().lower() if v not in (None, "") else ""
+
+    return (norm(section), norm(row), norm(seat))
+
+
+def find_same_seat(user: dict, listings: list[dict]) -> dict:
+    """Find the market listing for the *exact same seat* the buyer is looking at.
+
+    This is the cross-site bridge: the buyer may have seen the ticket on another
+    website, so a listing id won't match. Instead we match by seat identity
+    (section + row, and seat number when available) against our reference market.
+
+    Returns the matching market listing dict, or ``{}`` when no confident match.
+    """
+    u_section = user.get("section")
+    u_row = user.get("row")
+    if not u_section:  # without at least a section we can't claim "same seat"
+        return {}
+    u_seat = user.get("seat")
+    want_full = _seat_key(u_section, u_row, u_seat)
+    want_sr = _seat_key(u_section, u_row)
+
+    best: dict = {}
+    for x in listings:
+        if not isinstance(x, dict):
+            continue
+        have_section = x.get("section")
+        have_row = x.get("row")
+        # Exact section+row+seat match (strongest).
+        if u_seat and _seat_key(have_section, have_row, x.get("seat_start")) == want_full:
+            return x
+        # Section+row match (strong, seat often not exposed in listings).
+        if u_row and _seat_key(have_section, have_row) == want_sr:
+            best = best or x
+    return best
+
+
+# ---------------------------------------------------------------------------
+# 1b. Multimodal extraction of the user's own listing
 # ---------------------------------------------------------------------------
 
 _EXTRACT_PROMPT = """You are looking at a screenshot of a ticket resale page that a buyer is considering.
@@ -306,20 +413,33 @@ def analyze(
 
     Returns a frontend-ready dict:
         {
-          "user_listing": {...},        # from vision (may be {})
+          "user_listing": {...},        # url-match (preferred) or vision (may be {})
+          "same_seat": {...},           # the SAME seat on our reference market (may be {})
           "stats": {...},               # deterministic market figures
           "analysis": {...},            # buyer-facing verdict (Gemini or fallback)
           "recommendations": [...],     # better-value listings
         }
     """
-    user = extract_user_listing(image_bytes, url)
+    # Prefer a deterministic URL match (exact, free); fall back to vision.
+    user = match_user_listing(url, listings)
+    if not user:
+        user = extract_user_listing(image_bytes, url)
     # Override quantity with the caller's explicit choice when the user picked one.
     if qty and not user.get("quantity"):
         user["quantity"] = qty
 
+    # Cross-site bridge: locate the *exact same seat* on our reference market, so
+    # a ticket the buyer saw on another site can be compared apples-to-apples.
+    same_seat = find_same_seat(user, listings)
+    # If the buyer's own price is unknown but we matched their seat, use the
+    # market price for that seat as the comparison anchor.
     user_price = user.get("price_per_ticket")
     if not isinstance(user_price, (int, float)):
         user_price = None
+    if user_price is None and same_seat.get("price") not in (None, ""):
+        sp = same_seat.get("price")
+        if isinstance(sp, (int, float)):
+            user_price = sp
     user_section = user.get("section")
 
     stats = compute_market_stats(listings, user_price, user_section)
@@ -331,6 +451,7 @@ def analyze(
 
     return {
         "user_listing": user,
+        "same_seat": same_seat,
         "stats": stats,
         "analysis": analysis,
         "recommendations": recs,

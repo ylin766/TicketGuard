@@ -160,6 +160,7 @@ async def stream_price(url: str, qty: int = 2) -> AsyncGenerator[dict, None]:
             "listings": listings,
             "metadata": result.get("metadata", {}),
             "user_listing": analysis_out.get("user_listing", {}),
+            "same_seat": analysis_out.get("same_seat", {}),
             "stats": analysis_out.get("stats", {}),
             "analysis": analysis_out.get("analysis", {}),
             "recommendations": analysis_out.get("recommendations", []),
