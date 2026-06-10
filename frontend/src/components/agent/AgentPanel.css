@@ -10,6 +10,11 @@
 .sec-stage {
   position: relative;
   display: grid;
+  /* Pin the single shared cell to the container width (minmax(0,1fr)); an
+     implicit `auto` column sizes to its widest child's INTRINSIC width, which
+     let the opinion stage (browser viewport + agent trace) blow the column —
+     and the whole row — past the right edge. */
+  grid-template-columns: minmax(0, 1fr);
   /* The conveyor window: clip the stages sliding in/out from the sides. The
      negative margin + padding keeps the clay drop-shadows from being clipped
      at top/bottom while still hiding the horizontal overflow. */
@@ -18,9 +23,11 @@
   padding: 14px;
 }
 /* Both stages occupy the same grid cell so they overlap while one slides out
-   and the other slides in; the visible one drives the height. */
+   and the other slides in; the visible one drives the height. min-width:0 lets
+   the layer shrink to the cell instead of forcing its content's intrinsic width. */
 .sec-stage-layer {
   grid-area: 1 / 1;
+  min-width: 0;
   transform-origin: center;
   will-change: transform;
 }
@@ -30,15 +37,37 @@
   transform-origin: left center;
 }
 
-/* Grey-zone (Layer 2) shows the live browser probe above the OSINT opinion
-   trace, stacked in one scrollable column. */
+/* Grey-zone (Layer 2) shows the live browser probe beside the OSINT opinion
+   trace, laid out as a horizontal row (browser left, agent trace right) so the
+   column doesn't grow too tall. Collapses to a stack on narrow screens. */
 .sec-opinion-stack {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 12px;
-  height: 100%;
+  align-items: flex-start;
+  width: 100%;
   min-height: 0;
-  overflow-y: auto;
+  max-height: 46vh;
+  overflow: hidden auto;
+}
+.sec-opinion-stack > .lbv {
+  flex: 0 0 auto;
+  width: 360px;
+  max-width: 48%;
+  margin: 0;
+}
+.sec-opinion-stack > .agent-panel {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+@media (max-width: 900px) {
+  .sec-opinion-stack {
+    flex-direction: column;
+  }
+  .sec-opinion-stack > .lbv {
+    width: 100%;
+    max-width: 460px;
+  }
 }
 
 /* The carried-over scan verdict, pinned above the agent stage as continuity. */

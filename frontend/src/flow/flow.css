@@ -271,6 +271,10 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  /* Let the body shrink to its column instead of being forced wide by an
+     intrinsically-wide child (the security/price runtime rows), which would
+     push the whole unit past the right edge. */
+  min-width: 0;
 }
 
 /* Price runtime: the live browser viewport (left) beside the price agent's
