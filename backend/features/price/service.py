@@ -13,6 +13,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import logging
+import re
 import time
 from statistics import median as _median
 from typing import AsyncGenerator
@@ -34,6 +35,20 @@ def _detect_source(url: str) -> str:
     if "ticketmaster" in u:
         return "ticketmaster"
     return "stubhub"  # default
+
+
+def _normalize_url(url: str) -> str:
+    """Ensure the URL has a scheme so Playwright can navigate to it.
+
+    The input field accepts bare hosts (e.g. "stubhub.com/listing/98234"); add
+    https:// when missing so ``page.goto`` doesn't reject an "invalid URL".
+    """
+    u = (url or "").strip()
+    if not u:
+        return u
+    if not re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*://", u):
+        u = "https://" + u.lstrip("/")
+    return u
 
 
 def compute_median(listings: list[dict]) -> float | None:
@@ -75,6 +90,7 @@ async def stream_price(url: str, qty: int = 2) -> AsyncGenerator[dict, None]:
     """
     source = _detect_source(url)
     fetcher = _FETCHERS.get(source, fetch_stubhub)
+    url = _normalize_url(url)
     yield {"type": "start", "url": url, "source": source}
 
     # Bridge the scraper's synchronous-ish on_frame callback (called from the

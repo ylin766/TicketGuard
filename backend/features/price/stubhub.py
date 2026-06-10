@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import re
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
@@ -478,6 +479,14 @@ async def fetch_stubhub(url: str | None = None, qty: int = 2, on_frame=None) -> 
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
                 "--disable-infobars",
+                # Headed for accuracy, but parked far off-screen so no window
+                # flashes in the user's face — they watch our clay viewport
+                # instead. Override with PRICE_BROWSER_ONSCREEN=1 to debug.
+                *(
+                    []
+                    if os.environ.get("PRICE_BROWSER_ONSCREEN") == "1"
+                    else ["--window-position=-32000,-32000"]
+                ),
             ],
         )
         context = await browser.new_context(

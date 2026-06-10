@@ -28,6 +28,20 @@ def test_detect_source():
     assert service._detect_source("") == "stubhub"  # default
 
 
+def test_normalize_url_adds_scheme():
+    # Bare host (as the input field allows) gets https:// so Playwright accepts it.
+    assert (
+        service._normalize_url("stubhub.com/listing/98234?quantity=2")
+        == "https://stubhub.com/listing/98234?quantity=2"
+    )
+    # Already-schemed URLs are left intact.
+    assert service._normalize_url("https://x.com/e") == "https://x.com/e"
+    assert service._normalize_url("http://x.com/e") == "http://x.com/e"
+    # Leading slashes on a bare host are trimmed before prefixing.
+    assert service._normalize_url("//stubhub.com/e") == "https://stubhub.com/e"
+    assert service._normalize_url("") == ""
+
+
 def test_stream_price_frames(monkeypatch):
     """stream_price emits start → frame(s) → analyzing → done, with a computed
     median, without launching a browser or calling Gemini (both are faked)."""
