@@ -1,0 +1,294 @@
+{
+  "module": "browser_security_check",
+  "input_url": "https://gametime.co/spain_caboverde/spain-vs-cape-verde-fifa-world-cup-match-14-group-h-tickets/6-15-2026-atlanta-ga-mercedes-benz-stadium/events/66b133468f03a9fe74d8ed68",
+  "final_url": "https://gametime.co/spain_caboverde/spain-vs-cape-verde-fifa-world-cup-match-14-group-h-tickets/6-15-2026-atlanta-ga-mercedes-benz-stadium/events/66b133468f03a9fe74d8ed68/listings/6a26e66c12521f80533b263c",
+  "is_ticket_site": true,
+  "risk_level": "low",
+  "risk_score": 0,
+  "verdict": "likely_safe_browser_context",
+  "summary": "The page appears to be a legitimate Gametime flow on gametime.co with no strong scam signals in the browser context.",
+  "claim": {
+    "claimed_platform": "Gametime",
+    "claimed_domain": "gametime.co",
+    "is_ticket_site": true,
+    "marketplace_type": "resale",
+    "claimed_event": "🇪🇸 Spain vs 🇨🇻 Cape Verde: FIFA World Cup - Match 14 (Group H)",
+    "claimed_venue": "Mercedes-Benz Stadium",
+    "claimed_city_state": "Atlanta, GA",
+    "claimed_date_time": "Mon 6/15 at 12:00 PM",
+    "visible_price_range": "$568 - $119,588",
+    "page_state": "login_required",
+    "confidence": "high",
+    "evidence": [
+      "CURRENT_URL: https://gametime.co/spain_caboverde/spain-vs-cape-verde-fifa-world-cup-match-14-group-h-tickets/6-15-2026-atlanta-ga-mercedes-benz-stadium/events/66b133468f03a9fe74d8ed68",
+      "PAGE_TITLE: 🇪🇸 Spain vs 🇨🇻 Cape Verde: FIFA World Cup - Match 14 (Group H) Tickets | Jun 15, 2026 at 12:00 PM - Mercedes-Benz Stadium, Atlanta, GA | Gametime",
+      "VISIBLE_TEXT: 'Top Deals on Gametime'",
+      "VISIBLE_TEXT: '🇪🇸 Spain vs 🇨🇻 Cape Verde: FIFA World Cup - Match 14 (Group H)'",
+      "VISIBLE_TEXT: 'Mon 6/15 at 12:00 PM • Atlanta, Mercedes-Benz Stadium'",
+      "VISIBLE_TEXT: 'Log In\nEnter your email address to log in. If you don't have an account already, we'll create one for you.'",
+      "VISIBLE_TEXT: 'Email Address'",
+      "VISIBLE_TEXT: 'Continue'",
+      "VISIBLE_TEXT: '$675', '$568', '$119,588/ea'",
+      "CLICKABLE_ELEMENTS: 'text='Email Address' | tag='span'', 'text='Continue' | tag='button'', 'text=\"Log In 👋\\nEnter your email address to log in. If you don't have an account already, we'll create one for you.\" | tag='div' | role='dialog''"
+    ]
+  },
+  "sensitive_action": {
+    "is_sensitive_action_page": true,
+    "page_state": "login_required",
+    "action_types": [
+      "login"
+    ],
+    "payment_context": "none",
+    "payment_methods": [],
+    "requested_inputs": [
+      "email_address"
+    ],
+    "irreversible_action_visible": false,
+    "evidence": [
+      "CLAIM_EXTRACTION_JSON: page_state is 'login_required'",
+      "VISIBLE_TEXT: 'Log In'",
+      "VISIBLE_TEXT: 'Enter your email address to log in.'",
+      "VISIBLE_TEXT: 'Email Address'",
+      "CLICKABLE_ELEMENTS: 'text='Email Address' | tag='span''",
+      "CLICKABLE_ELEMENTS: 'text='Continue' | tag='button''"
+    ]
+  },
+  "trust_check": {
+    "current_registered_domain": "gametime.co",
+    "claimed_domain": "gametime.co",
+    "is_trusted_marketplace_domain": true,
+    "domain_matches_claimed_platform": true,
+    "domain_mismatch_reason": null,
+    "suspicious_redirect": false,
+    "event_reference_mismatch": false,
+    "off_platform_payment_detected": false,
+    "strong_flags": [],
+    "weak_flags": [],
+    "benign_context": [
+      "Trusted marketplace domain with matching brand",
+      "Event / venue / date matches the expected listing"
+    ]
+  },
+  "transitions": [
+    {
+      "step": 1,
+      "before_url": "https://gametime.co/spain_caboverde/spain-vs-cape-verde-fifa-world-cup-match-14-group-h-tickets/6-15-2026-atlanta-ga-mercedes-benz-stadium/events/66b133468f03a9fe74d8ed68",
+      "clicked_index": 14,
+      "clicked_text": "Log In",
+      "after_url": null,
+      "page_state_before": "event_listing",
+      "page_state_after": "unknown",
+      "reason": "Explore the login path to see what credentials it demands.",
+      "stopped_reason": null
+    },
+    {
+      "step": 2,
+      "before_url": "https://gametime.co/spain_caboverde/spain-vs-cape-verde-fifa-world-cup-match-14-group-h-tickets/6-15-2026-atlanta-ga-mercedes-benz-stadium/events/66b133468f03a9fe74d8ed68",
+      "clicked_index": null,
+      "clicked_text": "<go_back>",
+      "after_url": "https://gametime.co/spain_caboverde/spain-vs-cape-verde-fifa-world-cup-match-14-group-h-tickets/6-15-2026-atlanta-ga-mercedes-benz-stadium/events/66b133468f03a9fe74d8ed68",
+      "page_state_before": "login_required",
+      "page_state_after": "unknown",
+      "reason": "Observed the login requirements; now returning to explore checkout/payment.",
+      "stopped_reason": null
+    },
+    {
+      "step": 2,
+      "before_url": "https://gametime.co/spain_caboverde/spain-vs-cape-verde-fifa-world-cup-match-14-group-h-tickets/6-15-2026-atlanta-ga-mercedes-benz-stadium/events/66b133468f03a9fe74d8ed68",
+      "clicked_index": 30,
+      "clicked_text": "",
+      "after_url": null,
+      "page_state_before": "event_listing",
+      "page_state_after": "unknown",
+      "reason": "Select a ticket to proceed to the checkout/payment flow.",
+      "stopped_reason": "Refused irreversible/payment action."
+    },
+    {
+      "step": 3,
+      "before_url": "https://gametime.co/spain_caboverde/spain-vs-cape-verde-fifa-world-cup-match-14-group-h-tickets/6-15-2026-atlanta-ga-mercedes-benz-stadium/events/66b133468f03a9fe74d8ed68",
+      "clicked_index": 29,
+      "clicked_text": "104\n, Row\n43",
+      "after_url": null,
+      "page_state_before": "event_listing",
+      "page_state_after": "unknown",
+      "reason": "Select a specific seat/row to initiate the purchase flow and reach the checkout page.",
+      "stopped_reason": null
+    },
+    {
+      "step": 4,
+      "before_url": "https://gametime.co/spain_caboverde/spain-vs-cape-verde-fifa-world-cup-match-14-group-h-tickets/6-15-2026-atlanta-ga-mercedes-benz-stadium/events/66b133468f03a9fe74d8ed68/listings/69d765bc53c05bd1457ea8f8",
+      "clicked_index": 2,
+      "clicked_text": "",
+      "after_url": null,
+      "page_state_before": "event_listing",
+      "page_state_after": "unknown",
+      "reason": "Dismiss the 'Get $20 off' modal to proceed to the main page content, expecting a checkout or ticket detail page.",
+      "stopped_reason": null
+    },
+    {
+      "step": 5,
+      "before_url": "https://gametime.co/spain_caboverde/spain-vs-cape-verde-fifa-world-cup-match-14-group-h-tickets/6-15-2026-atlanta-ga-mercedes-benz-stadium/events/66b133468f03a9fe74d8ed68/listings/69d765bc53c05bd1457ea8f8",
+      "clicked_index": 40,
+      "clicked_text": "$5,776",
+      "after_url": null,
+      "page_state_before": "event_listing",
+      "page_state_after": "unknown",
+      "reason": "Click a listed ticket price to proceed to a potential checkout or detailed view of the ticket.",
+      "stopped_reason": null
+    },
+    {
+      "step": 5,
+      "before_url": "https://gametime.co/spain_caboverde/spain-vs-cape-verde-fifa-world-cup-match-14-group-h-tickets/6-15-2026-atlanta-ga-mercedes-benz-stadium/events/66b133468f03a9fe74d8ed68/listings/6a26e66c12521f80533b263c",
+      "clicked_index": null,
+      "clicked_text": null,
+      "after_url": null,
+      "page_state_before": "event_listing",
+      "page_state_after": "unknown",
+      "reason": "Observed login requiring email address, and a deeper event listing indicating ticket transfer is available, also likely requiring email. A distinct payment/checkout page was not safely reachable.",
+      "stopped_reason": "Observed login requiring email address, and a deeper event listing indicating ticket transfer is available, also likely requiring email. A distinct payment/checkout page was not safely reachable."
+    }
+  ],
+  "sensitive_surfaces": [
+    {
+      "url": "https://gametime.co/spain_caboverde/spain-vs-cape-verde-fifa-world-cup-match-14-group-h-tickets/6-15-2026-atlanta-ga-mercedes-benz-stadium/events/66b133468f03a9fe74d8ed68",
+      "page_state": "event_listing",
+      "reached": false,
+      "action_types": [
+        "login"
+      ],
+      "payment_context": "none",
+      "requested_inputs": [
+        "email address"
+      ],
+      "irreversible_action_visible": false,
+      "evidence": [
+        "VISIBLE_TEXT: Log In",
+        "CLICKABLE_ELEMENTS: text='Log In' | tag='button'",
+        "VISIBLE_TEXT: Email address",
+        "CLICKABLE_ELEMENTS: text='Claim my $20 off'"
+      ]
+    },
+    {
+      "url": "https://gametime.co/spain_caboverde/spain-vs-cape-verde-fifa-world-cup-match-14-group-h-tickets/6-15-2026-atlanta-ga-mercedes-benz-stadium/events/66b133468f03a9fe74d8ed68",
+      "page_state": "login_required",
+      "reached": true,
+      "action_types": [
+        "login"
+      ],
+      "payment_context": "none",
+      "requested_inputs": [
+        "email_address"
+      ],
+      "irreversible_action_visible": false,
+      "evidence": [
+        "CLAIM_EXTRACTION_JSON: page_state is 'login_required'",
+        "VISIBLE_TEXT: 'Log In'",
+        "VISIBLE_TEXT: 'Enter your email address to log in.'",
+        "VISIBLE_TEXT: 'Email Address'"
+      ]
+    },
+    {
+      "url": "https://gametime.co/spain_caboverde/spain-vs-cape-verde-fifa-world-cup-match-14-group-h-tickets/6-15-2026-atlanta-ga-mercedes-benz-stadium/events/66b133468f03a9fe74d8ed68/listings/69d765bc53c05bd1457ea8f8",
+      "page_state": "event_listing",
+      "reached": false,
+      "action_types": [
+        "login",
+        "download_app"
+      ],
+      "payment_context": "none",
+      "requested_inputs": [
+        "email"
+      ],
+      "irreversible_action_visible": false,
+      "evidence": [
+        "Modal overlay requesting 'Email address' for a discount.",
+        "Input field for 'Email address' is visible.",
+        "Button 'Claim my $20 off' is visible.",
+        "Text 'Delivered via the FIFA WC26 App' implies app download is required for ticket delivery."
+      ]
+    },
+    {
+      "url": "https://gametime.co/spain_caboverde/spain-vs-cape-verde-fifa-world-cup-match-14-group-h-tickets/6-15-2026-atlanta-ga-mercedes-benz-stadium/events/66b133468f03a9fe74d8ed68/listings/6a26e66c12521f80533b263c",
+      "page_state": "event_listing",
+      "reached": false,
+      "action_types": [
+        "login",
+        "ticket_transfer"
+      ],
+      "payment_context": "inside_platform",
+      "requested_inputs": [
+        "email"
+      ],
+      "irreversible_action_visible": false,
+      "evidence": [
+        "\"Log In\" button visible",
+        "\"Email address\" input field visible",
+        "Text: \"This event requires digital ticket transfer and acceptance. You must accept the transfer by 60 minutes before kickoff to gain entry.\"",
+        "Text: \"0% APR or as low as $437/mo with Affirm.\""
+      ]
+    }
+  ],
+  "evidence": [
+    "Live registered domain is gametime.co",
+    "Page claims platform: Gametime",
+    "Trusted marketplace domain with matching brand",
+    "Event / venue / date matches the expected listing",
+    "Observed a event_listing surface exposing login (not entered).",
+    "Reached login_required page — it requests: email_address.",
+    "Observed a event_listing surface exposing login, download_app (not entered).",
+    "Observed a event_listing surface exposing login, ticket_transfer (not entered)."
+  ],
+  "recommended_action": "Continue only through the official platform checkout. Do not leave the platform for private payment.",
+  "osint": null,
+  "snapshots": [
+    {
+      "step": 0,
+      "url": "https://gametime.co/spain_caboverde/spain-vs-cape-verde-fifa-world-cup-match-14-group-h-tickets/6-15-2026-atlanta-ga-mercedes-benz-stadium/events/66b133468f03a9fe74d8ed68",
+      "registered_domain": "gametime.co",
+      "title": "🇪🇸 Spain vs 🇨🇻 Cape Verde: FIFA World Cup - Match 14 (Group H) Tickets | Jun 15, 2026 at 12:00 PM - Mercedes-Benz Stadium, Atlanta, GA | Gametime",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check_ol8ja46z/step_0.png",
+      "error": null
+    },
+    {
+      "step": 1,
+      "url": "https://gametime.co/spain_caboverde/spain-vs-cape-verde-fifa-world-cup-match-14-group-h-tickets/6-15-2026-atlanta-ga-mercedes-benz-stadium/events/66b133468f03a9fe74d8ed68",
+      "registered_domain": "gametime.co",
+      "title": "🇪🇸 Spain vs 🇨🇻 Cape Verde: FIFA World Cup - Match 14 (Group H) Tickets | Jun 15, 2026 at 12:00 PM - Mercedes-Benz Stadium, Atlanta, GA | Gametime",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check_ol8ja46z/step_1.png",
+      "error": null
+    },
+    {
+      "step": 2,
+      "url": "https://gametime.co/spain_caboverde/spain-vs-cape-verde-fifa-world-cup-match-14-group-h-tickets/6-15-2026-atlanta-ga-mercedes-benz-stadium/events/66b133468f03a9fe74d8ed68",
+      "registered_domain": "gametime.co",
+      "title": "🇪🇸 Spain vs 🇨🇻 Cape Verde: FIFA World Cup - Match 14 (Group H) Tickets | Jun 15, 2026 at 12:00 PM - Mercedes-Benz Stadium, Atlanta, GA | Gametime",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check_ol8ja46z/step_2.png",
+      "error": null
+    },
+    {
+      "step": 3,
+      "url": "https://gametime.co/spain_caboverde/spain-vs-cape-verde-fifa-world-cup-match-14-group-h-tickets/6-15-2026-atlanta-ga-mercedes-benz-stadium/events/66b133468f03a9fe74d8ed68/listings/69d765bc53c05bd1457ea8f8",
+      "registered_domain": "gametime.co",
+      "title": "🇪🇸 Spain vs 🇨🇻 Cape Verde: FIFA World Cup - Match 14 (Group H) - Lower 104, Row 43 - Mon 6/15 | Gametime",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check_ol8ja46z/step_3.png",
+      "error": null
+    },
+    {
+      "step": 4,
+      "url": "https://gametime.co/spain_caboverde/spain-vs-cape-verde-fifa-world-cup-match-14-group-h-tickets/6-15-2026-atlanta-ga-mercedes-benz-stadium/events/66b133468f03a9fe74d8ed68/listings/69d765bc53c05bd1457ea8f8",
+      "registered_domain": "gametime.co",
+      "title": "🇪🇸 Spain vs 🇨🇻 Cape Verde: FIFA World Cup - Match 14 (Group H) - Lower 104, Row 43 - Mon 6/15 | Gametime",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check_ol8ja46z/step_4.png",
+      "error": null
+    },
+    {
+      "step": 5,
+      "url": "https://gametime.co/spain_caboverde/spain-vs-cape-verde-fifa-world-cup-match-14-group-h-tickets/6-15-2026-atlanta-ga-mercedes-benz-stadium/events/66b133468f03a9fe74d8ed68/listings/6a26e66c12521f80533b263c",
+      "registered_domain": "gametime.co",
+      "title": "🇪🇸 Spain vs 🇨🇻 Cape Verde: FIFA World Cup - Match 14 (Group H) - Lower 102, Row 14 - Mon 6/15 | Gametime",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check_ol8ja46z/step_5.png",
+      "error": null
+    }
+  ],
+  "errors": []
+}

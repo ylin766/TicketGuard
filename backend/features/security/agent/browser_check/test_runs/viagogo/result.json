@@ -1,0 +1,97 @@
+{
+  "module": "browser_security_check",
+  "input_url": "https://www.viagogo.com/Sports-Tickets/Soccer/Soccer-Tournament/World-Cup-Tickets/E-153020709",
+  "final_url": "https://www.viagogo.com/Sports-Tickets/Soccer/Soccer-Tournament/World-Cup-Tickets/E-153020709",
+  "risk_level": "high",
+  "risk_score": 70,
+  "verdict": "high_risk_likely_ticket_scam",
+  "summary": "The page on viagogo.com has uncertain signals and warrants manual review before any purchase.",
+  "claim": {
+    "claimed_platform": "viagogo",
+    "claimed_domain": "viagogo.com",
+    "marketplace_type": "resale",
+    "claimed_event": null,
+    "claimed_venue": null,
+    "claimed_city_state": null,
+    "claimed_date_time": null,
+    "visible_price_range": null,
+    "page_state": "blocked_or_captcha",
+    "confidence": "high",
+    "evidence": [
+      "viagogo logo is visible",
+      "Page title is 'viagogo.com'",
+      "Visible text: '访问暂时受限' (Access temporarily restricted)",
+      "Visible text: '为什么需要经过「我不是机器人」的验证？' (Why do I need to pass 'I'm not a robot' verification?)",
+      "Visible text mentions reasons like unusual browsing speed, blocked JavaScript, or IP matching a bot."
+    ]
+  },
+  "sensitive_action": {
+    "is_sensitive_action_page": false,
+    "page_state": "blocked_or_captcha",
+    "action_types": [
+      "none"
+    ],
+    "payment_context": "none",
+    "payment_methods": [],
+    "requested_inputs": [],
+    "irreversible_action_visible": false,
+    "evidence": [
+      "Page displays '访问暂时受限' (Access temporarily restricted).",
+      "Page asks '为什么需要经过「我不是机器人」的验证？' (Why do I need to pass 'I'm not a robot' verification?).",
+      "No sensitive actions like login, payment, or ticket transfer are visible or requested."
+    ]
+  },
+  "trust_check": {
+    "current_registered_domain": "viagogo.com",
+    "claimed_domain": "viagogo.com",
+    "is_trusted_marketplace_domain": false,
+    "domain_matches_claimed_platform": true,
+    "domain_mismatch_reason": null,
+    "suspicious_redirect": false,
+    "event_reference_mismatch": null,
+    "off_platform_payment_detected": false,
+    "strong_flags": [],
+    "weak_flags": [
+      "Could not inspect the purchase flow (blocked_or_captcha)"
+    ],
+    "benign_context": []
+  },
+  "transitions": [
+    {
+      "step": 0,
+      "before_url": "https://www.viagogo.com/Sports-Tickets/Soccer/Soccer-Tournament/World-Cup-Tickets/E-153020709",
+      "clicked_index": null,
+      "clicked_text": null,
+      "after_url": null,
+      "page_state_before": "blocked_or_captcha",
+      "page_state_after": "unknown",
+      "reason": "The current page is blocked by a captcha, preventing further exploration. No sensitive surfaces can be mapped from this state, and there is no previous page to go back to. Finishing the exploration.",
+      "stopped_reason": "The current page is blocked by a captcha, preventing further exploration. No sensitive surfaces can be mapped from this state, and there is no previous page to go back to. Finishing the exploration."
+    }
+  ],
+  "sensitive_surfaces": [],
+  "evidence": [
+    "Live registered domain is viagogo.com",
+    "Page claims platform: viagogo",
+    "Could not inspect the purchase flow (blocked_or_captcha)",
+    "OSINT reputation rating for viagogo.com: 30/100 (higher = safer)."
+  ],
+  "recommended_action": "Proceed with caution and verify the seller/event through the official platform. Never pay via Zelle/Venmo/Cash App/crypto/gift card or accept a private off-platform transfer.",
+  "osint": {
+    "triggered": true,
+    "trust_rating": 30,
+    "report": "1.  **[Key Points of Suspected Fraud]**\n    *   **Unfulfilled Orders & Non-delivery of Tickets:** Numerous users report paying for tickets but never receiving them, leading to missed events and financial losses.\n        *   \"This is a complete scam. They had to send out our tickets via delivery. First tickets got lost in transit. Then after hours of emailing and reaching out to support, we were offered replacement tickets... I purchased tickets for an event through Viagogo and never received the tickets. As a result, I was unable to attend the event.\" - [Trustpilot Review, Link: https://www.trustpilot.com/review/www.viagogo.es?page=5]\n        *   \"My son also had a nasty experience with Viagogo when he booked tickets for the Ed Sherwin concert which never arrived but his money was taken out of his account. NEVER, NEVER USE VIAGOGO.\" - [Tripadvisor Forum, Link: https://www.tripadvisor.com/ShowTopic-g1-i12334-k10549663-o20-Is_Viagogo_a_trusted_site-Holiday_Travel.html]\n    *   **Fake/Invalid Tickets:** Customers have received tickets that were not valid for entry or were for incorrect seating areas despite paying for premium access.\n        *   \"I bought tickets for the Basketball Barcelona olympiakos on 12/12/2025. Regretfully it was fake. Three hours before the match informed us that there was a problem with the tickets and they couldn't provide us with other tickets.\" - [Trustpilot Review, Link: https://www.trustpilot.com/review/www.viagogo.es?page=5]\n        *   \"On arrival at the venue the tickets were not valid for the Gold Circle area.\" - [Tripadvisor Forum, Link: https://www.tripadvisor.com/ShowTopic-g1-i12334-k10549663-o20-Is_Viagogo_a_trusted_site-Holiday_Travel.html]\n    *   **Exorbitant Hidden Fees and Price Gouging:** Viagogo is frequently accused of adding significant, often hidden, booking and handling fees, resulting in tickets being sold at 3-4 times their original price.\n        *   \"Worst scam ever. They rob you with 3-4x ticket prices in broad daylight!!!\" - [Trustpilot Review, Link: https://www.trustpilot.com/reviews/697b069fe5e6509d8bf1fa25]\n        *   \"Viagogo tack on an incredibly high booking fee – or in other words, their cut for the service they provide – to their tickets. Although these booking fees are variable, some of the more popular events have fees as high as 30 %. What’s even worse than the high booking fees is Viagogo’s hidden fees. You will be completely unaware of these ‘handling’ fees until the checkout stage.\" - [ticket-compare.com, Link: https://ticket-compare.com/reviews/viagogo-review]\n    *   **Problematic Guarantees & Refund Denials:** Despite Viagogo's claims of \"100% safe and guaranteed,\" numerous reports indicate that their guarantee is unreliable, and customer service often refuses refunds even for unfulfilled orders or fake tickets.\n        *   \"I contacted customer support several times, but they refuse to issue a refund, claiming there is a dispute with the payment provider (Klarna). This dispute was not initiated by me and exists only because Viagogo failed to deliver the tickets.\" - [Trustpilot Review, Link: https://www.trustpilot.com/review/www.viagogo.es?page=5]\n        *   \"With recent reports of Viagogo backing out of their customer guarantees, there is no safety net for customers to depend on if something does go wrong.\" - [ticket-compare.com, Link: https://ticket-compare.com/reviews/viagogo-review]\n    *   **Poor Customer Service:** Users consistently report rude, unhelpful, and \"robot-like\" customer support, making it difficult to resolve issues.\n        *   \"Terrible service, huge fees and robot customer support.\" - [Trustpilot Review, Link: https://www.trustpilot.com/reviews/693c381ea1cd52c2348f81a4]\n\n2.  **[Source Assessment of Legitimate/Credible Information]**\n    *   **Viagogo's Official Statements:** Viagogo itself claims to be \"100% safe and guaranteed\" and \"the safest ticket vendors worldwide.\"\n        *   \"Buy and Sell Tickets 100% safe and guaranteed.\" - [Trustpilot snippet, Link: https://www.trustpilot.com/review/www.viagogo.com]\n        *   \"Viagogo considers themselves to be the safest ticket vendors worldwide as they take pride in their competitive prices, reliable customer support, and ticket guarantee.\" - [seatpick.com snippet citing Viagogo, Link: https://seatpick.com/blog/is-viagogo-reliable-the-most-comprehensive-viagogo-review-online]\n        *   **Credibility Assessment:** These are \"Official Statements\" and hold very low weight due to being directly contradicted by a vast number of real user experiences and complaints across multiple independent platforms.\n    *   **Some Positive User Comments:** A minority of users report positive experiences, receiving their tickets on time and having a smooth process.\n        *   \"I found a ticket just the day before, everything went smooth.\" - [Trustpilot Review, Link: https://www.trustpilot.com/review/www.viagogo.es?page=5]\n        *   \"The tickets arrived in time and upgraded us to Platea. Great show and great atmosphere. Good experience\" - [Trustpilot Review, Link: https://www.trustpilot.com/reviews/69777ca08ba523c74b9fe943]\n        *   **Credibility Assessment:** These are \"User Comments\" and indicate that success on Viagogo is possible, but given the overwhelming negative feedback, it appears to be highly reliant on luck and not indicative of consistent reliability.\n\n3.  **[Trust Rating (0-100)]**\n    *   **Score: 30**\n    *   **Judgment Basis:** Viagogo falls into the **[21-40] High Risk** category. While it is a legitimate secondary ticket broker and not a completely fake phishing site, the extensive and consistent reports across Reddit, Trustpilot, and general web searches reveal severe systemic issues. Numerous real cases of unfulfilled orders, delivery of fake or invalid tickets, astronomical hidden fees, and unreasonable refund denials are prevalent. The platform's \"100% guarantee\" is widely reported as unreliable, leaving customers with little recourse when problems arise. The high probability of losing both money and tickets, combined with poor customer service and the significant markup, places it squarely in the high-risk category where users face a substantial chance of negative outcomes.",
+    "error": null
+  },
+  "snapshots": [
+    {
+      "step": 0,
+      "url": "https://www.viagogo.com/Sports-Tickets/Soccer/Soccer-Tournament/World-Cup-Tickets/E-153020709",
+      "registered_domain": "viagogo.com",
+      "title": "viagogo.com",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check_wo2_kzm_/step_0.png",
+      "error": null
+    }
+  ],
+  "errors": []
+}

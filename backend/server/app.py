@@ -1,8 +1,9 @@
 """Standalone FastAPI server for TicketGuard custom endpoints.
 
 Exposes:
-    POST /api/threat-intel         → blocking, returns all results at once
+    POST /api/threat-intel         → blocking, threat-intel pipeline only
     GET  /api/threat-intel/stream  → SSE stream, yields one source per event
+    POST /api/security/audit       → full flow: pipeline → score → grey-zone → agent
 
 Run from the project root (GG Cloud Hackathon/):
     uvicorn backend.server.app:app --port 8001 --reload
@@ -19,6 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+from ..features.security.orchestrator import run_security_audit
 from ..features.security.pipeline import run_pipeline
 from ..features.security.pipeline.threatintel import stream_threatintel
 
@@ -46,6 +48,22 @@ async def threat_intel(req: ThreatIntelRequest) -> dict:
     """Blocking endpoint — returns the full result once all sources complete."""
     result = await asyncio.to_thread(run_pipeline, req.url)
     return result
+
+
+@app.post("/api/security/audit")
+async def security_audit(req: ThreatIntelRequest) -> dict:
+    """Full security audit for one URL — what the frontend calls on click.
+
+    Runs the threat-intel pipeline, synthesizes the credibility score, and only
+    in the grey zone escalates to the browser + OSINT agent. Returns the pipeline
+    result enriched with ``score`` / ``risk_level`` / ``grey_zone`` and, when the
+    agent ran, ``agent_audit``.
+
+    NOTE: this is blocking and can take a few minutes when the grey zone triggers
+    the agent (real browser exploration). The client must use a long timeout, or
+    show progress via ``/api/threat-intel/stream`` first and call this after.
+    """
+    return await run_security_audit(req.url)
 
 
 @app.get("/api/threat-intel/stream")
