@@ -8,6 +8,7 @@ import { auditUrl } from "./api";
 import type { TicketReport } from "./types";
 import type { ThreatScanCache } from "./components/ThreatIntelPanel";
 import type { AgentState } from "./components/agent/useAgentStream";
+import { usePriceStream } from "./components/price/usePriceStream";
 import "./flow/flow.css";
 
 export default function App() {
@@ -18,6 +19,16 @@ export default function App() {
   const [threatCache, setThreatCache] = useState<ThreatScanCache | null>(null);
   const [agentCache, setAgentCache] = useState<AgentState | null>(null);
   const [qty, setQty] = useState(2);
+
+  // The price scrape (headed browser, ~minutes) is hosted here at the App level
+  // so it survives the pipeline → report phase transition: it STARTS and shows
+  // live in the pipeline's price unit, and the SAME state feeds the report's
+  // result panel. Enabled once an audit begins.
+  const price = usePriceStream(
+    flow.url ?? "",
+    qty,
+    flow.started && !!flow.url,
+  );
 
   const handleAudit = async (url: string, ticketQty: number) => {
     setError(null);
@@ -56,6 +67,7 @@ export default function App() {
           flow={flow}
           onScanComplete={setThreatCache}
           onAgentComplete={setAgentCache}
+          price={price}
           input={
             <UrlInputScreen
               onAudit={handleAudit}
@@ -70,7 +82,7 @@ export default function App() {
                 onBack={handleBack}
                 threatCache={threatCache ?? undefined}
                 agentCache={agentCache ?? undefined}
-                qty={qty}
+                price={price}
               />
             ) : (
               <div className="flow-placeholder">

@@ -209,11 +209,13 @@ export function DataFlow({
   url,
   onScanComplete,
   onAgentComplete,
+  price,
 }: {
   flow: FlowState;
   url: string;
   onScanComplete?: (cache: ThreatScanCache) => void;
   onAgentComplete?: (state: import("../components/agent/useAgentStream").AgentState) => void;
+  price?: import("../components/price/usePriceStream").PriceState;
 }) {
   const { phase, advance } = flow;
   const host = shortHost(url);
@@ -328,6 +330,7 @@ export function DataFlow({
           onSecurityDone={() => advance("pipeline")}
           onScanComplete={onScanComplete}
           onAgentComplete={onAgentComplete}
+          price={price}
         />
       </motion.div>
     </div>

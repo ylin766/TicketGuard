@@ -2,6 +2,7 @@ import { type ReactNode } from "react";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { DataFlow } from "./DataFlow";
 import type { ThreatScanCache } from "../components/ThreatIntelPanel";
+import type { PriceState } from "../components/price/usePriceStream";
 import type { FlowPhase, FlowState } from "./useFlow";
 
 /**
@@ -22,12 +23,14 @@ export function CameraStage({
   report,
   onScanComplete,
   onAgentComplete,
+  price,
 }: {
   flow: FlowState;
   input: ReactNode;
   report: ReactNode;
   onScanComplete?: (cache: ThreatScanCache) => void;
   onAgentComplete?: (state: import("../components/agent/useAgentStream").AgentState) => void;
+  price?: PriceState;
 }) {
   const { phase, url } = flow;
   const inMiddle = MIDDLE.includes(phase);
@@ -67,6 +70,7 @@ export function CameraStage({
                 url={url ?? ""}
                 onScanComplete={onScanComplete}
                 onAgentComplete={onAgentComplete}
+                price={price}
               />
             </motion.div>
           )}

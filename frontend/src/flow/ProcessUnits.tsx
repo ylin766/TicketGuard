@@ -1,14 +1,16 @@
 import { motion } from "framer-motion";
 import { SecurityRuntime } from "../components/agent/SecurityRuntime";
+import { LiveBrowserViewport } from "../components/price/LiveBrowserViewport";
+import type { PriceState } from "../components/price/usePriceStream";
 import type { ThreatScanCache } from "../components/ThreatIntelPanel";
 import type { FlowPhase } from "./useFlow";
 
 /**
- * The three processing units the data is split into. Only `security` is wired
- * up (its process card morphs into the ThreatIntelPanel); `price` and `seat`
- * are placeholders ("coming soon") that hold their column. Strictly three equal
- * columns (16:9 friendly); each unit is responsive and never needs its own
- * scrollbar — content adapts to the column.
+ * The three processing units the data is split into. `security` and `price` run
+ * live during the pipeline (security streams threat-intel; price plays the
+ * headed browser's screenshots in a clay viewport). `seat` is still a
+ * placeholder. Strictly three equal columns (16:9 friendly); each unit is
+ * responsive and never needs its own scrollbar — content adapts to the column.
  */
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -55,12 +57,14 @@ export function ProcessUnits({
   onSecurityDone,
   onScanComplete,
   onAgentComplete,
+  price,
 }: {
   phase: FlowPhase;
   url: string;
   onSecurityDone: () => void;
   onScanComplete?: (cache: ThreatScanCache) => void;
   onAgentComplete?: (state: import("../components/agent/useAgentStream").AgentState) => void;
+  price?: PriceState;
 }) {
   const isPipeline = phase === "pipeline";
   // The clay is poured into each unit once the stream reaches it.
@@ -79,9 +83,10 @@ export function ProcessUnits({
   return (
     <div className="process-units">
       {UNITS.map((u, i) => {
-        const active = u.key === "security";
-        // The security unit in the pipeline shows the panel's own header, so
-        // suppress the unit head to avoid a duplicated title row.
+        // security + price run live; seat is still a placeholder.
+        const active = u.key === "security" || u.key === "price";
+        // Units that render their own header in the pipeline (the threat panel,
+        // the price viewport) suppress the unit head to avoid a duplicated row.
         const showHead = !(active && isPipeline);
         return (
           <motion.div
@@ -130,7 +135,7 @@ export function ProcessUnits({
               )}
 
               <motion.div className="punit-body" layout>
-                {active ? (
+                {u.key === "security" ? (
                   isPipeline ? (
                     <SecurityRuntime
                       url={url}
@@ -142,6 +147,15 @@ export function ProcessUnits({
                     <div className="punit-process">
                       <span className="punit-process-dot" aria-hidden="true" />
                       <span className="punit-process-label">Initialising scan…</span>
+                    </div>
+                  )
+                ) : u.key === "price" ? (
+                  isPipeline && price ? (
+                    <LiveBrowserViewport state={price} />
+                  ) : (
+                    <div className="punit-process">
+                      <span className="punit-process-dot" aria-hidden="true" />
+                      <span className="punit-process-label">Opening market…</span>
                     </div>
                   )
                 ) : (
