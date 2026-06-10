@@ -7,7 +7,8 @@ import { useFlow } from "./flow/useFlow";
 import { buildReportFromCache } from "./api";
 import type { TicketReport } from "./types";
 import type { ThreatScanCache } from "./components/ThreatIntelPanel";
-import type { AgentState } from "./components/agent/useAgentStream";
+import { useAgentStream } from "./components/agent/useAgentStream";
+import { useBrowserCheckStream } from "./components/agent/useBrowserCheckStream";
 import { usePriceStream } from "./components/price/usePriceStream";
 import "./flow/flow.css";
 
@@ -16,43 +17,49 @@ export default function App() {
   const [report, setReport] = useState<TicketReport | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [threatCache, setThreatCache] = useState<ThreatScanCache | null>(null);
-  const [agentCache, setAgentCache] = useState<AgentState | null>(null);
   const [qty, setQty] = useState(2);
 
-  // The price scrape (headed browser, ~minutes) is hosted here at the App level
-  // so it survives the pipeline → report phase transition: it STARTS and shows
-  // live in the pipeline's price unit, and the SAME state feeds the report's
-  // result panel. Enabled once an audit begins.
+  // ALL live streams are owned here, at the App top level, so each one is a
+  // SINGLE instance that survives the pipeline → report phase transition. The
+  // runtime phase RUNS them (their live frames feed the pipeline units); the
+  // report phase only DISPLAYS the very same state. Because the hooks never
+  // unmount and their deps (url / enabled) don't change across the transition,
+  // nothing re-fires on the report page — no "completion guard" patch needed.
+  //
+  // Price runs for every audit; the grey-zone agent + Layer-2 browser probe run
+  // only when the threat scan lands in the grey zone (escalation), gated on the
+  // scan's authoritative decision carried in the cache.
+  const greyZone = threatCache?.greyZone === true;
   const price = usePriceStream(
     flow.url ?? "",
     qty,
     flow.started && !!flow.url,
   );
+  const agent = useAgentStream(flow.url ?? "", flow.started && greyZone);
+  const browser = useBrowserCheckStream(flow.url ?? "", flow.started && greyZone);
 
   const handleAudit = (url: string, ticketQty: number) => {
     setError(null);
     setQty(ticketQty);
     setReport(null);
     setThreatCache(null);
-    setAgentCache(null);
     // Start the cinematic flow. Every backend source runs ONCE during the
     // pipeline phase (threat scan + opinion agent + price); the report is then
     // assembled from those caches — it never calls the backend itself.
     flow.start(url);
   };
 
-  // Assemble the report from pipeline caches — no backend call. Ready once the
-  // threat scan has finished and, in the grey zone, the opinion agent too.
+  // Assemble the report from the live stream state — no backend call. Ready once
+  // the threat scan has finished and, in the grey zone, the opinion agent too.
   useEffect(() => {
     if (report || !flow.url || !threatCache) return;
-    if (threatCache.greyZone && !agentCache) return;
-    setReport(buildReportFromCache(flow.url, threatCache, agentCache));
-  }, [report, flow.url, threatCache, agentCache]);
+    if (greyZone && agent.status !== "done" && agent.status !== "error") return;
+    setReport(buildReportFromCache(flow.url, threatCache, greyZone ? agent : null));
+  }, [report, flow.url, threatCache, greyZone, agent]);
 
   const handleBack = () => {
     setReport(null);
     setThreatCache(null);
-    setAgentCache(null);
     flow.reset();
   };
 
@@ -67,7 +74,8 @@ export default function App() {
         <CameraStage
           flow={flow}
           onScanComplete={setThreatCache}
-          onAgentComplete={setAgentCache}
+          agentState={agent}
+          browserState={browser}
           price={price}
           reportReady={report !== null}
           input={
@@ -83,7 +91,7 @@ export default function App() {
                 report={report}
                 onBack={handleBack}
                 threatCache={threatCache ?? undefined}
-                agentCache={agentCache ?? undefined}
+                agentCache={greyZone ? agent : undefined}
                 price={price}
               />
             ) : (

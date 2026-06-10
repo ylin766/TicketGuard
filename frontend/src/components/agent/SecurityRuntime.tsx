@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ThreatIntelPanel } from "../ThreatIntelPanel";
 import type { ThreatScanSummary, ThreatScanCache } from "../ThreatIntelPanel";
 import { AgentPanel } from "./AgentPanel";
-import { useAgentStream, type AgentState } from "./useAgentStream";
+import type { AgentState } from "./useAgentStream";
 import { AgentBrowserViewport } from "./AgentBrowserViewport";
-import { useBrowserCheckStream } from "./useBrowserCheckStream";
+import type { BrowserCheckState } from "./useBrowserCheckStream";
 
 /**
  * The security unit's runtime body. The two investigations are a FRONT→BACK
@@ -41,33 +41,25 @@ type Stage = "scan" | "opinion";
 
 export function SecurityRuntime({
   url,
-  onDone,
+  agentState,
+  browserState,
   onScanComplete,
-  onAgentComplete,
 }: {
   url: string;
-  onDone: () => void;
+  /** OSINT agent stream state, owned by App (single instance across phases). */
+  agentState: AgentState;
+  /** Layer-2 browser probe stream state, owned by App. */
+  browserState: BrowserCheckState;
   onScanComplete?: (cache: ThreatScanCache) => void;
-  onAgentComplete?: (state: AgentState) => void;
 }) {
   const [stage, setStage] = useState<Stage>("scan");
-  const agent = useAgentStream(url, stage === "opinion");
-  // Layer-2 browser probe runs alongside the OSINT opinion agent in the grey
-  // zone, streaming the headed browser's exploration into the clay viewport.
-  const browser = useBrowserCheckStream(url, stage === "opinion");
 
-  useEffect(() => {
-    if (agent.status === "done" || agent.status === "error") {
-      onAgentComplete?.(agent);
-      onDone();
-    }
-  }, [agent.status, agent, onAgentComplete, onDone]);
-
+  // Drive only the VISUAL hand-off here. The agent + browser streams are owned
+  // by App (gated on the grey-zone decision), so this component never starts or
+  // stops them — it just reveals their live state once the scan escalates.
   const handleScanDone = (_s: ThreatScanSummary) => {
     if (FORCE_AGENT || shouldEscalate(_s)) {
       setStage("opinion");
-    } else {
-      onDone();
     }
   };
 
@@ -120,8 +112,8 @@ export function SecurityRuntime({
               }}
             >
               <div className="sec-opinion-stack">
-                <AgentBrowserViewport state={browser} />
-                <AgentPanel state={agent} variant="runtime" />
+                <AgentBrowserViewport state={browserState} />
+                <AgentPanel state={agentState} variant="runtime" />
               </div>
             </motion.div>
           )}

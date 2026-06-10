@@ -66,25 +66,12 @@ export function useAgentStream(
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
   const doneFiredRef = useRef(false);
-  // Guard: once the stream completes for a given url, don't restart it
-  // even if `enabled` toggles (e.g. React StrictMode double-invoke, or
-  // parent re-render that briefly flips the stage back).
-  const hasCompletedRef = useRef(false);
   // The token frame for a model turn arrives just BEFORE the tool_call it
   // produced; stash it so we can attribute that turn's cost to the step.
   const pendingTokensRef = useRef(0);
 
-  // Reset the completion guard whenever the target url changes.
-  const prevUrlRef = useRef(url);
-  if (prevUrlRef.current !== url) {
-    prevUrlRef.current = url;
-    hasCompletedRef.current = false;
-  }
-
   useEffect(() => {
     if (!enabled || !url) return;
-    // If this stream already finished (for this url), reuse the result.
-    if (hasCompletedRef.current) return;
 
     setState({ ...INITIAL, status: "streaming" });
     doneFiredRef.current = false;
@@ -94,7 +81,6 @@ export function useAgentStream(
     const fireDone = () => {
       if (doneFiredRef.current) return;
       doneFiredRef.current = true;
-      hasCompletedRef.current = true;
       onDoneRef.current?.();
     };
 

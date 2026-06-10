@@ -208,14 +208,16 @@ export function DataFlow({
   flow,
   url,
   onScanComplete,
-  onAgentComplete,
+  agentState,
+  browserState,
   price,
   reportReady,
 }: {
   flow: FlowState;
   url: string;
   onScanComplete?: (cache: ThreatScanCache) => void;
-  onAgentComplete?: (state: import("../components/agent/useAgentStream").AgentState) => void;
+  agentState: import("../components/agent/useAgentStream").AgentState;
+  browserState: import("../components/agent/useBrowserCheckStream").BrowserCheckState;
   price?: import("../components/price/usePriceStream").PriceState;
   reportReady?: boolean;
 }) {
@@ -345,13 +347,9 @@ export function DataFlow({
         <ProcessUnits
           phase={phase}
           url={url}
-          onSecurityDone={() => {
-            // The security runtime signals its investigation finished; the flow
-            // does NOT advance here — the effect above leaves the pipeline only
-            // once every part (security audit + price) is fully done.
-          }}
           onScanComplete={onScanComplete}
-          onAgentComplete={onAgentComplete}
+          agentState={agentState}
+          browserState={browserState}
           price={price}
         />
       </motion.div>

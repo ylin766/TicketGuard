@@ -22,7 +22,8 @@ export function CameraStage({
   input,
   report,
   onScanComplete,
-  onAgentComplete,
+  agentState,
+  browserState,
   price,
   reportReady,
 }: {
@@ -30,7 +31,8 @@ export function CameraStage({
   input: ReactNode;
   report: ReactNode;
   onScanComplete?: (cache: ThreatScanCache) => void;
-  onAgentComplete?: (state: import("../components/agent/useAgentStream").AgentState) => void;
+  agentState: import("../components/agent/useAgentStream").AgentState;
+  browserState: import("../components/agent/useBrowserCheckStream").BrowserCheckState;
   price?: PriceState;
   reportReady?: boolean;
 }) {
@@ -71,7 +73,8 @@ export function CameraStage({
                 flow={flow}
                 url={url ?? ""}
                 onScanComplete={onScanComplete}
-                onAgentComplete={onAgentComplete}
+                agentState={agentState}
+                browserState={browserState}
                 price={price}
                 reportReady={reportReady}
               />

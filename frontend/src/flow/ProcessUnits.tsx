@@ -55,16 +55,16 @@ const UNITS: UnitDef[] = [
 export function ProcessUnits({
   phase,
   url,
-  onSecurityDone,
   onScanComplete,
-  onAgentComplete,
+  agentState,
+  browserState,
   price,
 }: {
   phase: FlowPhase;
   url: string;
-  onSecurityDone: () => void;
   onScanComplete?: (cache: ThreatScanCache) => void;
-  onAgentComplete?: (state: import("../components/agent/useAgentStream").AgentState) => void;
+  agentState: import("../components/agent/useAgentStream").AgentState;
+  browserState: import("../components/agent/useBrowserCheckStream").BrowserCheckState;
   price?: PriceState;
 }) {
   const isPipeline = phase === "pipeline";
@@ -140,9 +140,9 @@ export function ProcessUnits({
                   isPipeline ? (
                     <SecurityRuntime
                       url={url}
-                      onDone={onSecurityDone}
+                      agentState={agentState}
+                      browserState={browserState}
                       onScanComplete={onScanComplete}
-                      onAgentComplete={onAgentComplete}
                     />
                   ) : (
                     <div className="punit-process">
