@@ -28,7 +28,11 @@ import { useBrowserCheckStream } from "./useBrowserCheckStream";
 const FORCE_AGENT = false;
 
 const HIGH_ALERTS = 4;
-function isGreyZone(s: ThreatScanSummary): boolean {
+/** Whether to escalate to the Layer-2 agent. Prefer the backend's authoritative
+ *  grey-zone decision (score-based, the same logic the audit uses); only fall
+ *  back to the alert-count heuristic if the backend didn't send one. */
+function shouldEscalate(s: ThreatScanSummary): boolean {
+  if (typeof s.greyZone === "boolean") return s.greyZone;
   return s.alerts >= 1 && s.alerts < HIGH_ALERTS;
 }
 
@@ -60,7 +64,7 @@ export function SecurityRuntime({
   }, [agent.status, agent, onAgentComplete, onDone]);
 
   const handleScanDone = (_s: ThreatScanSummary) => {
-    if (FORCE_AGENT || isGreyZone(_s)) {
+    if (FORCE_AGENT || shouldEscalate(_s)) {
       setStage("opinion");
     } else {
       onDone();

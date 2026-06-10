@@ -70,9 +70,44 @@ def stream_threatintel(url: str) -> Generator[dict, None, None]:
             reported.append(result)
             yield {"type": "source", "data": result}
 
-    # Final summary event
+    # Final summary event — carry the AUTHORITATIVE score + grey-zone decision so
+    # the frontend gates the agent on the same logic the backend audit uses
+    # (instead of re-deriving a verdict from raw alert counts).
     if not reported:
-        yield {"type": "done", "status": "unavailable", "flagged": False}
-    else:
-        flagged = any(r.get("threat") is True for r in reported)
-        yield {"type": "done", "status": "ok", "flagged": flagged}
+        yield {
+            "type": "done",
+            "status": "unavailable",
+            "flagged": False,
+            "score": None,
+            "risk_level": None,
+            "grey_zone": True,  # can't tell → escalate, same as the orchestrator
+        }
+        return
+
+    findings = [r for r in reported if r.get("threat") is not None]
+    context = [r for r in reported if r.get("threat") is None]
+    flagged = any(f.get("threat") is True for f in findings)
+    pipeline_result = {
+        "status": "ok",
+        "findings": findings,
+        "context": context,
+        "flagged": flagged,
+    }
+    try:
+        from ..scoring import generate_score_breakdown
+        from ..orchestrator import is_grey_zone
+
+        breakdown = generate_score_breakdown(pipeline_result)
+        grey = is_grey_zone(pipeline_result, breakdown["score"])
+        yield {
+            "type": "done",
+            "status": "ok",
+            "flagged": flagged,
+            "score": breakdown["score"],
+            "risk_level": breakdown["risk_level"],
+            "grey_zone": grey,
+        }
+    except Exception as exc:  # noqa: BLE001 - never break the stream on scoring
+        logger.warning("score breakdown failed in stream: %s", exc)
+        yield {"type": "done", "status": "ok", "flagged": flagged,
+               "score": None, "risk_level": None, "grey_zone": flagged}

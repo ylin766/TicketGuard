@@ -14,6 +14,11 @@ export interface ThreatScanSummary {
   alerts: number;
   /** Number of sources that returned any verdict (true/false). */
   reported: number;
+  /** Authoritative score (0-100) computed by the backend, when available. */
+  score?: number | null;
+  /** Backend's grey-zone decision — the single source of truth for whether the
+   *  Layer-2 agent should run. The frontend no longer re-derives this. */
+  greyZone?: boolean;
 }
 
 /** Full scan result cache — sources + flagged — passed from pipeline to report. */
@@ -166,6 +171,9 @@ export function ThreatIntelPanel({
   const alertsRef = useRef(0);
   const reportedRef = useRef(0);
   const flaggedRef = useRef(false);
+  // Authoritative score + grey-zone decision from the backend done frame.
+  const scoreRef = useRef<number | null>(null);
+  const greyZoneRef = useRef(false);
   // Accumulates all received sources so onComplete gets the full list.
   const sourcesRef = useRef<ThreatSource[]>([]);
 
@@ -182,6 +190,8 @@ export function ThreatIntelPanel({
     alertsRef.current = 0;
     reportedRef.current = 0;
     flaggedRef.current = false;
+    scoreRef.current = null;
+    greyZoneRef.current = false;
 
     const controller = new AbortController();
     controllerRef.current = controller;
@@ -194,6 +204,8 @@ export function ThreatIntelPanel({
         flagged: flaggedRef.current,
         alerts: alertsRef.current,
         reported: reportedRef.current,
+        score: scoreRef.current,
+        greyZone: greyZoneRef.current,
       });
     };
 
@@ -226,6 +238,8 @@ export function ThreatIntelPanel({
               data?: ThreatSource;
               status?: string;
               flagged?: boolean;
+              score?: number | null;
+              grey_zone?: boolean;
             };
 
             if (event.type === "source" && event.data) {
@@ -239,6 +253,8 @@ export function ThreatIntelPanel({
               }
             } else if (event.type === "done") {
               flaggedRef.current = event.flagged ?? false;
+              scoreRef.current = event.score ?? null;
+              greyZoneRef.current = event.grey_zone ?? false;
               setFlagged(event.flagged ?? false);
               setStreamStatus(event.status === "unavailable" ? "unavailable" : "done");
               fireDone();
