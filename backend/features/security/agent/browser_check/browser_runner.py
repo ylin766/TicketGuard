@@ -767,18 +767,25 @@ class BrowserCheckRunner:
             return None
 
     async def _close_session(self) -> None:
-        """Tear down the browser session, tolerating any failure."""
+        """Tear down the browser session, tolerating any failure.
+
+        Try the most forceful teardown first (``kill``) and only fall back to a
+        gentler one if it raises — never stop after the first method merely
+        *exists*, or a failed kill would leave the off-screen Chromium orphaned.
+        """
         if self._session is None:
             return
-        for method_name in ("kill", "close", "stop"):
+        for method_name in ("kill", "stop", "close"):
             method = getattr(self._session, method_name, None)
             if method is None:
                 continue
             try:
                 await _maybe_await(method())
-            except Exception as exc:  # noqa: BLE001 - cleanup must never raise
+                self._session = None
+                return
+            except Exception as exc:  # noqa: BLE001 - try the next teardown method
                 logger.debug("session.%s() failed: %s", method_name, exc)
-            return
+        self._session = None
 
     # ----------------------------------------------------------------- #
     # Early gate: not a ticket site                                     #
