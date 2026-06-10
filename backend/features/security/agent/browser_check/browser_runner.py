@@ -165,6 +165,14 @@ class BrowserCheckRunner:
         try:
             from browser_use import BrowserSession  # lazy: heavy + needs Chromium
 
+            # Headed for accuracy/anti-bot, but parked far OFF-SCREEN so no window
+            # flashes in the user's face — they watch our clay viewport instead
+            # (same treatment as the price scrapers). Override with
+            # PRICE_BROWSER_ONSCREEN=1 to debug with a visible window.
+            offscreen = os.environ.get("PRICE_BROWSER_ONSCREEN") != "1"
+            launch_args = (
+                ["--window-position=-32000,-32000"] if offscreen else []
+            )
             # highlight_elements=False keeps screenshots clean; we draw our own
             # marker around only the element the agent is about to click.
             # enable_default_extensions=False skips downloading/loading uBlock,
@@ -175,6 +183,7 @@ class BrowserCheckRunner:
                 headless=self.headless,
                 highlight_elements=False,
                 enable_default_extensions=False,
+                args=launch_args,
             )
             await self._session.start()
             await self._session.navigate_to(url)

@@ -24,6 +24,7 @@ export function CameraStage({
   onScanComplete,
   onAgentComplete,
   price,
+  reportReady,
 }: {
   flow: FlowState;
   input: ReactNode;
@@ -31,6 +32,7 @@ export function CameraStage({
   onScanComplete?: (cache: ThreatScanCache) => void;
   onAgentComplete?: (state: import("../components/agent/useAgentStream").AgentState) => void;
   price?: PriceState;
+  reportReady?: boolean;
 }) {
   const { phase, url } = flow;
   const inMiddle = MIDDLE.includes(phase);
@@ -71,6 +73,7 @@ export function CameraStage({
                 onScanComplete={onScanComplete}
                 onAgentComplete={onAgentComplete}
                 price={price}
+                reportReady={reportReady}
               />
             </motion.div>
           )}

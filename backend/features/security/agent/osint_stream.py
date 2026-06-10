@@ -97,7 +97,7 @@ def _maybe_setup_phoenix() -> str | None:
     server startup (see ``backend.observability.telemetry``). This just returns
     the Phoenix workspace URL (initializing on first use if startup hasn't run,
     e.g. in a standalone test harness)."""
-    from ...observability.telemetry import init_telemetry
+    from ....observability.telemetry import init_telemetry
 
     return init_telemetry()
 

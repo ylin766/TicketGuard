@@ -68,6 +68,7 @@ export default function App() {
           onScanComplete={setThreatCache}
           onAgentComplete={setAgentCache}
           price={price}
+          reportReady={report !== null}
           input={
             <UrlInputScreen
               onAudit={handleAudit}
