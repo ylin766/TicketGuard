@@ -79,6 +79,10 @@
 .lbv-screen {
   position: relative;
   aspect-ratio: 16 / 10;
+  /* Cap the height so a wide column can't stretch the viewport tall enough to
+     push sibling units out of view; the frame uses object-fit: contain, so the
+     screenshot just letterboxes instead of distorting. */
+  max-height: 240px;
   border-radius: var(--radius-sm, 14px);
   overflow: hidden;
   background: var(--clay-bottom, #eef0ea);

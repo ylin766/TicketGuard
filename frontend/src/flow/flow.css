@@ -270,6 +270,12 @@
 .punit-body {
   display: flex;
   flex-direction: column;
+  /* Keep a tall live child (the browser viewport + its narration, the price
+     analysis panel) from stretching the column and pushing sibling units out of
+     view — overflow scrolls inside the unit instead. */
+  max-height: 46vh;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 /* Security runtime stacks the threat scan and the public-opinion agent trace. */
