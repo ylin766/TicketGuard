@@ -1,0 +1,364 @@
+/* Cinematic audit flow — continuous data line inside a fixed viewport. */
+
+.camera-stage {
+  position: relative;
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Scenes overlap (absolute) and each centres itself, so a scene that is exiting
+   never pushes the entering one off-centre — the shared-element morph then lands
+   straight at the viewport centre instead of sliding into place afterwards. */
+.flow-scene {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  will-change: transform, opacity;
+}
+
+/* The report can be taller than the viewport, so let that scene scroll and sit
+   at the top rather than being clipped by the centred overlay. */
+.flow-scene--report {
+  position: relative;
+  inset: auto;
+  justify-content: flex-start;
+  min-height: 100%;
+  padding: 24px 0;
+}
+
+/* The flow (pipeline) scene holds the compact runtime units, which fit within
+   the viewport — so it centres like the other scenes and needs no scrollbar. */
+.flow-scene--flow {
+  justify-content: center;
+  padding: 4vh 0;
+}
+
+/* ---------------- Clay-liquid split & pour flow (16:9 stage) ------------- */
+/* The whole stage shares ONE bounded, centred coordinate system: the droplet
+   paths (% of .dataflow) and the units zone both scale within it, so they stay
+   aligned at every viewport width and cap together on very wide screens. */
+.dataflow {
+  position: relative;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  min-height: 84vh;
+  display: flex;
+  align-items: center;
+}
+
+/* The capsule rides on `left` (centre -> far left). Vertical centring is done
+   with translateY(-50%) injected via Framer's transformTemplate (so it survives
+   the animated scale), letting `top: 50%` centre it without a fixed height. */
+.split-capsule {
+  position: absolute;
+  left: 44%;
+  top: 50%;
+  z-index: 6;
+  transform-origin: center center;
+  will-change: transform, left;
+}
+
+/* Hidden filter holder. */
+.goo-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* The single gooey stage holding BOTH the capsule and the droplets. Enabling
+   the filter welds overlapping clay shapes into one soft mass that stretches
+   and pinches off — a real liquid split, all from one substance. */
+.melt-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+.melt-stage--goo {
+  filter: url(#flow-goo);
+}
+.melt-blob {
+  position: absolute;
+  /* Droplet size scales with the viewport so it stays proportional to the
+     stage at any width (and the gooey merge distance scales with it). */
+  width: clamp(34px, 4.4vw, 64px);
+  height: clamp(34px, 4.4vw, 64px);
+  /* Negative margin (half the size) centres the blob on its (left, top)
+     coordinate. We use margin — not transform — because Framer drives `scale`
+     through `transform`, which would otherwise clobber a translate here. */
+  margin-top: calc(clamp(34px, 4.4vw, 64px) * -0.5);
+  margin-left: calc(clamp(34px, 4.4vw, 64px) * -0.5);
+  border-radius: 50%;
+  /* Solid clay fill — the gooey filter needs an opaque alpha to merge. */
+  background: #edefe9;
+  /* Promote to a GPU layer so the constant left/top/scale animation under the
+     gooey filter composites smoothly instead of repainting on the main thread. */
+  will-change: transform, left, top;
+}
+.melt-bead {
+  width: clamp(28px, 3.6vw, 52px);
+  height: clamp(28px, 3.6vw, 52px);
+  margin-top: calc(clamp(28px, 3.6vw, 52px) * -0.5);
+  margin-left: calc(clamp(28px, 3.6vw, 52px) * -0.5);
+}
+/* Splash that pools at the unit edge as the stream lands and is absorbed. */
+.melt-splash {
+  width: clamp(40px, 5vw, 72px);
+  height: clamp(40px, 5vw, 72px);
+  margin-top: calc(clamp(40px, 5vw, 72px) * -0.5);
+  margin-left: calc(clamp(40px, 5vw, 72px) * -0.5);
+}
+
+/* The units zone lives in the SAME bounded stage as the droplets, so pure
+   percentages keep the unit's left edge aligned with the injection point (42%)
+   at every width — no independent max-width that could drift out of sync.
+   During the pour it occupies the right lane (left ~44% reserved for the
+   capsule + streams); for the pipeline it expands to the full centred column. */
+.units-zone {
+  width: 100%;
+  margin: 0 auto;
+}
+.units-zone--right {
+  /* Left edge at ~45% (matches END_X = 42% injection point, slightly inside);
+     right edge with a small gutter. Proportional at every width. */
+  width: 52%;
+  margin: 0 3% 0 45%;
+}
+.units-zone--center {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.data-carrier {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #fbfbf9, #eef0ea);
+  box-shadow: 0 16px 32px -14px var(--clay-cast),
+    inset 3px 3px 8px var(--clay-hi), inset -4px -5px 10px var(--clay-lo);
+  will-change: transform;
+}
+
+.carrier-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.carrier-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px 3px rgba(46, 158, 84, 0.6);
+  animation: flow-pulse 1.1s ease-in-out infinite;
+}
+
+.carrier-url {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------------- Three processing units (stacked rows) -------- */
+.process-units {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  align-items: stretch;
+}
+
+/* The unit starts as an empty clay MOULD (a soft pressed-in groove). The clay
+   body (.punit-fill) is poured into it from the left. */
+.punit {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  min-height: 132px;
+  background: rgba(238, 240, 234, 0.35);
+  box-shadow: inset 3px 3px 8px rgba(120, 124, 116, 0.18),
+    inset -3px -3px 8px rgba(255, 255, 255, 0.5);
+}
+
+/* The poured clay material that fills the mould (clip-path reveal from left). */
+.punit-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-md);
+  z-index: 0;
+  background: linear-gradient(180deg, #fbfbf9, #eef0ea);
+  box-shadow: 0 16px 32px -16px var(--clay-cast),
+    inset 3px 3px 8px var(--clay-hi), inset -4px -5px 10px var(--clay-lo);
+}
+
+.punit-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Placeholder units keep the same poured-clay body but read as inert. */
+.punit--soon .punit-fill {
+  background: rgba(238, 240, 234, 0.7);
+  box-shadow: inset 2px 2px 6px rgba(120, 124, 116, 0.2),
+    inset -2px -2px 6px rgba(255, 255, 255, 0.55);
+}
+
+
+.punit-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.punit-icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: var(--accent);
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: inset 2px 2px 5px var(--clay-hi), inset -2px -3px 6px var(--clay-lo);
+  flex-shrink: 0;
+}
+.punit-icon svg {
+  width: 21px;
+  height: 21px;
+}
+.punit--soon .punit-icon {
+  color: var(--ink-faint);
+}
+
+.punit-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.punit-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.punit-sub {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-faint);
+}
+
+.punit-body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Security runtime stacks the threat scan and the public-opinion agent trace. */
+.security-runtime {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Security row's panel fills the full width with a wide multi-column grid so the
+   horizontal space is used (responsive: more columns on wider screens). */
+.punit .ti-panel {
+  background: transparent;
+  box-shadow: none;
+}
+.punit .ti-group-grid {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.punit-process,
+.punit-soon-body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 4px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 700;
+}
+.punit-process-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px 2px rgba(46, 158, 84, 0.5);
+  animation: flow-pulse 1.1s ease-in-out infinite;
+}
+.punit-soon-tag {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px dashed rgba(140, 142, 136, 0.45);
+}
+
+/* ---------------- Placeholder beats ---------------- */
+.flow-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 40px;
+}
+
+.flow-placeholder-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #fbfbf9, #eef0ea);
+  box-shadow: inset 2px 2px 4px var(--clay-hi), inset -2px -2px 4px var(--clay-lo);
+  animation: flow-pulse 1.1s ease-in-out infinite;
+}
+
+.flow-placeholder-label {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+}
+
+@keyframes flow-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flow-placeholder-dot,
+  .punit-process-dot,
+  .carrier-dot {
+    animation: none;
+  }
+}

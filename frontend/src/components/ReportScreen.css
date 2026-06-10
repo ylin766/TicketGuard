@@ -1,9 +1,31 @@
 .report-screen {
   width: 100%;
-  max-width: 760px;
+  max-width: 1080px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 24px;
+  margin: 0 auto;
+}
+
+.report-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 32px;
+  align-items: start;
+}
+
+.report-col-main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.report-col-side {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: sticky;
+  top: 24px;
 }
 
 /* ---------- Top bar ---------- */
@@ -11,6 +33,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  margin-bottom: 8px;
 }
 
 .back-button {
@@ -31,16 +54,13 @@
 /* ---------- Hero ---------- */
 .report-hero {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 26px;
-  padding: 28px 30px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  padding: 32px 36px;
+  border-radius: var(--radius-lg);
 }
 
 .report-hero-main {
-  flex: 1;
-  min-width: 260px;
+  width: 100%;
 }
 
 .report-url {
@@ -92,9 +112,30 @@
   color: var(--safe);
 }
 
-.report-hero-gauge {
-  display: grid;
-  place-items: center;
+.topbar-badge {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 8px 16px;
+  border-radius: 999px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+}
+
+.report-gauge-card {
+  padding: 36px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  text-align: center;
+  border-radius: var(--radius-lg);
+}
+
+.report-gauge-card .eyebrow {
+  font-size: 15px;
 }
 
 /* ---------- Recommendation banner ---------- */
@@ -191,8 +232,8 @@
 .score-bar-track {
   height: 12px;
   border-radius: 999px;
-  background: #e2ead4;
-  box-shadow: inset 2px 2px 5px rgba(150, 178, 138, 0.6),
+  background: #e9ebe4;
+  box-shadow: inset 2px 2px 5px rgba(120, 124, 116, 0.45),
     inset -2px -2px 5px rgba(255, 255, 255, 0.85);
   overflow: hidden;
 }
@@ -221,7 +262,7 @@
   padding: 4px 10px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.65);
-  box-shadow: inset 1px 1px 3px rgba(150, 178, 138, 0.4),
+  box-shadow: inset 1px 1px 3px rgba(120, 124, 116, 0.3),
     inset -1px -1px 3px rgba(255, 255, 255, 0.9);
 }
 
@@ -285,12 +326,21 @@
   cursor: pointer;
 }
 
+@media (max-width: 960px) {
+  .report-grid {
+    grid-template-columns: 1fr;
+  }
+  .report-col-side {
+    position: static;
+  }
+}
+
 @media (max-width: 620px) {
   .score-grid {
     grid-template-columns: 1fr;
   }
   .report-hero {
-    justify-content: center;
+    padding: 24px 20px;
     text-align: center;
   }
   .report-prices {

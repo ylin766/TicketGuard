@@ -27,6 +27,7 @@ RDAP_API_BASE = "https://rdap.org/domain"
 DNS_RESOLVE_URL = "https://dns.google/resolve"
 IPGEO_API_BASE = "https://freeipapi.com/api/json"
 # crt.sh and RDAP are slow/flaky; give them a longer read budget (context only).
-SLOW_HTTP_TIMEOUT_SECONDS = 25
-THREATINTEL_MAX_WAIT_SECONDS = 60
-DETECTOR_POLL_INTERVAL_SECONDS = 5
+# TESTING: lowered for fast iteration (was 25 / 60 / 5).
+SLOW_HTTP_TIMEOUT_SECONDS = 10
+THREATINTEL_MAX_WAIT_SECONDS = 20
+DETECTOR_POLL_INTERVAL_SECONDS = 3

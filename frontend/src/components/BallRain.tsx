@@ -111,22 +111,32 @@ function Ball({
 
 /** Fixed walls: floor + left/right + front/back so balls stay in the box. */
 function Walls({ w, h }: Viewport) {
+  // The side and depth walls extend far above the viewport so a ball flung
+  // upward (e.g. by a rising card) stays contained and falls back under gravity
+  // — instead of slipping out the top and disappearing. No ceiling is needed:
+  // gravity always brings them down on its own.
+  const SKY = h * 3; // how far above centre the play box extends
+  const wallHalfH = (h + SKY) / 2;
+  const wallCenterY = (SKY - h) / 2 - WALL_THICKNESS; // shift the tall walls up
   return (
     <>
+      {/* floor */}
       <RigidBody type="fixed" colliders={false} position={[0, -h / 2 - WALL_THICKNESS, 0]}>
         <CuboidCollider args={[w / 2 + WALL_THICKNESS, WALL_THICKNESS, COLLIDER_DEPTH]} />
       </RigidBody>
-      <RigidBody type="fixed" colliders={false} position={[-w / 2 - WALL_THICKNESS, 0, 0]}>
-        <CuboidCollider args={[WALL_THICKNESS, h, COLLIDER_DEPTH]} />
+      {/* tall left/right walls */}
+      <RigidBody type="fixed" colliders={false} position={[-w / 2 - WALL_THICKNESS, wallCenterY, 0]}>
+        <CuboidCollider args={[WALL_THICKNESS, wallHalfH, COLLIDER_DEPTH]} />
       </RigidBody>
-      <RigidBody type="fixed" colliders={false} position={[w / 2 + WALL_THICKNESS, 0, 0]}>
-        <CuboidCollider args={[WALL_THICKNESS, h, COLLIDER_DEPTH]} />
+      <RigidBody type="fixed" colliders={false} position={[w / 2 + WALL_THICKNESS, wallCenterY, 0]}>
+        <CuboidCollider args={[WALL_THICKNESS, wallHalfH, COLLIDER_DEPTH]} />
       </RigidBody>
-      <RigidBody type="fixed" colliders={false} position={[0, 0, COLLIDER_DEPTH + WALL_THICKNESS]}>
-        <CuboidCollider args={[w, h, WALL_THICKNESS]} />
+      {/* tall front/back walls keep balls within the depth band */}
+      <RigidBody type="fixed" colliders={false} position={[0, wallCenterY, COLLIDER_DEPTH + WALL_THICKNESS]}>
+        <CuboidCollider args={[w, wallHalfH, WALL_THICKNESS]} />
       </RigidBody>
-      <RigidBody type="fixed" colliders={false} position={[0, 0, -COLLIDER_DEPTH - WALL_THICKNESS]}>
-        <CuboidCollider args={[w, h, WALL_THICKNESS]} />
+      <RigidBody type="fixed" colliders={false} position={[0, wallCenterY, -COLLIDER_DEPTH - WALL_THICKNESS]}>
+        <CuboidCollider args={[w, wallHalfH, WALL_THICKNESS]} />
       </RigidBody>
     </>
   );
@@ -137,11 +147,20 @@ function Walls({ w, h }: Viewport) {
  * it's a kinematicPosition body, any movement (e.g. the user scrolling the
  * report) imparts velocity to balls it touches — so cards can shove balls.
  */
-function TrackedCollider({ selector }: { selector: string }) {
+function TrackedCollider({
+  selector,
+  onMove,
+}: {
+  selector: string;
+  onMove: () => void;
+}) {
   const ref = useRef<RapierRigidBody>(null);
   const [size, setSize] = useState<{ hw: number; hh: number }>({ hw: 1, hh: 1 });
   const sizeRef = useRef(size);
   sizeRef.current = size;
+  // Last tracked screen position, to detect when this card moves (e.g. the
+  // input/report scenes swapping) so we can wake balls it may shove.
+  const lastPos = useRef<{ x: number; y: number } | null>(null);
 
   useFrame(() => {
     const body = ref.current;
@@ -150,6 +169,7 @@ function TrackedCollider({ selector }: { selector: string }) {
     const r = el?.getBoundingClientRect();
     if (!r || r.width === 0 || r.height === 0) {
       body.setNextKinematicTranslation({ x: FAR_AWAY, y: FAR_AWAY, z: 0 });
+      lastPos.current = null;
       return;
     }
     const hw = r.width / 2;
@@ -158,11 +178,17 @@ function TrackedCollider({ selector }: { selector: string }) {
     if (Math.abs(cur.hw - hw) > 2 || Math.abs(cur.hh - hh) > 2) {
       setSize({ hw, hh });
     }
-    body.setNextKinematicTranslation({
-      x: r.left + r.width / 2 - window.innerWidth / 2,
-      y: window.innerHeight / 2 - (r.top + r.height / 2),
-      z: 0,
-    });
+    const x = r.left + r.width / 2 - window.innerWidth / 2;
+    const y = window.innerHeight / 2 - (r.top + r.height / 2);
+    // When the card jumps (scene transition / back navigation), it can fling a
+    // resting ball into the air. Sleeping balls ignore gravity and would hang
+    // there — so wake everything whenever this collider actually moves.
+    const prev = lastPos.current;
+    if (prev && (Math.abs(prev.x - x) > 1.5 || Math.abs(prev.y - y) > 1.5)) {
+      onMove();
+    }
+    lastPos.current = { x, y };
+    body.setNextKinematicTranslation({ x, y, z: 0 });
   });
 
   return (
@@ -178,11 +204,11 @@ function TrackedCollider({ selector }: { selector: string }) {
 }
 
 /** Live kinematic colliders for every tracked UI block. */
-function DomColliders() {
+function DomColliders({ onMove }: { onMove: () => void }) {
   return (
     <>
       {COLLIDER_SELECTORS.map((sel) => (
-        <TrackedCollider key={sel} selector={sel} />
+        <TrackedCollider key={sel} selector={sel} onMove={onMove} />
       ))}
     </>
   );
@@ -226,12 +252,34 @@ function Scene({ w, h }: Viewport) {
   // floating in mid-air; waking them guarantees they always fall back down.
   const bodies = useRef<(RapierRigidBody | null)[]>([]);
 
+  // A wake "window": when a card moves (scene transition / back), we keep every
+  // ball awake for a while AFTER the movement stops — long enough for a flung
+  // ball to complete its whole arc and settle. Waking only *during* the card's
+  // motion left balls asleep at the top of their throw (velocity ≈ 0 there).
+  const wakeUntil = useRef(0);
+  const WAKE_WINDOW_MS = 2500;
+
+  const wakeAll = () => {
+    wakeUntil.current = performance.now() + WAKE_WINDOW_MS;
+    for (const b of bodies.current) b?.wakeUp();
+  };
+
+  // Per-frame watchdog: while inside the wake window, keep every ball awake so
+  // none can sleep mid-arc and hang in the air.
+  useFrame(() => {
+    if (performance.now() < wakeUntil.current) {
+      for (const b of bodies.current) b?.wakeUp();
+    }
+  });
+
   useEffect(() => {
     let raf = 0;
     const wake = () => {
       cancelAnimationFrame(raf);
-      // Wake on the next frame so it runs after the scroll-driven layout shift.
+      // Wake on the next frame so it runs after the scroll-driven layout shift,
+      // and open the wake window so balls settle fully afterwards.
       raf = requestAnimationFrame(() => {
+        wakeUntil.current = performance.now() + WAKE_WINDOW_MS;
         for (const b of bodies.current) b?.wakeUp();
       });
     };
@@ -249,7 +297,7 @@ function Scene({ w, h }: Viewport) {
   return (
     <Physics gravity={[0, -1800, 0]} timeStep={1 / 120}>
       <Walls w={w} h={h} />
-      <DomColliders />
+      <DomColliders onMove={wakeAll} />
       {balls.map((b, i) => (
         <Ball
           key={b.id}

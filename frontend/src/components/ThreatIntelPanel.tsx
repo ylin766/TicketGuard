@@ -1,72 +1,75 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { ThreatSource } from "../types";
+import { SourcePanel, SourcePanelSkeleton, SourcePanelTimeout } from "./threatintel/SourcePanel";
+import { GlyphShield, GlyphChevron } from "./threatintel/icons";
 import "./ThreatIntelPanel.css";
+
+/** Verdict summary passed to onDone so callers can score-gate what comes next
+ *  (e.g. only escalate to the opinion agent for grey-zone results). */
+export interface ThreatScanSummary {
+  /** Backend's aggregate flag: any source reported a threat. */
+  flagged: boolean;
+  /** Number of sources that returned threat = true. */
+  alerts: number;
+  /** Number of sources that returned any verdict (true/false). */
+  reported: number;
+}
+
+/** Full scan result cache — sources + flagged — passed from pipeline to report. */
+export interface ThreatScanCache {
+  sources: import("../types").ThreatSource[];
+  flagged: boolean;
+}
 
 interface ThreatIntelPanelProps {
   url: string;
+  /** Fired once the stream settles (done / unavailable / error) — used by the
+   *  cinematic flow to advance past the pipeline phase on real completion.
+   *  Receives a verdict summary for score-gating the next step. */
+  onDone?: (summary: ThreatScanSummary) => void;
+  /** Compact mode: single column, head-only source rows — fits a narrow 1/3
+   *  column without an inner scrollbar. */
+  compact?: boolean;
+  /** Runtime mode: a minimal live readout for the pipeline phase — just the
+   *  scanning animation, progress and the basic verdict. The full source list
+   *  is reserved for the report. */
+  variant?: "full" | "runtime";
+  /**
+   * Pre-fetched sources from the pipeline phase. When provided the component
+   * skips the network stream and renders the cached data directly as "done".
+   */
+  cachedSources?: ThreatSource[];
+  cachedFlagged?: boolean;
+  /** Called when the stream completes, passing all received sources + flagged.
+   *  Use this in the pipeline stage to build the cache for the report page. */
+  onComplete?: (sources: ThreatSource[], flagged: boolean) => void;
 }
 
 const STREAM_ENDPOINT = "http://localhost:8001/api/threat-intel/stream";
 
-// ---------------------------------------------------------------------------
-// SVG Icons — inline, no emoji, clay-compatible
-// ---------------------------------------------------------------------------
+/** Known source manifest (matches the backend ALL_SOURCES order) so skeleton
+ *  placeholders render immediately and are swapped in place as results stream,
+ *  keeping the layout stable. Each entry notes its group. */
+const FINDING_SOURCES = [
+  "VirusTotal",
+  "SafeBrowsing",
+  "URLhaus",
+  "CheckPhish",
+  "MetaDefender",
+  "Sucuri",
+  "OpenPhish",
+  "PhishStats",
+] as const;
+const CONTEXT_SOURCES = ["Tranco", "crt.sh", "Wayback", "RDAP", "IPGeo"] as const;
 
-function IconShield() {
-  return (
-    <svg className="ti-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2z"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+/** Sources that carry a threat verdict render in the "scan" group; the rest
+ *  (threat === null) are intelligence context. */
+function isFinding(source: ThreatSource): boolean {
+  return source.threat === true || source.threat === false;
 }
 
-function IconCheck() {
-  return (
-    <svg className="ti-source-icon-svg ti-icon--safe" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" strokeWidth="1.8" />
-      <path d="M8 12l3 3 5-5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function IconAlert() {
-  return (
-    <svg className="ti-source-icon-svg ti-icon--danger" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" strokeWidth="1.8" />
-      <path d="M12 8v4M12 16h.01" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconInfo() {
-  return (
-    <svg className="ti-source-icon-svg ti-icon--info" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" strokeWidth="1.8" />
-      <path d="M12 11v5M12 8h.01" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconChevron({ expanded }: { expanded: boolean }) {
-  return (
-    <svg
-      className={`ti-chevron-svg ${expanded ? "ti-chevron-svg--up" : ""}`}
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden="true"
-    >
-      <path d="M6 9l6 6 6-6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-// Three pulsing clay dots for loading state
+// Three pulsing clay dots for the streaming state.
 function ClayDots() {
   return (
     <span className="ti-clay-dots" aria-label="Loading">
@@ -77,36 +80,53 @@ function ClayDots() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Source row
-// ---------------------------------------------------------------------------
-
-function sourceIconComponent(source: ThreatSource) {
-  if (source.threat === true) return <IconAlert />;
-  if (source.threat === false) return <IconCheck />;
-  return <IconInfo />;
-}
-
-function sourceRowClass(source: ThreatSource): string {
-  if (source.threat === true) return "ti-source ti-source--danger";
-  if (source.threat === false) return "ti-source ti-source--safe";
-  return "ti-source ti-source--info";
-}
-
-function SourceRow({ source, index }: { source: ThreatSource; index: number }) {
+/**
+ * A titled group. While streaming, every manifest source renders as its arrived
+ * panel or a themed skeleton, so the grid never shifts. Once done, sources that
+ * never returned render an explicit "timed out" panel instead of vanishing.
+ */
+function Group({
+  title,
+  manifest,
+  arrived,
+  streaming,
+  compact,
+}: {
+  title: string;
+  manifest: readonly string[];
+  arrived: Map<string, ThreatSource>;
+  streaming: boolean;
+  compact?: boolean;
+}) {
   return (
-    <motion.div
-      className={sourceRowClass(source)}
-      initial={{ opacity: 0, x: -12 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.28, delay: index * 0.04, ease: [0.22, 1, 0.36, 1] }}
-    >
-      <span className="ti-source-icon-wrap">{sourceIconComponent(source)}</span>
-      <div className="ti-source-body">
-        <span className="ti-source-name">{source.name}</span>
-        <span className="ti-source-detail">{source.detail}</span>
+    <div className="ti-group">
+      <span className="ti-group-title eyebrow">{title}</span>
+      <div className="ti-group-grid">
+        {manifest.map((name, i) => {
+          const src = arrived.get(name);
+          return (
+            <motion.div
+              key={name}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.28,
+                delay: Math.min(i * 0.04, 0.3),
+                ease: [0.22, 1, 0.36, 1],
+              }}
+            >
+              {src ? (
+                <SourcePanel source={src} compact={compact} />
+              ) : streaming ? (
+                <SourcePanelSkeleton name={name} compact={compact} />
+              ) : (
+                <SourcePanelTimeout name={name} compact={compact} />
+              )}
+            </motion.div>
+          );
+        })}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -116,23 +136,66 @@ function SourceRow({ source, index }: { source: ThreatSource; index: number }) {
 
 type StreamStatus = "idle" | "streaming" | "done" | "error" | "unavailable";
 
-export function ThreatIntelPanel({ url }: ThreatIntelPanelProps) {
-  const [sources, setSources] = useState<ThreatSource[]>([]);
-  const [streamStatus, setStreamStatus] = useState<StreamStatus>("idle");
-  const [flagged, setFlagged] = useState<boolean | null>(null);
+export function ThreatIntelPanel({
+  url,
+  onDone,
+  compact,
+  variant = "full",
+  cachedSources,
+  cachedFlagged,
+  onComplete,
+}: ThreatIntelPanelProps) {
+  // If we have cached data, start directly in "done" state — no stream.
+  const [sources, setSources] = useState<ThreatSource[]>(cachedSources ?? []);
+  const [streamStatus, setStreamStatus] = useState<StreamStatus>(
+    cachedSources ? "done" : "idle"
+  );
+  const [flagged, setFlagged] = useState<boolean | null>(
+    cachedSources ? (cachedFlagged ?? false) : null
+  );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const controllerRef = useRef<AbortController | null>(null);
+  // Keep the latest onDone without re-running the stream effect.
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+  const doneFiredRef = useRef(false);
+  // Live verdict tallies (refs so the stream closure reads fresh values).
+  const alertsRef = useRef(0);
+  const reportedRef = useRef(0);
+  const flaggedRef = useRef(false);
+  // Accumulates all received sources so onComplete gets the full list.
+  const sourcesRef = useRef<ThreatSource[]>([]);
 
   useEffect(() => {
+    // Skip streaming if cached data was provided.
+    if (cachedSources) return;
+
     setSources([]);
     setFlagged(null);
     setErrorMsg(null);
     setStreamStatus("streaming");
-    setExpanded(false);
+    setExpanded(true);
+    doneFiredRef.current = false;
+    alertsRef.current = 0;
+    reportedRef.current = 0;
+    flaggedRef.current = false;
 
     const controller = new AbortController();
     controllerRef.current = controller;
+
+    const fireDone = () => {
+      if (doneFiredRef.current) return;
+      doneFiredRef.current = true;
+      onCompleteRef.current?.(sourcesRef.current, flaggedRef.current);
+      onDoneRef.current?.({
+        flagged: flaggedRef.current,
+        alerts: alertsRef.current,
+        reported: reportedRef.current,
+      });
+    };
 
     const streamUrl = `${STREAM_ENDPOINT}?url=${encodeURIComponent(url)}`;
 
@@ -166,11 +229,19 @@ export function ThreatIntelPanel({ url }: ThreatIntelPanelProps) {
             };
 
             if (event.type === "source" && event.data) {
-              setSources((prev) => [...prev, event.data!]);
+              const src = event.data;
+              sourcesRef.current = [...sourcesRef.current, src];
+              setSources((prev) => [...prev, src]);
+
+              if (src.threat === true || src.threat === false) {
+                reportedRef.current += 1;
+                if (src.threat === true) alertsRef.current += 1;
+              }
             } else if (event.type === "done") {
+              flaggedRef.current = event.flagged ?? false;
               setFlagged(event.flagged ?? false);
               setStreamStatus(event.status === "unavailable" ? "unavailable" : "done");
-              setExpanded(true);
+              fireDone();
             }
           }
         }
@@ -179,6 +250,7 @@ export function ThreatIntelPanel({ url }: ThreatIntelPanelProps) {
         if (err.name === "AbortError") return;
         setErrorMsg(err.message);
         setStreamStatus("error");
+        fireDone();
       });
 
     return () => controller.abort();
@@ -187,9 +259,94 @@ export function ThreatIntelPanel({ url }: ThreatIntelPanelProps) {
   const isStreaming = streamStatus === "streaming";
   const isDone = streamStatus === "done";
 
+  const findings = sources.filter(isFinding);
+  const context = sources.filter((s) => !isFinding(s));
+  const alerts = findings.filter((s) => s.threat === true).length;
+  const passed = findings.filter((s) => s.threat === false).length;
+
+  // Index arrived sources by name so groups can swap skeletons in place.
+  const arrived = new Map(sources.map((s) => [s.name, s]));
+  const totalSources = FINDING_SOURCES.length + CONTEXT_SOURCES.length;
+
+  // ----- Runtime variant: minimal live readout (animation + basic info) -----
+  if (variant === "runtime") {
+    const pct = Math.round((sources.length / totalSources) * 100);
+    return (
+      <div className="ti-panel ti-panel--runtime glass">
+        <div className="ti-rt-head">
+          <span className="ti-header-icon-wrap">
+            <GlyphShield className="ti-header-shield" />
+          </span>
+          <span className="ti-header-titles">
+            <span className="ti-header-title">Threat Intelligence</span>
+            <span className="ti-header-sub">
+              {isStreaming ? (
+                <>Scanning… {sources.length} / {totalSources} sources</>
+              ) : isDone || streamStatus === "unavailable" ? (
+                <>
+                  {passed} passed
+                  {alerts > 0 ? ` · ${alerts} flagged` : ""} · {context.length}{" "}
+                  signals
+                </>
+              ) : streamStatus === "error" ? (
+                <>Connection error</>
+              ) : (
+                <>Idle</>
+              )}
+            </span>
+          </span>
+          {isStreaming && <ClayDots />}
+          {isDone && flagged !== null && (
+            <span className={`ti-badge ${flagged ? "ti-badge--danger" : "ti-badge--safe"}`}>
+              {flagged ? "FLAGGED" : "CLEAN"}
+            </span>
+          )}
+        </div>
+
+        {/* Live progress bar — the runtime's main motion. */}
+        <div className="ti-rt-bar" role="progressbar" aria-valuenow={pct}>
+          <motion.span
+            className="ti-rt-bar-fill"
+            animate={{ width: `${isDone ? 100 : pct}%` }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          />
+          {isStreaming && <span className="ti-rt-bar-sheen" aria-hidden="true" />}
+        </div>
+
+        {/* Compact multi-column grid of every source — same colours, icons and
+            loaders as the full report, just head-only rows. */}
+        <div className="ti-rt-grid">
+          {[...FINDING_SOURCES, ...CONTEXT_SOURCES].map((name, i) => {
+            const src = arrived.get(name);
+            return (
+              <motion.div
+                key={name}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.26,
+                  delay: Math.min(i * 0.03, 0.25),
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+              >
+                {src ? (
+                  <SourcePanel source={src} compact />
+                ) : isStreaming ? (
+                  <SourcePanelSkeleton name={name} compact />
+                ) : (
+                  <SourcePanelTimeout name={name} compact />
+                )}
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="ti-panel glass">
-      {/* Header */}
+    <div className={`ti-panel glass${compact ? " ti-panel--compact" : ""}`}>
+      {/* Header / verdict summary */}
       <button
         className="ti-header"
         onClick={() => setExpanded((v) => !v)}
@@ -199,20 +356,32 @@ export function ThreatIntelPanel({ url }: ThreatIntelPanelProps) {
       >
         <span className="ti-header-left">
           <span className="ti-header-icon-wrap">
-            <IconShield />
+            <GlyphShield className="ti-header-shield" />
           </span>
-          <span className="ti-header-title">Threat Intel Sources</span>
+          <span className="ti-header-titles">
+            <span className="ti-header-title">Threat Intelligence</span>
+            <span className="ti-header-sub">
+              {isStreaming ? (
+                <>Scanning… {sources.length} / {totalSources} sources</>
+              ) : isDone || streamStatus === "unavailable" ? (
+                <>
+                  {passed} passed
+                  {alerts > 0 ? ` · ${alerts} flagged` : ""} · {context.length}{" "}
+                  signals
+                </>
+              ) : (
+                <>Idle</>
+              )}
+            </span>
+          </span>
           {isStreaming && <ClayDots />}
           {isDone && flagged !== null && (
             <span className={`ti-badge ${flagged ? "ti-badge--danger" : "ti-badge--safe"}`}>
               {flagged ? "FLAGGED" : "CLEAN"}
             </span>
           )}
-          {sources.length > 0 && (
-            <span className="ti-count">{sources.length}</span>
-          )}
         </span>
-        {sources.length > 0 && <IconChevron expanded={expanded} />}
+        {sources.length > 0 && <GlyphChevron expanded={expanded} />}
       </button>
 
       {/* Error */}
@@ -223,25 +392,36 @@ export function ThreatIntelPanel({ url }: ThreatIntelPanelProps) {
       )}
 
       {/* Unavailable */}
-      {streamStatus === "unavailable" && (
+      {streamStatus === "unavailable" && sources.length === 0 && (
         <div className="ti-status">
           No threat-intel sources returned a result. Check that API keys are configured.
         </div>
       )}
 
-      {/* Source rows — appear one by one as stream delivers them */}
-      <AnimatePresence>
-        {expanded && sources.length > 0 && (
+      {/* Grouped source panels */}
+      <AnimatePresence initial={false}>
+        {expanded && (isStreaming || sources.length > 0) && (
           <motion.div
-            className="ti-sources"
+            className="ti-groups"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
-            {sources.map((src, i) => (
-              <SourceRow key={src.name} source={src} index={i} />
-            ))}
+            <Group
+              title="Threat scan"
+              manifest={FINDING_SOURCES}
+              arrived={arrived}
+              streaming={isStreaming}
+              compact={compact}
+            />
+            <Group
+              title="Domain intelligence"
+              manifest={CONTEXT_SOURCES}
+              arrived={arrived}
+              streaming={isStreaming}
+              compact={compact}
+            />
           </motion.div>
         )}
       </AnimatePresence>
