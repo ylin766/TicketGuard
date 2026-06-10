@@ -87,12 +87,51 @@ _LOAD_STATE_TIMEOUT_MS = 6000   # cap on waiting for domcontentloaded
 _NETWORKIDLE_TIMEOUT_MS = 3000
 _MAX_SNAPSHOT_CHARS = 12000
 
+# When run on-screen (PRICE_BROWSER_ONSCREEN=1) keep browser-use's default
+# top-left window position; off-screen mode suppresses this (see below).
+_DEFAULT_WINDOW_POSITION = {"width": 0, "height": 0}
+
 
 async def _maybe_await(value):
     """Await ``value`` if it is awaitable, else return it as-is."""
     if inspect.isawaitable(value):
         return await value
     return value
+
+
+def _playwright_chromium_path() -> Optional[str]:
+    """Resolve Playwright's bundled Chromium executable (same as the scrapers).
+
+    browser-use's own browser discovery globs for ``chromium-*/chrome-win/`` but
+    current Playwright ships Chromium under ``chrome-win64/``, so that lookup
+    misses and browser-use silently falls back to system Edge. Pointing
+    ``executable_path`` straight at Playwright's Chromium keeps the probe on the
+    exact same browser the price scrapers use. Returns None if it can't resolve.
+
+    Resolved by globbing the ms-playwright cache directly (not via the Playwright
+    API, which has a sync/async variant mismatch and would launch a driver) so it
+    is safe to call from inside the running event loop.
+    """
+    import glob
+
+    base = os.environ.get("PLAYWRIGHT_BROWSERS_PATH") or os.path.join(
+        os.environ.get("LOCALAPPDATA", os.path.expanduser("~")), "ms-playwright"
+    )
+    # Newer Playwright uses chrome-win64; older used chrome-win — match both.
+    patterns = [
+        os.path.join(base, "chromium-*", "chrome-win64", "chrome.exe"),
+        os.path.join(base, "chromium-*", "chrome-win", "chrome.exe"),
+        os.path.join(base, "chromium-*", "chrome-linux*", "chrome"),
+        os.path.join(base, "chromium-*", "chrome-mac*", "Chromium.app",
+                     "Contents", "MacOS", "Chromium"),
+    ]
+    for pat in patterns:
+        matches = sorted(glob.glob(pat))
+        if matches:
+            return matches[-1]  # highest version
+    logger.warning("[browser_check] could not resolve Playwright Chromium path")
+    return None
+
 
 
 def _is_unsafe_label(label: Optional[str]) -> bool:
@@ -170,21 +209,35 @@ class BrowserCheckRunner:
             # (same treatment as the price scrapers). Override with
             # PRICE_BROWSER_ONSCREEN=1 to debug with a visible window.
             offscreen = os.environ.get("PRICE_BROWSER_ONSCREEN") != "1"
+            # Park the window far off-screen. The profile's own window_position
+            # field only accepts non-negative coords, so to move the window off
+            # the left edge we (a) suppress that field by passing None — otherwise
+            # browser-use appends --window-position=0,0 AFTER our args and wins —
+            # and (b) pass the negative position through args ourselves.
+            window_position = None if offscreen else _DEFAULT_WINDOW_POSITION
             launch_args = (
                 ["--window-position=-32000,-32000"] if offscreen else []
             )
+            # Force Playwright's bundled Chromium (identical to the scrapers).
+            # Without this, browser-use's discovery misses Chromium on Windows
+            # and falls back to system Edge.
+            chromium_path = _playwright_chromium_path()
             # highlight_elements=False keeps screenshots clean; we draw our own
             # marker around only the element the agent is about to click.
             # enable_default_extensions=False skips downloading/loading uBlock,
             # cookie-consent and ClearURLs add-ons — they add nothing to a
             # read-only fraud probe but make the (headed, Windows) Chromium cold
             # start blow past browser-use's 30s launch timeout.
-            self._session = BrowserSession(
+            session_kwargs = dict(
                 headless=self.headless,
                 highlight_elements=False,
                 enable_default_extensions=False,
+                window_position=window_position,
                 args=launch_args,
             )
+            if chromium_path:
+                session_kwargs["executable_path"] = chromium_path
+            self._session = BrowserSession(**session_kwargs)
             await self._session.start()
             await self._session.navigate_to(url)
             await self._settle()
