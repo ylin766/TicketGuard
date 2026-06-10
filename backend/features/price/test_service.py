@@ -29,8 +29,8 @@ def test_detect_source():
 
 
 def test_stream_price_frames(monkeypatch):
-    """stream_price emits start → frame(s) → done, with a computed median,
-    without launching a browser (fetcher + on_frame are faked)."""
+    """stream_price emits start → frame(s) → analyzing → done, with a computed
+    median, without launching a browser or calling Gemini (both are faked)."""
 
     async def fake_fetch(url, qty, on_frame=None):
         # Simulate the scraper emitting two screenshot frames.
@@ -45,6 +45,19 @@ def test_stream_price_frames(monkeypatch):
 
     monkeypatch.setitem(service._FETCHERS, "stubhub", fake_fetch)
 
+    # Fake the analysis layer so no real Gemini call is made.
+    import backend.features.price.analysis as analysis
+
+    def fake_analyze(image_bytes, url, listings, qty=2):
+        return {
+            "user_listing": {"section": "A", "price_per_ticket": 150},
+            "stats": {"median": 200.0, "percentile": 40},
+            "analysis": {"verdict": "good_deal", "headline": "ok"},
+            "recommendations": [{"price": 100, "section": "A"}],
+        }
+
+    monkeypatch.setattr(analysis, "analyze", fake_analyze)
+
     async def run():
         frames = []
         async for f in service.stream_price("https://stubhub.com/e", 2):
@@ -56,11 +69,14 @@ def test_stream_price_frames(monkeypatch):
 
     assert types[0] == "start"
     assert "frame" in types
+    assert "analyzing" in types
     assert types[-1] == "done"
 
     done = frames[-1]
     assert done["count"] == 3
     assert done["median"] == 200.0
+    assert done["analysis"]["verdict"] == "good_deal"
+    assert done["recommendations"][0]["price"] == 100
     # frame events carry a base64 data-URL image
     frame_events = [f for f in frames if f["type"] == "frame"]
     assert frame_events and frame_events[0]["image"].startswith("data:image/png;base64,")

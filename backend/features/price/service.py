@@ -68,7 +68,9 @@ async def stream_price(url: str, qty: int = 2) -> AsyncGenerator[dict, None]:
     Frame contract (each yielded dict is one ``data:`` SSE line):
         {"type":"start","url":str,"source":str}
         {"type":"frame","step":int,"action":str,"image":"data:image/png;base64,…","ts":float}
-        {"type":"done","median":float|None,"count":int,"listings":[...],"metadata":{...}}
+        {"type":"analyzing","ts":float}
+        {"type":"done","median":float|None,"count":int,"listings":[...],
+         "user_listing":{...},"stats":{...},"analysis":{...},"recommendations":[...]}
         {"type":"error","message":str}
     """
     source = _detect_source(url)
@@ -78,8 +80,12 @@ async def stream_price(url: str, qty: int = 2) -> AsyncGenerator[dict, None]:
     # Bridge the scraper's synchronous-ish on_frame callback (called from the
     # scraper coroutine) into our async generator via a queue.
     queue: asyncio.Queue = asyncio.Queue()
+    # Keep the first screenshot (the user's page as loaded) for vision extraction.
+    first_shot: dict = {"bytes": None}
 
     def on_frame(step: int, png_bytes: bytes, action: str) -> None:
+        if first_shot["bytes"] is None and png_bytes:
+            first_shot["bytes"] = png_bytes
         b64 = base64.b64encode(png_bytes).decode("ascii")
         queue.put_nowait(
             {
@@ -126,13 +132,39 @@ async def stream_price(url: str, qty: int = 2) -> AsyncGenerator[dict, None]:
                     span.set_attribute("price.median", med)
             except Exception:  # noqa: BLE001
                 pass
+
+        # Grounded analysis: extract the buyer's ticket (vision) + evaluate vs
+        # market. Best-effort and off the event loop (blocking Gemini calls).
+        yield {"type": "analyzing", "ts": time.time()}
+        analysis_out: dict = {}
+        try:
+            from .analysis import analyze
+
+            analysis_out = await asyncio.to_thread(
+                analyze, first_shot["bytes"], url, listings, qty
+            )
+            if span_cm is not None:
+                try:
+                    verdict = (analysis_out.get("analysis") or {}).get("verdict")
+                    if verdict:
+                        span.set_attribute("price.verdict", verdict)
+                except Exception:  # noqa: BLE001
+                    pass
+        except Exception:  # noqa: BLE001 - analysis must never break the stream
+            logger.exception("[price] analysis failed")
+
         yield {
             "type": "done",
             "median": med,
             "count": len(listings),
             "listings": listings,
             "metadata": result.get("metadata", {}),
+            "user_listing": analysis_out.get("user_listing", {}),
+            "stats": analysis_out.get("stats", {}),
+            "analysis": analysis_out.get("analysis", {}),
+            "recommendations": analysis_out.get("recommendations", []),
         }
+
     except Exception as exc:  # noqa: BLE001 - surface any failure as an error frame
         logger.exception("[price] stream failed")
         yield {"type": "error", "message": str(exc)}
