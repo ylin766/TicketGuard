@@ -21,8 +21,9 @@ import { useAgentStream, type AgentState } from "./useAgentStream";
  * `onDone` advances the cinematic flow to the report.
  */
 
-// TESTING: force the opinion agent to always run so its trace can be observed.
-const FORCE_AGENT = true;
+// Set to `true` only while debugging to force the opinion agent to always run
+// so its trace can be observed. Production gates it on the grey zone.
+const FORCE_AGENT = false;
 
 const HIGH_ALERTS = 4;
 function isGreyZone(s: ThreatScanSummary): boolean {
