@@ -6,7 +6,7 @@ cover the six scenarios from the task plan plus the click safety guard and the
 JSON extraction helper.
 """
 
-from backend.features.security.agent.browser_check.domain_rules import (
+from backend.features.security.agent.browser_check.rules.domain_rules import (
     classify_risk,
     detect_off_platform_payment,
     detect_suspicious_redirect,
@@ -14,7 +14,7 @@ from backend.features.security.agent.browser_check.domain_rules import (
     platform_matches_domain,
     registered_domain,
 )
-from backend.features.security.agent.browser_check.gemini_client import extract_json
+from backend.features.security.agent.browser_check.llm.gemini_client import extract_json
 from backend.features.security.agent.browser_check.schemas import (
     BrowserSnapshot,
     ClaimExtraction,
@@ -215,3 +215,58 @@ def test_event_mismatch_raises_risk():
     )
     assert trust.event_reference_mismatch is True
     assert level == "high"
+
+
+# --- off-platform keyword scan: false-positive guard --------------------------
+
+def test_offplatform_ignores_giftcards_nav_link():
+    """A benign 'Gift Cards' footer link must NOT trigger off-platform."""
+    snaps = [_snap("https://vividseats.com", body=(
+        "Buy tickets. Checkout. Buy Now Pay Later. SHOP Gift Cards Rewards "
+        "Vivid Seats App. Contact Us About Us"
+    ))]
+    assert detect_off_platform_payment(SensitiveActionDetection(), snaps) is False
+
+
+def test_offplatform_flags_giftcard_with_payment_intent():
+    snaps = [_snap("https://x", body="To confirm your seats, pay with a gift card and send the code")]
+    assert detect_off_platform_payment(SensitiveActionDetection(), snaps) is True
+
+
+def test_offplatform_flags_payment_app_name_alone():
+    snaps = [_snap("https://x", body="We accept Zelle for all orders")]
+    assert detect_off_platform_payment(SensitiveActionDetection(), snaps) is True
+
+
+def test_offplatform_ignores_crypto_ad_without_payment():
+    snaps = [_snap("https://x", body="Trade crypto and bitcoin on our partner exchange banner")]
+    assert detect_off_platform_payment(SensitiveActionDetection(), snaps) is False
+
+
+# --- captcha / blocked handling: trusted vs untrusted -------------------------
+
+def test_trusted_domain_blocked_stays_benign():
+    """A whitelisted domain hitting a bot wall is benign, not 'needs review'."""
+    snaps = [_snap("https://www.ticketmaster.com/event/x",
+                   title="Access Denied", body="Pardon the interruption captcha")]
+    claim = ClaimExtraction(claimed_platform="Ticketmaster",
+                            claimed_domain="ticketmaster.com",
+                            page_state="blocked_or_captcha")
+    sensitive = SensitiveActionDetection(page_state="blocked_or_captcha")
+    trust, level, score, verdict, summary, rec, ev = evaluate_trust_and_score(
+        "https://www.ticketmaster.com/event/x", snaps, claim, sensitive)
+    assert level == "low"
+    assert verdict == "likely_safe_browser_context"
+    assert any("bot-check" in c for c in trust.benign_context)
+
+
+def test_untrusted_domain_blocked_needs_review():
+    """An untrusted blocked site must not be called safe — bump to manual review."""
+    snaps = [_snap("https://weirdtix.xyz/e", body="captcha bot check")]
+    claim = ClaimExtraction(claimed_platform="WeirdTix",
+                            claimed_domain="weirdtix.xyz",
+                            page_state="blocked_or_captcha")
+    sensitive = SensitiveActionDetection(page_state="blocked_or_captcha")
+    _, level, *_ = evaluate_trust_and_score(
+        "https://weirdtix.xyz/e", snaps, claim, sensitive)
+    assert level == "medium"

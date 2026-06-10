@@ -15,17 +15,23 @@ suspicious redirects, or an event mismatch.
 
 ## Layout
 
-| File | Responsibility |
+| Path | Responsibility |
 |------|----------------|
-| `schemas.py` | Pydantic models — the stable output contract |
-| `prompts.py` | The 3 Gemini prompts (claim / sensitive action / transition) |
-| `gemini_client.py` | Gemini JSON+vision helper (lazy client) |
-| `domain_rules.py` | Deterministic trust check + risk scoring (the verdict) |
-| `browser_runner.py` | The bounded, safety-railed state machine over `BrowserSession` |
 | `browser_security_tool.py` | The async ADK FunctionTool entry point |
+| `browser_runner.py` | The guard-railed ReAct agent that drives `BrowserSession` |
+| `schemas.py` | Pydantic models — the stable output contract |
+| `llm/prompts.py` | Gemini prompts: claim / sensitive-action extraction + the ReAct browse instruction |
+| `llm/gemini_client.py` | Gemini JSON+vision helper (lazy client) |
+| `rules/domain_rules.py` | Deterministic trust check + risk scoring (the verdict) |
+| `osint/osint_escalation.py` | Reputation OSINT escalation for non-whitelisted sites |
+| `tests/` | Offline unit tests (no browser / LLM) |
+| `test_runs/<site>/` | Saved demo outputs (one folder per tested site) |
 
-The LLM only **describes** the page; the **decision** is made by `domain_rules`
-so the verdict is auditable.
+A native ADK `LlmAgent` explores the page by calling `click_element` / `go_back`
+/ `finish` tools (guard rails enforced inside the tools); the LLM only
+**describes / explores**, and the **verdict** is made by deterministic
+`rules/domain_rules` so it stays auditable. Unfamiliar (non-whitelisted) sites
+are additionally reputation-checked via `osint/`.
 
 ## Install
 

@@ -19,7 +19,7 @@ from typing import Optional
 
 import tldextract
 
-from .schemas import (
+from ..schemas import (
     BrowserSnapshot,
     ClaimExtraction,
     RiskLevel,
@@ -60,11 +60,33 @@ PLATFORM_DOMAIN_ALIASES: dict[str, list[str]] = {
     "fifa": ["fifa.com"],
 }
 
-OFF_PLATFORM_PAYMENT_KEYWORDS: list[str] = [
-    "zelle", "venmo", "cash app", "cashapp", "crypto", "bitcoin", "usdt",
-    "gift card", "wire transfer", "western union", "paypal friends and family",
+# Payment-app / off-platform method names whose mere presence on a ticket page is
+# itself a strong off-platform-payment signal.
+OFF_PLATFORM_STRONG_KEYWORDS: list[str] = [
+    "zelle", "venmo", "cash app", "cashapp", "western union",
+    "paypal friends and family", "paypal f&f", "friends and family",
+]
+
+# Ambiguous terms that ALSO appear in benign navigation / footers / ads (a
+# "Gift Cards" shop link, a crypto banner, a "WhatsApp us" support link). These
+# count as off-platform ONLY when a payment-intent phrase sits right next to them.
+OFF_PLATFORM_CONTEXTUAL_KEYWORDS: list[str] = [
+    "gift card", "crypto", "bitcoin", "usdt", "wire transfer",
     "whatsapp", "telegram", "instagram dm", "dm me", "text me",
 ]
+
+# Phrases that signal an actual request to pay VIA a given method. Deliberately
+# specific (not a bare "pay", which is just a checkout button) so they only fire
+# in genuine "pay me via X" contexts.
+PAYMENT_INTENT_CUES: list[str] = [
+    "pay via", "pay with", "pay using", "pay by", "pay me", "payable via",
+    "payment via", "payment through", "send payment", "send money", "send $",
+    "send funds", "transfer to", "wire to", "e-transfer", "money order",
+    "venmo me", "zelle me", "only accept", "accept only",
+]
+
+# How close (chars) a payment cue must be to an ambiguous keyword to count.
+_OFF_PLATFORM_CONTEXT_WINDOW = 80
 
 URL_SHORTENER_DOMAINS: frozenset[str] = frozenset(
     {"bit.ly", "tinyurl.com", "t.co", "goo.gl", "ow.ly", "is.gd", "buff.ly",
@@ -172,6 +194,23 @@ def platform_matches_domain(
 # Signal detectors                                                            #
 # --------------------------------------------------------------------------- #
 
+def _contextual_keyword_with_payment(text: str, keyword: str) -> bool:
+    """True if ``keyword`` appears within a payment-intent window in ``text``.
+
+    Avoids flagging a benign "Gift Cards" footer link by requiring a "pay via /
+    send money / ..." cue near the keyword, not merely anywhere on the page.
+    """
+    idx = text.find(keyword)
+    while idx != -1:
+        lo = max(0, idx - _OFF_PLATFORM_CONTEXT_WINDOW)
+        hi = idx + len(keyword) + _OFF_PLATFORM_CONTEXT_WINDOW
+        window = text[lo:hi]
+        if any(cue in window for cue in PAYMENT_INTENT_CUES):
+            return True
+        idx = text.find(keyword, idx + 1)
+    return False
+
+
 def detect_off_platform_payment(
     sensitive: SensitiveActionDetection, snapshots: list[BrowserSnapshot]
 ) -> bool:
@@ -182,10 +221,16 @@ def detect_off_platform_payment(
         return True
     if "private_message_seller" in sensitive.action_types:
         return True
-    # Belt-and-braces: scan the captured page text for off-platform keywords.
+    # Belt-and-braces text scan: strong payment-app names trigger on their own;
+    # ambiguous terms only when a payment-intent phrase sits next to them.
     for snap in snapshots:
         haystack = f"{snap.body_text} {snap.title or ''}".lower()
-        if any(kw in haystack for kw in OFF_PLATFORM_PAYMENT_KEYWORDS):
+        if any(kw in haystack for kw in OFF_PLATFORM_STRONG_KEYWORDS):
+            return True
+        if any(
+            _contextual_keyword_with_payment(haystack, kw)
+            for kw in OFF_PLATFORM_CONTEXTUAL_KEYWORDS
+        ):
             return True
     return False
 
@@ -546,11 +591,17 @@ def evaluate_trust_and_score(
     score = score_from_trust(trust, claim, sensitive, snapshots)
     risk_level = classify_risk(score)
 
-    # A captcha / bot-check / error page means we could NOT actually inspect the
-    # purchase flow. Never report such a page as safe — at minimum it needs
-    # manual review (unless strong signals already pushed it to high).
+    # A captcha / bot-check / error page means we could NOT inspect the purchase
+    # flow. For a TRUSTED whitelisted domain this is expected anti-bot behaviour,
+    # not a scam signal — report it as blocked-but-benign. For any other domain we
+    # must not call it safe; bump to manual review (an untrusted blocked site is
+    # then typically driven by the OSINT reputation folded in afterwards).
     blocked = claim.page_state in ("blocked_or_captcha", "error_page")
-    if blocked and risk_level == "low":
+    if blocked and trust.is_trusted_marketplace_domain:
+        trust.benign_context.append(
+            f"Trusted domain returned a bot-check ({claim.page_state}); not inspected."
+        )
+    elif blocked and risk_level == "low":
         risk_level = "medium"
         score = max(score, RISK_MEDIUM_MIN)
         trust.weak_flags.append(
@@ -559,6 +610,12 @@ def evaluate_trust_and_score(
 
     verdict = verdict_for(risk_level)
     summary = _summary(risk_level, claim, trust)
+    if blocked and trust.is_trusted_marketplace_domain:
+        summary = (
+            f"{trust.current_registered_domain or 'The trusted domain'} returned a "
+            f"bot-check/captcha; the purchase flow could not be inspected, but the "
+            f"domain is a trusted marketplace."
+        )
     rec = _recommended_action(risk_level, trust)
 
     evidence: list[str] = []

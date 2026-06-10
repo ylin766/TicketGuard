@@ -50,7 +50,7 @@ print(f"[Phoenix] Tracing enabled → {PHOENIX_ENDPOINT}")
 # ── 4. Import subagent AFTER instrumentation is active ──────────────────────
 from google.adk.runners import InMemoryRunner
 from google.genai import types as genai_types
-from .osint_subagent import osint_subagent
+from .subagent import osint_subagent
 
 TARGET_URL = "viagogo.com"
 

@@ -20,7 +20,7 @@ try:  # Load backend/.env so GOOGLE_API_KEY / GEMINI_MODEL are picked up in any
                                     # standalone scripts and tests too).
     # backend/ is 5 levels up from this file (browser_check/agent/security/features).
     _BACKEND_ENV = os.path.join(
-        os.path.dirname(__file__), "..", "..", "..", "..", ".env"
+        os.path.dirname(__file__), "..", "..", "..", "..", "..", ".env"
     )
     load_dotenv(_BACKEND_ENV)       # explicit path: works regardless of cwd
     load_dotenv()                   # also honor a .env in the current directory
@@ -28,11 +28,13 @@ except Exception:  # noqa: BLE001 - python-dotenv optional; env may be set direc
     pass
 
 from .prompts import (
+    BROWSE_AGENT_PROMPT,
     CLAIM_EXTRACTION_PROMPT,
     SENSITIVE_ACTION_PROMPT,
     TRANSITION_RANKING_PROMPT,
 )
-from .schemas import (
+from ..schemas import (
+    BrowseDecision,
     BrowserSnapshot,
     ClaimExtraction,
     SensitiveActionDetection,
@@ -128,7 +130,13 @@ def _is_retryable(exc: Exception) -> bool:
     code = getattr(exc, "code", None) or getattr(exc, "status_code", None)
     if code in _RETRYABLE_STATUS:
         return True
+    name = type(exc).__name__.lower()
+    if any(s in name for s in ("remoteprotocol", "connect", "timeout", "readerror")):
+        return True
     text = str(exc).lower()
+    if any(s in text for s in ("server disconnected", "disconnected", "connection",
+                               "timed out", "timeout", "protocol error")):
+        return True
     return any(s in text for s in ("503", "unavailable", "high demand",
                                    "overloaded", "429", "rate limit", "try again"))
 
@@ -230,7 +238,10 @@ def rank_transition(
     claim: ClaimExtraction,
     sensitive: SensitiveActionDetection,
 ) -> TransitionDecision:
-    """Prompt 3: pick at most one safe click to advance the purchase flow."""
+    """Prompt 3 (legacy): pick at most one safe click to advance the flow.
+
+    Superseded by :func:`decide_browse_action`; kept for reference / reuse.
+    """
     prompt = TRANSITION_RANKING_PROMPT.format(
         url=snapshot.url,
         page_state=claim.page_state,
@@ -244,3 +255,46 @@ def rank_transition(
     except Exception as exc:  # noqa: BLE001
         logger.warning("transition validation failed: %s", exc)
         return TransitionDecision(should_click=False, reason="parse_error")
+
+
+def decide_browse_action(
+    snapshot: BrowserSnapshot,
+    claim: ClaimExtraction,
+    sensitive: SensitiveActionDetection,
+    *,
+    history: list[str],
+    surfaces: list[str],
+    visited: list[str],
+    budget_left: int,
+    restricted: bool,
+) -> BrowseDecision:
+    """Prompt 3b: the agent picks one action (click / go_back / finish).
+
+    Args:
+        snapshot: The current page observation.
+        claim / sensitive: This page's extracted claim and sensitive-action read.
+        history: One line per prior action, most recent last.
+        surfaces: One line per sensitive surface already discovered.
+        visited: URLs already seen, so the agent doesn't re-tread them.
+        budget_left: Remaining actions before the hard cap stops exploration.
+        restricted: True if the current page is sensitive or un-inspectable, so
+            only ``go_back`` / ``finish`` are valid.
+    """
+    prompt = BROWSE_AGENT_PROMPT.format(
+        url=snapshot.url,
+        page_state=claim.page_state,
+        restricted=restricted,
+        budget_left=budget_left,
+        claim_json=claim.model_dump_json(indent=2),
+        sensitive_json=sensitive.model_dump_json(indent=2),
+        surfaces="\n".join(surfaces) if surfaces else "(none yet)",
+        visited="\n".join(visited) if visited else "(none yet)",
+        history="\n".join(history) if history else "(none yet)",
+        clickables=_format_clickables(snapshot),
+    )
+    data = _gemini_json(prompt, snapshot.screenshot_path)
+    try:
+        return BrowseDecision.model_validate(data)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("browse decision validation failed: %s", exc)
+        return BrowseDecision(action="finish", reason="parse_error")

@@ -1,0 +1,324 @@
+{
+  "module": "browser_security_check",
+  "input_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7433K",
+  "final_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7433K",
+  "risk_level": "low",
+  "risk_score": 0,
+  "verdict": "likely_safe_browser_context",
+  "summary": "The page appears to be a legitimate Ticketmaster flow on ticketmaster.com with no strong scam signals in the browser context.",
+  "claim": {
+    "claimed_platform": "Ticketmaster",
+    "claimed_domain": "ticketmaster.com",
+    "marketplace_type": "primary",
+    "claimed_event": null,
+    "claimed_venue": null,
+    "claimed_city_state": null,
+    "claimed_date_time": null,
+    "visible_price_range": null,
+    "page_state": "login_required",
+    "confidence": "high",
+    "evidence": [
+      "CURRENT_URL contains 'ticketmaster.com'",
+      "PAGE_TITLE is 'Ticketmaster Sign In'",
+      "Visible text includes 'WELCOME', 'SIGN IN OR CREATE ACCOUNT', 'Email Address', 'Continue', 'Sign In With A Passkey'",
+      "Screenshot shows 'ticketmaster®' logo"
+    ]
+  },
+  "sensitive_action": {
+    "is_sensitive_action_page": true,
+    "page_state": "login_required",
+    "action_types": [
+      "login"
+    ],
+    "payment_context": "none",
+    "payment_methods": [],
+    "requested_inputs": [
+      "email"
+    ],
+    "irreversible_action_visible": false,
+    "evidence": [
+      "CURRENT_URL is on auth.ticketmaster.com, indicating an authentication flow.",
+      "PAGE_TITLE is 'Ticketmaster Sign In'.",
+      "Visible text includes 'SIGN IN OR CREATE ACCOUNT' and 'Email Address'.",
+      "An input field for 'Email Address' is present.",
+      "Buttons 'Continue' and 'Sign In With A Passkey' are visible, initiating a login process."
+    ]
+  },
+  "trust_check": {
+    "current_registered_domain": "ticketmaster.com",
+    "claimed_domain": "ticketmaster.com",
+    "is_trusted_marketplace_domain": true,
+    "domain_matches_claimed_platform": true,
+    "domain_mismatch_reason": null,
+    "suspicious_redirect": false,
+    "event_reference_mismatch": null,
+    "off_platform_payment_detected": false,
+    "strong_flags": [],
+    "weak_flags": [],
+    "benign_context": [
+      "Trusted marketplace domain with matching brand"
+    ]
+  },
+  "transitions": [
+    {
+      "step": 0,
+      "before_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7433K",
+      "clicked_index": 8,
+      "clicked_text": "Accept & Continue",
+      "after_url": null,
+      "page_state_before": "event_listing",
+      "page_state_after": "unknown",
+      "reason": "Dismissing the 'What You Need To Know' modal to access the main event listing and explore sensitive surfaces.",
+      "stopped_reason": null
+    },
+    {
+      "step": 1,
+      "before_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7433K",
+      "clicked_index": 38,
+      "clicked_text": "Sec 421 • Row 13",
+      "after_url": null,
+      "page_state_before": "event_listing",
+      "page_state_after": "unknown",
+      "reason": "The login surface has already been observed. To find the payment/checkout sensitive surface, I need to initiate a purchase flow. Clicking on a specific ticket listing (e.g., 'Sec 421 • Row 13') is the most direct path to proceed to checkout.",
+      "stopped_reason": null
+    },
+    {
+      "step": 2,
+      "before_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7433K",
+      "clicked_index": 37,
+      "clicked_text": "Reserve Tickets",
+      "after_url": null,
+      "page_state_before": "event_listing",
+      "page_state_after": "unknown",
+      "reason": "The 'Sign In' sensitive surface has already been observed on this page. To explore the 'payment' sensitive surface, I need to click 'Reserve Tickets' to proceed to the checkout or payment flow. The SENSITIVE_ACTION_JSON indicates payment is an available action type from this page, and 'Reserve Tickets' is the logical next step.",
+      "stopped_reason": null
+    },
+    {
+      "step": 3,
+      "before_url": "https://auth.ticketmaster.com/as/authorization.oauth2?client_id=8bf7204a7e97.web.ticketmaster.us&response_type=code&scope=openid%20profile%20phone%20email%20tm&redirect_uri=https://identity.ticketmaster.com/exchange&visualPresets=tm&lang=en-us&placementId=checkout.v2&showHeader=true&hideLeftPanel=true&integratorId=prd1908.CCPCheckout&intSiteToken=tm-us&headerTitle=Checkout&TMUO=east_PIlDZW4Bddhihj4jC%2FnmiQTi8W1Nrpt7D2ARgwJwClM%3D&deviceId=4fheuWmCwTU3PDU0Mjw1PT03NjXz%2BH1wnbhQGA&disableAutoOptIn=false",
+      "clicked_index": null,
+      "clicked_text": "<go_back>",
+      "after_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7433K",
+      "page_state_before": "login_required",
+      "page_state_after": "unknown",
+      "reason": "Reached and observed a sensitive login page. Going back to explore other branches for sensitive surfaces (e.g., payment, transfer).",
+      "stopped_reason": null
+    },
+    {
+      "step": 4,
+      "before_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7433K",
+      "clicked_index": 8,
+      "clicked_text": "Accept & Continue",
+      "after_url": null,
+      "page_state_before": "event_listing",
+      "page_state_after": "unknown",
+      "reason": "Dismissing the 'What You Need To Know' modal to access the underlying event listing and explore other sensitive paths. This is a non-sensitive action.",
+      "stopped_reason": null
+    },
+    {
+      "step": 5,
+      "before_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7433K",
+      "clicked_index": 63,
+      "clicked_text": "Sec 228 • Row 23",
+      "after_url": null,
+      "page_state_before": "event_listing",
+      "page_state_after": "unknown",
+      "reason": "Exploring a different ticket listing to see if it leads to a different sensitive surface or a different path to an existing one, following the 'pick a different element each time' strategy. The previous ticket selection led to a login page.",
+      "stopped_reason": null
+    },
+    {
+      "step": 6,
+      "before_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7433K",
+      "clicked_index": 4,
+      "clicked_text": "Sign In",
+      "after_url": null,
+      "page_state_before": "event_listing",
+      "page_state_after": "unknown",
+      "reason": "I have already explored the 'Reserve Tickets' path which led to a login page. To be thorough and explore a different branch leading to a sensitive surface, I will now click the explicit 'Sign In' button to observe its login flow and requirements, as it may differ from the checkout-initiated login.",
+      "stopped_reason": null
+    },
+    {
+      "step": 7,
+      "before_url": "https://auth.ticketmaster.com/as/authorization.oauth2?client_id=8bf7204a7e97.web.ticketmaster.us&response_type=code&scope=openid%20profile%20phone%20email%20tm&redirect_uri=https://identity.ticketmaster.com/exchange&visualPresets=tm&lang=en-us&placementId=edp&showHeader=true&hideLeftPanel=false&integratorId=prd115.edp&intSiteToken=tm-us&TMUO=east_PIlDZW4Bddhihj4jC%2FnmiQTi8W1Nrpt7D2ARgwJwClM%3D&deviceId=4fheuWmCwTU3PDU0Mjw1PT03NjXz%2BH1wnbhQGA&disableAutoOptIn=false",
+      "clicked_index": null,
+      "clicked_text": "<go_back>",
+      "after_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7433K",
+      "page_state_before": "login_required",
+      "page_state_after": "unknown",
+      "reason": "Observed the login page; going back to explore other sensitive branches from the previous page.",
+      "stopped_reason": null
+    },
+    {
+      "step": 8,
+      "before_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7433K",
+      "clicked_index": 8,
+      "clicked_text": "Accept & Continue",
+      "after_url": null,
+      "page_state_before": "event_listing",
+      "page_state_after": "unknown",
+      "reason": "Dismissing the 'What You Need To Know' modal to access the underlying event listing page and continue exploration. This modal reappears after going back.",
+      "stopped_reason": null
+    },
+    {
+      "step": 9,
+      "before_url": "https://www.ticketmaster.com/event/Z7r9jZ1A7433K",
+      "clicked_index": null,
+      "clicked_text": null,
+      "after_url": null,
+      "page_state_before": "event_listing",
+      "page_state_after": "unknown",
+      "reason": "All accessible sensitive surfaces (login and login-gated checkout) have been explored and recorded. No new sensitive branches remain without logging in.",
+      "stopped_reason": "All accessible sensitive surfaces (login and login-gated checkout) have been explored and recorded. No new sensitive branches remain without logging in."
+    }
+  ],
+  "sensitive_surfaces": [
+    {
+      "url": "https://www.ticketmaster.com/event/Z7r9jZ1A7433K",
+      "page_state": "event_listing",
+      "reached": false,
+      "action_types": [
+        "login"
+      ],
+      "payment_context": "none",
+      "requested_inputs": [
+        "username",
+        "password"
+      ],
+      "irreversible_action_visible": false,
+      "evidence": [
+        "VISIBLE_TEXT: Sign In",
+        "CLICKABLE_ELEMENTS: Index 5 | text='Sign In'"
+      ]
+    },
+    {
+      "url": "https://auth.ticketmaster.com/as/authorization.oauth2?client_id=8bf7204a7e97.web.ticketmaster.us&response_type=code&scope=openid%20profile%20phone%20email%20tm&redirect_uri=https://identity.ticketmaster.com/exchange&visualPresets=tm&lang=en-us&placementId=checkout.v2&showHeader=true&hideLeftPanel=true&integratorId=prd1908.CCPCheckout&intSiteToken=tm-us&headerTitle=Checkout&TMUO=east_PIlDZW4Bddhihj4jC%2FnmiQTi8W1Nrpt7D2ARgwJwClM%3D&deviceId=4fheuWmCwTU3PDU0Mjw1PT03NjXz%2BH1wnbhQGA&disableAutoOptIn=false",
+      "page_state": "login_required",
+      "reached": true,
+      "action_types": [
+        "login"
+      ],
+      "payment_context": "none",
+      "requested_inputs": [
+        "email"
+      ],
+      "irreversible_action_visible": false,
+      "evidence": [
+        "PAGE_TITLE is 'Ticketmaster Sign In'",
+        "VISIBLE_TEXT contains 'SIGN IN OR CREATE ACCOUNT'",
+        "VISIBLE_TEXT contains 'Email Address'",
+        "Button 'Continue' is visible"
+      ]
+    },
+    {
+      "url": "https://auth.ticketmaster.com/as/authorization.oauth2?client_id=8bf7204a7e97.web.ticketmaster.us&response_type=code&scope=openid%20profile%20phone%20email%20tm&redirect_uri=https://identity.ticketmaster.com/exchange&visualPresets=tm&lang=en-us&placementId=edp&showHeader=true&hideLeftPanel=false&integratorId=prd115.edp&intSiteToken=tm-us&TMUO=east_PIlDZW4Bddhihj4jC%2FnmiQTi8W1Nrpt7D2ARgwJwClM%3D&deviceId=4fheuWmCwTU3PDU0Mjw1PT03NjXz%2BH1wnbhQGA&disableAutoOptIn=false",
+      "page_state": "login_required",
+      "reached": true,
+      "action_types": [
+        "login"
+      ],
+      "payment_context": "none",
+      "requested_inputs": [
+        "email"
+      ],
+      "irreversible_action_visible": false,
+      "evidence": [
+        "CURRENT_URL is on auth.ticketmaster.com, indicating an authentication flow.",
+        "PAGE_TITLE is 'Ticketmaster Sign In'.",
+        "Visible text includes 'SIGN IN OR CREATE ACCOUNT' and 'Email Address'.",
+        "An input field for 'Email Address' is present."
+      ]
+    }
+  ],
+  "evidence": [
+    "Live registered domain is ticketmaster.com",
+    "Page claims platform: Ticketmaster",
+    "Trusted marketplace domain with matching brand",
+    "Observed a event_listing surface exposing login (not entered).",
+    "Reached login_required page — it requests: email."
+  ],
+  "recommended_action": "Continue only through the official platform checkout. Do not leave the platform for private payment.",
+  "osint": null,
+  "snapshots": [
+    {
+      "step": 0,
+      "url": "https://www.ticketmaster.com/event/Z7r9jZ1A7433K",
+      "registered_domain": "ticketmaster.com",
+      "title": "World Cup: Match 8 Group B- Qatar vs Switzerland Tickets Jun 13, 2026 Santa Clara, CA | Ticketmaster",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check__z_1cadw/step_0.png",
+      "error": null
+    },
+    {
+      "step": 1,
+      "url": "https://www.ticketmaster.com/event/Z7r9jZ1A7433K",
+      "registered_domain": "ticketmaster.com",
+      "title": "World Cup: Match 8 Group B- Qatar vs Switzerland Tickets Jun 13, 2026 Santa Clara, CA | Ticketmaster",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check__z_1cadw/step_1.png",
+      "error": null
+    },
+    {
+      "step": 2,
+      "url": "https://www.ticketmaster.com/event/Z7r9jZ1A7433K",
+      "registered_domain": "ticketmaster.com",
+      "title": "World Cup: Match 8 Group B- Qatar vs Switzerland Tickets Jun 13, 2026 Santa Clara, CA | Ticketmaster",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check__z_1cadw/step_2.png",
+      "error": null
+    },
+    {
+      "step": 3,
+      "url": "https://auth.ticketmaster.com/as/authorization.oauth2?client_id=8bf7204a7e97.web.ticketmaster.us&response_type=code&scope=openid%20profile%20phone%20email%20tm&redirect_uri=https://identity.ticketmaster.com/exchange&visualPresets=tm&lang=en-us&placementId=checkout.v2&showHeader=true&hideLeftPanel=true&integratorId=prd1908.CCPCheckout&intSiteToken=tm-us&headerTitle=Checkout&TMUO=east_PIlDZW4Bddhihj4jC%2FnmiQTi8W1Nrpt7D2ARgwJwClM%3D&deviceId=4fheuWmCwTU3PDU0Mjw1PT03NjXz%2BH1wnbhQGA&disableAutoOptIn=false",
+      "registered_domain": "ticketmaster.com",
+      "title": "Ticketmaster Sign In",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check__z_1cadw/step_3.png",
+      "error": null
+    },
+    {
+      "step": 4,
+      "url": "https://www.ticketmaster.com/event/Z7r9jZ1A7433K",
+      "registered_domain": "ticketmaster.com",
+      "title": "World Cup: Match 8 Group B- Qatar vs Switzerland Tickets Jun 13, 2026 Santa Clara, CA | Ticketmaster",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check__z_1cadw/step_4.png",
+      "error": null
+    },
+    {
+      "step": 5,
+      "url": "https://www.ticketmaster.com/event/Z7r9jZ1A7433K",
+      "registered_domain": "ticketmaster.com",
+      "title": "World Cup: Match 8 Group B- Qatar vs Switzerland Tickets Jun 13, 2026 Santa Clara, CA | Ticketmaster",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check__z_1cadw/step_5.png",
+      "error": null
+    },
+    {
+      "step": 6,
+      "url": "https://www.ticketmaster.com/event/Z7r9jZ1A7433K",
+      "registered_domain": "ticketmaster.com",
+      "title": "World Cup: Match 8 Group B- Qatar vs Switzerland Tickets Jun 13, 2026 Santa Clara, CA | Ticketmaster",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check__z_1cadw/step_6.png",
+      "error": null
+    },
+    {
+      "step": 7,
+      "url": "https://auth.ticketmaster.com/as/authorization.oauth2?client_id=8bf7204a7e97.web.ticketmaster.us&response_type=code&scope=openid%20profile%20phone%20email%20tm&redirect_uri=https://identity.ticketmaster.com/exchange&visualPresets=tm&lang=en-us&placementId=edp&showHeader=true&hideLeftPanel=false&integratorId=prd115.edp&intSiteToken=tm-us&TMUO=east_PIlDZW4Bddhihj4jC%2FnmiQTi8W1Nrpt7D2ARgwJwClM%3D&deviceId=4fheuWmCwTU3PDU0Mjw1PT03NjXz%2BH1wnbhQGA&disableAutoOptIn=false",
+      "registered_domain": "ticketmaster.com",
+      "title": "Ticketmaster Sign In",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check__z_1cadw/step_7.png",
+      "error": null
+    },
+    {
+      "step": 8,
+      "url": "https://www.ticketmaster.com/event/Z7r9jZ1A7433K",
+      "registered_domain": "ticketmaster.com",
+      "title": "World Cup: Match 8 Group B- Qatar vs Switzerland Tickets Jun 13, 2026 Santa Clara, CA | Ticketmaster",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check__z_1cadw/step_8.png",
+      "error": null
+    },
+    {
+      "step": 9,
+      "url": "https://www.ticketmaster.com/event/Z7r9jZ1A7433K",
+      "registered_domain": "ticketmaster.com",
+      "title": "World Cup: Match 8 Group B- Qatar vs Switzerland Tickets Jun 13, 2026 Santa Clara, CA | Ticketmaster",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check__z_1cadw/step_9.png",
+      "error": null
+    }
+  ],
+  "errors": []
+}

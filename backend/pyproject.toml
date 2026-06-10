@@ -18,6 +18,7 @@ browser-security = [
     "browser-use>=0.5.0",
     "google-genai>=1.0.0",
     "tldextract>=5.0.0",
+    "Pillow>=10.0.0",
 ]
 # Security detectors use only `requests` (already a core dependency).
 security = []

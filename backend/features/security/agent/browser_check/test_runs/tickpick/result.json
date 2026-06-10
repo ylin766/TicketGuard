@@ -1,0 +1,98 @@
+{
+  "module": "browser_security_check",
+  "input_url": "https://www.tickpick.com/buy-fifa-world-cup-26-group-i-norway-vs-senegal-match-41-tickets-metlife-stadium-6-22-26-8pm/6259583/?c=SPORTS&cc=SOCCER&gcc=World%20Cup",
+  "final_url": "https://www.tickpick.com/buy-fifa-world-cup-26-group-i-norway-vs-senegal-match-41-tickets-metlife-stadium-6-22-26-8pm/6259583/?c=SPORTS&cc=SOCCER&gcc=World%20Cup",
+  "is_ticket_site": true,
+  "risk_level": "low",
+  "risk_score": 0,
+  "verdict": "likely_safe_browser_context",
+  "summary": "tickpick.com returned a bot-check/captcha; the purchase flow could not be inspected, but the domain is a trusted marketplace.",
+  "claim": {
+    "claimed_platform": "TickPick",
+    "claimed_domain": "tickpick.com",
+    "is_ticket_site": true,
+    "marketplace_type": "resale",
+    "claimed_event": null,
+    "claimed_venue": null,
+    "claimed_city_state": null,
+    "claimed_date_time": null,
+    "visible_price_range": null,
+    "page_state": "blocked_or_captcha",
+    "confidence": "high",
+    "evidence": [
+      "CURRENT_URL: https://www.tickpick.com/buy-fifa-world-cup-26-group-i-norway-vs-senegal-match-41-tickets-metlife-stadium-6-22-26-8pm/6259583/?c=SPORTS&cc=SOCCER&gcc=World%20Cup",
+      "REGISTERED_DOMAIN: tickpick.com",
+      "PAGE_TITLE: 请稍候…",
+      "VISIBLE_TEXT: www.tickpick.com 正在进行安全验证",
+      "VISIBLE_TEXT: 本网站使用安全服务防护恶意自动程序。在验证您不是自动程序期间，将显示此页面。",
+      "VISIBLE_TEXT: 由 Cloudflare 提供的性能和安全服务"
+    ]
+  },
+  "sensitive_action": {
+    "is_sensitive_action_page": false,
+    "page_state": "blocked_or_captcha",
+    "action_types": [
+      "none"
+    ],
+    "payment_context": "none",
+    "payment_methods": [],
+    "requested_inputs": [],
+    "irreversible_action_visible": false,
+    "evidence": [
+      "Cloudflare security check page is displayed.",
+      "Page title '请稍候…' (Please wait...) indicates a loading or verification state.",
+      "Visible text '正在进行安全验证' (performing security verification) and '本网站使用安全服务防护恶意自动程序。在验证您不是自动程序期间，将显示此页面。' (This website uses security services to protect against malicious automated programs. This page will be displayed while verifying that you are not an automated program.) confirms a security check.",
+      "No forms or input fields for sensitive information (login, payment, transfer codes) are present.",
+      "No irreversible actions like 'Pay' or 'Confirm Purchase' are visible."
+    ]
+  },
+  "trust_check": {
+    "current_registered_domain": "tickpick.com",
+    "claimed_domain": "tickpick.com",
+    "is_trusted_marketplace_domain": true,
+    "domain_matches_claimed_platform": true,
+    "domain_mismatch_reason": null,
+    "suspicious_redirect": false,
+    "event_reference_mismatch": null,
+    "off_platform_payment_detected": false,
+    "strong_flags": [],
+    "weak_flags": [],
+    "benign_context": [
+      "Trusted marketplace domain with matching brand",
+      "Trusted domain returned a bot-check (blocked_or_captcha); not inspected."
+    ]
+  },
+  "transitions": [
+    {
+      "step": 0,
+      "before_url": "https://www.tickpick.com/buy-fifa-world-cup-26-group-i-norway-vs-senegal-match-41-tickets-metlife-stadium-6-22-26-8pm/6259583/?c=SPORTS&cc=SOCCER&gcc=World%20Cup",
+      "clicked_index": null,
+      "clicked_text": null,
+      "after_url": null,
+      "page_state_before": "blocked_or_captcha",
+      "page_state_after": "unknown",
+      "reason": "Exploration blocked by Cloudflare. No sensitive surfaces could be observed.",
+      "stopped_reason": "Exploration blocked by Cloudflare. No sensitive surfaces could be observed."
+    }
+  ],
+  "sensitive_surfaces": [],
+  "evidence": [
+    "Live registered domain is tickpick.com",
+    "Page claims platform: TickPick",
+    "Trusted marketplace domain with matching brand",
+    "Trusted domain returned a bot-check (blocked_or_captcha); not inspected."
+  ],
+  "recommended_action": "Continue only through the official platform checkout. Do not leave the platform for private payment.",
+  "osint": null,
+  "snapshots": [
+    {
+      "step": 0,
+      "url": "https://www.tickpick.com/buy-fifa-world-cup-26-group-i-norway-vs-senegal-match-41-tickets-metlife-stadium-6-22-26-8pm/6259583/?c=SPORTS&cc=SOCCER&gcc=World%20Cup",
+      "registered_domain": "tickpick.com",
+      "title": "请稍候…",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check_xtkibobu/step_0.png",
+      "error": null
+    }
+  ],
+  "errors": []
+}
