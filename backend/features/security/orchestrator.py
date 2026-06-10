@@ -104,6 +104,15 @@ async def run_security_audit(url: str) -> dict:
     if grey and url:
         pipeline_result["agent_audit"] = await _run_agent_audit(url)
 
+    # Deep-link to the Phoenix trace for this audit's agent activity, if tracing
+    # is enabled (telemetry is bootstrapped centrally at server startup).
+    try:
+        from ...observability.telemetry import phoenix_url
+
+        pipeline_result["phoenix_url"] = phoenix_url()
+    except Exception:  # noqa: BLE001 - never let telemetry lookup break the audit
+        pipeline_result["phoenix_url"] = None
+
     return pipeline_result
 
 
