@@ -49,6 +49,8 @@
   max-width: 1180px;
   margin: 0 auto;
   min-height: 84vh;
+  display: flex;
+  align-items: center;
 }
 
 /* The capsule rides on `left` (centre -> far left). Vertical centring is done
@@ -123,7 +125,6 @@
 .units-zone {
   width: 100%;
   margin: 0 auto;
-  padding-top: 4vh;
 }
 .units-zone--right {
   /* Left edge at ~45% (matches END_X = 42% injection point, slightly inside);

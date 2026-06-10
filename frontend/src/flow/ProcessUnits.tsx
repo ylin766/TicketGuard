@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { SecurityRuntime } from "../components/osint/SecurityRuntime";
+import { SecurityRuntime } from "../components/agent/SecurityRuntime";
+import type { ThreatScanCache } from "../components/ThreatIntelPanel";
 import type { FlowPhase } from "./useFlow";
 
 /**
@@ -52,10 +53,14 @@ export function ProcessUnits({
   phase,
   url,
   onSecurityDone,
+  onScanComplete,
+  onAgentComplete,
 }: {
   phase: FlowPhase;
   url: string;
   onSecurityDone: () => void;
+  onScanComplete?: (cache: ThreatScanCache) => void;
+  onAgentComplete?: (state: import("../components/agent/useAgentStream").AgentState) => void;
 }) {
   const isPipeline = phase === "pipeline";
   // The clay is poured into each unit once the stream reaches it.
@@ -127,7 +132,12 @@ export function ProcessUnits({
               <motion.div className="punit-body" layout>
                 {active ? (
                   isPipeline ? (
-                    <SecurityRuntime url={url} onDone={onSecurityDone} />
+                    <SecurityRuntime
+                      url={url}
+                      onDone={onSecurityDone}
+                      onScanComplete={onScanComplete}
+                      onAgentComplete={onAgentComplete}
+                    />
                   ) : (
                     <div className="punit-process">
                       <span className="punit-process-dot" aria-hidden="true" />

@@ -1,20 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import type {
-  OsintFrame,
-  OsintStep,
-  OsintTokenTotals,
-  OsintStatus,
+  AgentFrame,
+  AgentStep,
+  AgentTokenTotals,
+  AgentStatus,
 } from "./types";
 
-const OSINT_ENDPOINT = "http://localhost:8001/api/osint/stream";
+const AGENT_ENDPOINT = "http://localhost:8001/api/agent/stream";
 
-export interface OsintState {
-  status: OsintStatus;
+export interface AgentState {
+  status: AgentStatus;
   /** The agent's interim reasoning lines, in order. */
   thoughts: string[];
   /** Tool calls (merged with their results) in order. */
-  steps: OsintStep[];
-  tokens: OsintTokenTotals;
+  steps: AgentStep[];
+  tokens: AgentTokenTotals;
   /** Final parsed report (score + tier + text), or null until done. */
   report: { score: number | null; tier: string | null; text: string } | null;
   /** Aggregate stats from the done frame. */
@@ -30,7 +30,7 @@ export interface OsintState {
   error: string | null;
 }
 
-const INITIAL: OsintState = {
+const INITIAL: AgentState = {
   status: "idle",
   thoughts: [],
   steps: [],
@@ -42,27 +42,40 @@ const INITIAL: OsintState = {
 };
 
 /**
- * Consume the OSINT agent's SSE trace for a URL. Pass `enabled=false` to hold
+ * Consume the AGENT agent's SSE trace for a URL. Pass `enabled=false` to hold
  * off until the investigation should begin (e.g. after the threat scan).
  *
  * Returns the accumulated trace state, updated live as frames arrive. The
  * `onDone` callback fires once the stream settles (done or error).
  */
-export function useOsintStream(
+export function useAgentStream(
   url: string,
   enabled: boolean,
   onDone?: () => void
-): OsintState {
-  const [state, setState] = useState<OsintState>(INITIAL);
+): AgentState {
+  const [state, setState] = useState<AgentState>(INITIAL);
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
   const doneFiredRef = useRef(false);
+  // Guard: once the stream completes for a given url, don't restart it
+  // even if `enabled` toggles (e.g. React StrictMode double-invoke, or
+  // parent re-render that briefly flips the stage back).
+  const hasCompletedRef = useRef(false);
   // The token frame for a model turn arrives just BEFORE the tool_call it
   // produced; stash it so we can attribute that turn's cost to the step.
   const pendingTokensRef = useRef(0);
 
+  // Reset the completion guard whenever the target url changes.
+  const prevUrlRef = useRef(url);
+  if (prevUrlRef.current !== url) {
+    prevUrlRef.current = url;
+    hasCompletedRef.current = false;
+  }
+
   useEffect(() => {
     if (!enabled || !url) return;
+    // If this stream already finished (for this url), reuse the result.
+    if (hasCompletedRef.current) return;
 
     setState({ ...INITIAL, status: "streaming" });
     doneFiredRef.current = false;
@@ -72,10 +85,11 @@ export function useOsintStream(
     const fireDone = () => {
       if (doneFiredRef.current) return;
       doneFiredRef.current = true;
+      hasCompletedRef.current = true;
       onDoneRef.current?.();
     };
 
-    const apply = (frame: OsintFrame) => {
+    const apply = (frame: AgentFrame) => {
       setState((prev) => {
         switch (frame.type) {
           case "start":
@@ -113,6 +127,7 @@ export function useOsintStream(
                       durationMs: frame.duration_ms,
                       chars: frame.chars,
                       preview: frame.preview,
+                      images: frame.images,
                     }
                   : s
               ),
@@ -154,7 +169,7 @@ export function useOsintStream(
       });
     };
 
-    const streamUrl = `${OSINT_ENDPOINT}?url=${encodeURIComponent(url)}`;
+    const streamUrl = `${AGENT_ENDPOINT}?url=${encodeURIComponent(url)}`;
     fetch(streamUrl, { signal: controller.signal })
       .then(async (res) => {
         if (!res.ok) throw new Error(`Server error ${res.status}`);
@@ -173,7 +188,7 @@ export function useOsintStream(
             const json = line.slice(6).trim();
             if (!json) continue;
             try {
-              apply(JSON.parse(json) as OsintFrame);
+              apply(JSON.parse(json) as AgentFrame);
             } catch {
               /* ignore malformed frame */
             }

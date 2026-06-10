@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ProcessUnits } from "./ProcessUnits";
+import type { ThreatScanCache } from "../components/ThreatIntelPanel";
 import type { FlowState } from "./useFlow";
 
 /**
@@ -95,17 +96,17 @@ function cubic(
  *      horizontal at BOTH ends, so it leaves the node horizontally and arrives
  *      at the unit horizontally — the S-curve in the user's sketch.
  */
-function buildStreamPath(targetTop: number) {
+function buildStreamPath(targetTopOffset: number) {
   const pts: [number, number][] = [];
-  // Trunk — a couple of points keep it dead straight.
-  pts.push([SRC_X, 50]);
-  pts.push([NODE_X, 50]);
+  // Trunk — a couple of points keep it dead straight along the centre axis (y=0).
+  pts.push([SRC_X, 0]);
+  pts.push([NODE_X, 0]);
   // Branch — sample the cubic. Horizontal handles (same y as their anchor).
-  const p0: [number, number] = [NODE_X, 50];
-  const p3: [number, number] = [END_X, targetTop];
+  const p0: [number, number] = [NODE_X, 0];
+  const p3: [number, number] = [END_X, targetTopOffset];
   const handle = (END_X - NODE_X) * 0.6;
-  const c1: [number, number] = [NODE_X + handle, 50];
-  const c2: [number, number] = [END_X - handle, targetTop];
+  const c1: [number, number] = [NODE_X + handle, 0];
+  const c2: [number, number] = [END_X - handle, targetTopOffset];
   const SEGMENTS = 14;
   for (let i = 1; i <= SEGMENTS; i++) {
     pts.push(cubic(p0, c1, c2, p3, i / SEGMENTS));
@@ -122,17 +123,18 @@ function buildStreamPath(targetTop: number) {
   for (let i = 0; i < times.length; i++) times[i] /= total;
   return {
     left: pts.map((p) => `${p[0]}%`),
-    top: pts.map((p) => `${p[1]}%`),
+    top: pts.map((p) => `calc(50% + ${p[1]}px)`),
     times,
   };
 }
 
 function MeltBeads() {
-  // Each stream ends at a different branch height; the middle one stays level.
+  // Each stream ends at a precise pixel offset from the vertical centre.
+  // The units are 132px high with 18px gaps -> exactly 150px between centres.
   const streams = [
-    { top: 20, delay: 0.12 },
-    { top: 50, delay: 0.06 },
-    { top: 80, delay: 0.12 },
+    { topOffset: -150, delay: 0.12 },
+    { topOffset: 0, delay: 0.06 },
+    { topOffset: 150, delay: 0.12 },
   ];
   const BEADS = 6;
   // When the first bead of a stream reaches the unit edge (≈ travel start +
@@ -143,7 +145,7 @@ function MeltBeads() {
   return (
     <>
       {streams.map((s, si) => {
-        const path = buildStreamPath(s.top);
+        const path = buildStreamPath(s.topOffset);
         // Scale keyframes sampled at the same count as the path so the bead
         // swells out of the capsule then thins as it is absorbed at the unit.
         const scaleKf = path.times.map((tt) =>
@@ -159,7 +161,7 @@ function MeltBeads() {
                   className="melt-blob melt-bead"
                   // Every bead is born AT the capsule's melt point, overlapping
                   // it, so the gooey filter welds them into the capsule.
-                  initial={{ left: `${SRC_X}%`, top: "50%", scale: 0 }}
+                  initial={{ left: `${SRC_X}%`, top: "calc(50% + 0px)", scale: 0 }}
                   animate={{
                     left: path.left,
                     top: path.top,
@@ -182,7 +184,7 @@ function MeltBeads() {
             {/* Injection splash at the unit edge — pools, spreads and is absorbed. */}
             <motion.span
               className="melt-blob melt-splash"
-              style={{ left: `${END_X}%`, top: `${s.top}%` }}
+              style={{ left: `${END_X}%`, top: `calc(50% + ${s.topOffset}px)` }}
               initial={{ scale: 0, opacity: 0 }}
               animate={{
                 scale: [0, 1.15, 1.4, 0.6],
@@ -202,7 +204,17 @@ function MeltBeads() {
   );
 }
 
-export function DataFlow({ flow, url }: { flow: FlowState; url: string }) {
+export function DataFlow({
+  flow,
+  url,
+  onScanComplete,
+  onAgentComplete,
+}: {
+  flow: FlowState;
+  url: string;
+  onScanComplete?: (cache: ThreatScanCache) => void;
+  onAgentComplete?: (state: import("../components/agent/useAgentStream").AgentState) => void;
+}) {
   const { phase, advance } = flow;
   const host = shortHost(url);
 
@@ -314,6 +326,8 @@ export function DataFlow({ flow, url }: { flow: FlowState; url: string }) {
           phase={phase}
           url={url}
           onSecurityDone={() => advance("pipeline")}
+          onScanComplete={onScanComplete}
+          onAgentComplete={onAgentComplete}
         />
       </motion.div>
     </div>

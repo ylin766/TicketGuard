@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ThreatIntelPanel } from "../ThreatIntelPanel";
-import type { ThreatScanSummary } from "../ThreatIntelPanel";
-import { OsintPanel } from "./OsintPanel";
-import { useOsintStream } from "./useOsintStream";
+import type { ThreatScanSummary, ThreatScanCache } from "../ThreatIntelPanel";
+import { AgentPanel } from "./AgentPanel";
+import { useAgentStream, type AgentState } from "./useAgentStream";
 
 /**
  * The security unit's runtime body. The two investigations are a FRONT→BACK
@@ -22,65 +22,51 @@ import { useOsintStream } from "./useOsintStream";
  */
 
 // TESTING: force the opinion agent to always run so its trace can be observed.
-const FORCE_OSINT = true;
+const FORCE_AGENT = true;
 
 const HIGH_ALERTS = 4;
 function isGreyZone(s: ThreatScanSummary): boolean {
   return s.alerts >= 1 && s.alerts < HIGH_ALERTS;
 }
 
-const EASE = [0.22, 1, 0.36, 1] as const;
 
 type Stage = "scan" | "opinion";
 
 export function SecurityRuntime({
   url,
   onDone,
+  onScanComplete,
+  onAgentComplete,
 }: {
   url: string;
   onDone: () => void;
+  onScanComplete?: (cache: ThreatScanCache) => void;
+  onAgentComplete?: (state: AgentState) => void;
 }) {
   const [stage, setStage] = useState<Stage>("scan");
-  const [summary, setSummary] = useState<ThreatScanSummary | null>(null);
-  const osint = useOsintStream(url, stage === "opinion", onDone);
+  const agent = useAgentStream(url, stage === "opinion");
 
-  const handleScanDone = (s: ThreatScanSummary) => {
-    setSummary(s);
-    if (FORCE_OSINT || isGreyZone(s)) {
+  useEffect(() => {
+    if (agent.status === "done" || agent.status === "error") {
+      onAgentComplete?.(agent);
+      onDone();
+    }
+  }, [agent.status, agent, onAgentComplete, onDone]);
+
+  const handleScanDone = (_s: ThreatScanSummary) => {
+    if (FORCE_AGENT || isGreyZone(_s)) {
       setStage("opinion");
     } else {
       onDone();
     }
   };
 
+  const handleScanComplete = (sources: import("../../types").ThreatSource[], flagged: boolean) => {
+    onScanComplete?.({ sources, flagged });
+  };
+
   return (
     <div className="security-runtime">
-      {/* Carried-over verdict chip: appears once the scan finishes and stays
-          pinned through the opinion stage — the thread of continuity. */}
-      <AnimatePresence>
-        {summary && (
-          <motion.div
-            key="verdict-chip"
-            className={`sec-verdict-chip ${summary.flagged ? "sec-verdict-chip--flag" : "sec-verdict-chip--clean"}`}
-            initial={{ opacity: 0, y: -8, height: 0 }}
-            animate={{ opacity: 1, y: 0, height: "auto" }}
-            transition={{ duration: 0.45, ease: EASE }}
-          >
-            <span className="sec-verdict-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.35C16.5 22.15 20 17.25 20 12V6L12 2z" />
-              </svg>
-            </span>
-            <span className="sec-verdict-text">
-              Threat scan complete · {summary.reported - summary.alerts} clear
-              {summary.alerts > 0 ? ` · ${summary.alerts} flagged` : ""}
-            </span>
-            <span className={`sec-verdict-badge ${summary.flagged ? "sec-verdict-badge--flag" : "sec-verdict-badge--clean"}`}>
-              {summary.flagged ? "FLAGGED" : "CLEAN"}
-            </span>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* A horizontal clay "conveyor": the finished scan is squeezed out to the
           LEFT while the agent stage flows in from the RIGHT and springs open to
@@ -101,7 +87,12 @@ export function SecurityRuntime({
                 transition: { type: "spring", stiffness: 120, damping: 20, mass: 1 },
               }}
             >
-              <ThreatIntelPanel url={url} variant="runtime" onDone={handleScanDone} />
+              <ThreatIntelPanel
+                url={url}
+                variant="runtime"
+                onDone={handleScanDone}
+                onComplete={handleScanComplete}
+              />
             </motion.div>
           )}
           {stage === "opinion" && (
@@ -118,7 +109,7 @@ export function SecurityRuntime({
                 transition: { type: "spring", stiffness: 110, damping: 16, mass: 1, delay: 0.08 },
               }}
             >
-              <OsintPanel state={osint} />
+              <AgentPanel state={agent} variant="runtime" />
             </motion.div>
           )}
         </AnimatePresence>

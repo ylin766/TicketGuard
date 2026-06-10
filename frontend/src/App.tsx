@@ -6,6 +6,8 @@ import { CameraStage } from "./flow/CameraStage";
 import { useFlow } from "./flow/useFlow";
 import { auditUrl } from "./api";
 import type { TicketReport } from "./types";
+import type { ThreatScanCache } from "./components/ThreatIntelPanel";
+import type { AgentState } from "./components/agent/useAgentStream";
 import "./flow/flow.css";
 
 export default function App() {
@@ -13,6 +15,8 @@ export default function App() {
   const [report, setReport] = useState<TicketReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [threatCache, setThreatCache] = useState<ThreatScanCache | null>(null);
+  const [agentCache, setAgentCache] = useState<AgentState | null>(null);
 
   const handleAudit = async (url: string) => {
     setError(null);
@@ -33,6 +37,8 @@ export default function App() {
 
   const handleBack = () => {
     setReport(null);
+    setThreatCache(null);
+    setAgentCache(null);
     flow.reset();
   };
 
@@ -46,6 +52,8 @@ export default function App() {
       <main className={`app-shell${aboveBalls ? " app-shell--above-balls" : ""}`}>
         <CameraStage
           flow={flow}
+          onScanComplete={setThreatCache}
+          onAgentComplete={setAgentCache}
           input={
             <UrlInputScreen
               onAudit={handleAudit}
@@ -55,7 +63,12 @@ export default function App() {
           }
           report={
             report ? (
-              <ReportScreen report={report} onBack={handleBack} />
+              <ReportScreen
+                report={report}
+                onBack={handleBack}
+                threatCache={threatCache ?? undefined}
+                agentCache={agentCache ?? undefined}
+              />
             ) : (
               <div className="flow-placeholder">
                 <span className="flow-placeholder-dot" aria-hidden="true" />

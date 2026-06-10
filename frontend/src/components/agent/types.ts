@@ -1,24 +1,24 @@
 /**
- * OSINT social-opinion agent stream — frontend contract.
+ * AGENT social-opinion agent stream — frontend contract.
  *
- * Mirrors the SSE frames emitted by GET /api/osint/stream (see backend
- * osint_stream.py). Each frame is one `data: {...}` line.
+ * Mirrors the SSE frames emitted by GET /api/agent/stream (see backend
+ * agent_stream.py). Each frame is one `data: {...}` line.
  */
 
-export interface OsintStartFrame {
+export interface AgentStartFrame {
   type: "start";
   url: string;
   agent: string;
   ts: number;
 }
 
-export interface OsintThinkingFrame {
+export interface AgentThinkingFrame {
   type: "thinking";
   step: number;
   text: string;
 }
 
-export interface OsintToolCallFrame {
+export interface AgentToolCallFrame {
   type: "tool_call";
   step: number;
   id: string;
@@ -31,19 +31,20 @@ export interface OsintToolCallFrame {
   ts: number;
 }
 
-export interface OsintToolResultFrame {
+export interface AgentToolResultFrame {
   type: "tool_result";
   step: number;
   id: string;
   tool: string;
-  /** Truncated preview of the tool's response. */
   preview: string;
+  /** Optional image URLs returned by the tool (for multimodal support). */
+  images?: string[];
   chars: number;
   duration_ms: number;
   ok: boolean;
 }
 
-export interface OsintTokensFrame {
+export interface AgentTokensFrame {
   type: "tokens";
   step: number;
   prompt: number;
@@ -51,7 +52,7 @@ export interface OsintTokensFrame {
   total: number;
 }
 
-export interface OsintReportFrame {
+export interface AgentReportFrame {
   type: "report";
   /** Parsed 0-100 trust score, or null if not found. */
   score: number | null;
@@ -61,7 +62,7 @@ export interface OsintReportFrame {
   text: string;
 }
 
-export interface OsintDoneFrame {
+export interface AgentDoneFrame {
   type: "done";
   stats: {
     steps: number;
@@ -74,23 +75,23 @@ export interface OsintDoneFrame {
   phoenix_url: string | null;
 }
 
-export interface OsintErrorFrame {
+export interface AgentErrorFrame {
   type: "error";
   message: string;
 }
 
-export type OsintFrame =
-  | OsintStartFrame
-  | OsintThinkingFrame
-  | OsintToolCallFrame
-  | OsintToolResultFrame
-  | OsintTokensFrame
-  | OsintReportFrame
-  | OsintDoneFrame
-  | OsintErrorFrame;
+export type AgentFrame =
+  | AgentStartFrame
+  | AgentThinkingFrame
+  | AgentToolCallFrame
+  | AgentToolResultFrame
+  | AgentTokensFrame
+  | AgentReportFrame
+  | AgentDoneFrame
+  | AgentErrorFrame;
 
 /** A tool call merged with its result, for rendering as one trace step. */
-export interface OsintStep {
+export interface AgentStep {
   id: string;
   tool: string;
   label: string;
@@ -101,15 +102,16 @@ export interface OsintStep {
   durationMs: number | null;
   chars: number | null;
   preview: string | null;
+  images?: string[];
   /** Tokens spent on the model turn that decided this tool call (prompt+completion). */
   tokens: number | null;
 }
 
 /** Running token totals. */
-export interface OsintTokenTotals {
+export interface AgentTokenTotals {
   prompt: number;
   completion: number;
   total: number;
 }
 
-export type OsintStatus = "idle" | "streaming" | "done" | "error";
+export type AgentStatus = "idle" | "streaming" | "done" | "error";
