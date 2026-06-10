@@ -45,6 +45,17 @@ def _bootstrap_telemetry() -> None:
     emit traces. The Phoenix workspace URL is cached on app.state for deep-links.
     """
     app.state.phoenix_url = init_telemetry()
+    # Process-level safety net: sweep any off-screen Chromium our flows leak when
+    # the server is killed / Ctrl-C'd mid-audit (the per-run teardown can't run
+    # if the whole process dies).
+    try:
+        from ..features.security.agent.browser_check.browser_cleanup import (
+            install_browser_cleanup,
+        )
+
+        install_browser_cleanup()
+    except Exception:  # noqa: BLE001 - cleanup registration must never block startup
+        pass
 
 
 app.add_middleware(

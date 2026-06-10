@@ -772,6 +772,11 @@ class BrowserCheckRunner:
         Try the most forceful teardown first (``kill``) and only fall back to a
         gentler one if it raises — never stop after the first method merely
         *exists*, or a failed kill would leave the off-screen Chromium orphaned.
+
+        We deliberately do NOT broadly sweep descendant browsers here: price and
+        this browser-check can run concurrently, so killing all descendant
+        Chromium would take out the price flow's live browser. The process-level
+        net (browser_cleanup) handles the "process killed" case at exit.
         """
         if self._session is None:
             return
@@ -781,8 +786,7 @@ class BrowserCheckRunner:
                 continue
             try:
                 await _maybe_await(method())
-                self._session = None
-                return
+                break
             except Exception as exc:  # noqa: BLE001 - try the next teardown method
                 logger.debug("session.%s() failed: %s", method_name, exc)
         self._session = None

@@ -186,5 +186,16 @@ async def stream_price(url: str, qty: int = 2) -> AsyncGenerator[dict, None]:
         logger.exception("[price] stream failed")
         yield {"type": "error", "message": str(exc)}
     finally:
+        # If the SSE client disconnected mid-scrape, the fetcher task (and its
+        # headed browser) would otherwise keep running. Cancel it and let its own
+        # try/finally close the browser. (We do NOT broadly sweep here: price and
+        # the security browser-check can run concurrently, so killing all
+        # descendant Chromium would take out the other flow's live browser.)
+        if not task.done():
+            task.cancel()
+            try:
+                await task
+            except (asyncio.CancelledError, Exception):  # noqa: BLE001
+                pass
         if span_cm is not None:
             span_cm.__exit__(None, None, None)
