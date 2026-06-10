@@ -7,6 +7,7 @@ import { ScoreCard } from "./ScoreCard";
 import { ThreatIntelPanel } from "./ThreatIntelPanel";
 import { AgentPanel } from "./agent/AgentPanel";
 import { LiveBrowserViewport } from "./price/LiveBrowserViewport";
+import { PriceAnalysisPanel } from "./price/PriceAnalysisPanel";
 import { usePriceStream } from "./price/usePriceStream";
 import "./ReportScreen.css";
 
@@ -18,6 +19,8 @@ interface ReportScreenProps {
   threatCache?: ThreatScanCache;
   /** Cached AGENT agent trace from the pipeline phase. */
   agentCache?: AgentState;
+  /** Ticket quantity the user picked on the input screen. */
+  qty?: number;
 }
 
 const VERDICT_EMOJI = {
@@ -39,11 +42,12 @@ export function ReportScreen({
   onBack,
   threatCache,
   agentCache,
+  qty = 2,
 }: ReportScreenProps) {
   const { dimensions } = report;
   // Live market median from the price stream takes precedence over the mock
   // placeholder once it arrives.
-  const price = usePriceStream(report.url, 2, true);
+  const price = usePriceStream(report.url, qty, true);
   const marketMedian = price.median ?? report.marketMedian;
   const markup = Math.round(
     ((report.listingPrice - marketMedian) / marketMedian) * 100
@@ -156,6 +160,8 @@ export function ReportScreen({
           </div>
 
           <LiveBrowserViewport state={price} />
+
+          <PriceAnalysisPanel state={price} />
 
           <ThreatIntelPanel
             url={report.url}

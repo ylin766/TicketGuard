@@ -14,10 +14,54 @@ export interface PriceListing {
   price?: number | null;
   section?: string | null;
   row?: string | number | null;
+  listing_id?: string | null;
+  badges?: string[];
   [key: string]: unknown;
 }
 
-export type PriceStatus = "idle" | "streaming" | "done" | "error";
+/** The buyer's own ticket, extracted from the page by Gemini vision. */
+export interface UserListing {
+  event_name?: string | null;
+  venue?: string | null;
+  date?: string | null;
+  section?: string | null;
+  row?: string | null;
+  seat?: string | null;
+  quantity?: number | null;
+  price_per_ticket?: number | null;
+  total_price?: number | null;
+  currency?: string | null;
+  seller_notes?: string | null;
+  confidence?: "high" | "medium" | "low" | string | null;
+}
+
+export interface PriceStats {
+  count?: number;
+  median?: number | null;
+  min?: number | null;
+  max?: number | null;
+  percentile?: number | null;
+  same_section_median?: number | null;
+  same_section_count?: number;
+  fair_price_range?: { low: number; high: number } | null;
+}
+
+export type PriceVerdict =
+  | "good_deal"
+  | "fair"
+  | "slightly_high"
+  | "overpriced"
+  | "unknown";
+
+export interface PriceAnalysis {
+  verdict?: PriceVerdict | string;
+  headline?: string;
+  assessment?: string;
+  savings_hint?: string | null;
+  tips?: string[];
+}
+
+export type PriceStatus = "idle" | "streaming" | "analyzing" | "done" | "error";
 
 export interface PriceState {
   status: PriceStatus;
@@ -31,6 +75,11 @@ export interface PriceState {
   listings: PriceListing[];
   median: number | null;
   count: number;
+  /** Buyer's own ticket (vision-extracted), {} until 'done'. */
+  userListing: UserListing | null;
+  stats: PriceStats | null;
+  analysis: PriceAnalysis | null;
+  recommendations: PriceListing[];
   error: string | null;
 }
 
@@ -43,18 +92,27 @@ const INITIAL: PriceState = {
   listings: [],
   median: null,
   count: 0,
+  userListing: null,
+  stats: null,
+  analysis: null,
+  recommendations: [],
   error: null,
 };
 
 type PriceSseFrame =
   | { type: "start"; url: string; source: string }
   | { type: "frame"; step: number; action: string; image: string; ts: number }
+  | { type: "analyzing"; ts: number }
   | {
       type: "done";
       median: number | null;
       count: number;
       listings: PriceListing[];
       metadata?: Record<string, unknown>;
+      user_listing?: UserListing;
+      stats?: PriceStats;
+      analysis?: PriceAnalysis;
+      recommendations?: PriceListing[];
     }
   | { type: "error"; message: string };
 
@@ -96,6 +154,8 @@ export function usePriceStream(
               action: frame.action,
             };
           }
+          case "analyzing":
+            return { ...prev, status: "analyzing" };
           case "done":
             return {
               ...prev,
@@ -103,6 +163,10 @@ export function usePriceStream(
               median: frame.median,
               count: frame.count,
               listings: frame.listings ?? [],
+              userListing: frame.user_listing ?? null,
+              stats: frame.stats ?? null,
+              analysis: frame.analysis ?? null,
+              recommendations: frame.recommendations ?? [],
             };
           case "error":
             return { ...prev, status: "error", error: frame.message };

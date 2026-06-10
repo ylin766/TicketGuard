@@ -17,10 +17,12 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [threatCache, setThreatCache] = useState<ThreatScanCache | null>(null);
   const [agentCache, setAgentCache] = useState<AgentState | null>(null);
+  const [qty, setQty] = useState(2);
 
-  const handleAudit = async (url: string) => {
+  const handleAudit = async (url: string, ticketQty: number) => {
     setError(null);
     setLoading(true);
+    setQty(ticketQty);
     // Start the cinematic flow immediately; fetch the report in the background
     // so its data is ready by the time the camera reaches the report scene.
     flow.start(url);
@@ -68,6 +70,7 @@ export default function App() {
                 onBack={handleBack}
                 threatCache={threatCache ?? undefined}
                 agentCache={agentCache ?? undefined}
+                qty={qty}
               />
             ) : (
               <div className="flow-placeholder">

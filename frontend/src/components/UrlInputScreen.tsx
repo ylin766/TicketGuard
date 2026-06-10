@@ -3,8 +3,8 @@ import { motion } from "framer-motion";
 import "./UrlInputScreen.css";
 
 interface UrlInputScreenProps {
-  /** Called with the submitted URL when the user starts an audit. */
-  onAudit: (url: string) => void;
+  /** Called with the submitted URL + ticket quantity when the user starts an audit. */
+  onAudit: (url: string, qty: number) => void;
   /** Whether an audit is currently running. */
   loading: boolean;
   /** Optional error message from a previous attempt. */
@@ -21,6 +21,7 @@ function looksLikeUrl(value: string): boolean {
 
 export function UrlInputScreen({ onAudit, loading, error }: UrlInputScreenProps) {
   const [url, setUrl] = useState("");
+  const [qty, setQty] = useState(2);
   const [touched, setTouched] = useState(false);
 
   const valid = looksLikeUrl(url);
@@ -29,7 +30,7 @@ export function UrlInputScreen({ onAudit, loading, error }: UrlInputScreenProps)
     e.preventDefault();
     setTouched(true);
     if (!valid || loading) return;
-    onAudit(url.trim());
+    onAudit(url.trim(), qty);
   };
 
   const handlePaste = async () => {
@@ -108,6 +109,24 @@ export function UrlInputScreen({ onAudit, loading, error }: UrlInputScreenProps)
               Paste
             </button>
           )}
+        </div>
+
+        <div className="qty-row">
+          <span className="qty-label">How many tickets?</span>
+          <div className="qty-options" role="group" aria-label="Ticket quantity">
+            {[1, 2, 3, 4].map((n) => (
+              <button
+                key={n}
+                type="button"
+                className={`qty-chip neu-raised${qty === n ? " is-active" : ""}`}
+                onClick={() => setQty(n)}
+                disabled={loading}
+                aria-pressed={qty === n}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
         </div>
 
         {touched && !valid ? (
