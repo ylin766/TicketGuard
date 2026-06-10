@@ -5,16 +5,20 @@ Match StubHub listings to seat-view photos and our sightline scores.
 Join key = venue (from metadata) + section (per ticket).
 
 Usage:
-    python match_tickets.py LISTINGS.json PHOTOS_ROOT [SCORES_DIR] [-o matched.csv]
+    python match_tickets.py LISTINGS.json [PHOTOS_ROOT] [SCORES_DIR] \
+        [-o matched.csv] [--image-base-url URL]
 
-  PHOTOS_ROOT : folder containing one subfolder per venue, each holding
+  PHOTOS_ROOT : optional folder containing one subfolder per venue, each holding
                 section<NN>-<k>.jpg files  (e.g. photos_avfms/ or photos_event--key-ratemyseats/)
+                Defaults to seats-data/photos_avfms next to this script.
   SCORES_DIR  : optional, the batch output folder with <venue>_scores.csv files
                 (so each listing also gets our computed seat score)
+  URL         : base URL from serve_images.py. Defaults to
+                http://localhost:8001.
 
 Output: a CSV with one row per ticket:
   listing_id, section, section_type, row, price, view, rating,
-  match_status, photo_count, photo_paths, our_score, ring
+  match_status, photo_count, photo_urls, our_score, ring
 
 match_status is one of:
   matched           -> exact section photo found
@@ -24,7 +28,36 @@ match_status is one of:
   supporters        -> supporters section, no single section -> not matchable
   unmatchable       -> null / unparseable section
 """
-import json, csv, re, os, glob, sys, difflib
+import argparse
+import csv
+import difflib
+import glob
+import json
+import os
+import re
+from urllib.parse import quote
+
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_PHOTOS_ROOT = os.path.join(SCRIPT_DIR, "seats-data", "photos_avfms")
+DEFAULT_IMAGE_BASE_URL = os.environ.get(
+    "SEAT_IMAGE_BASE_URL",
+    "http://localhost:8001",
+)
+OUTPUT_FIELDS = [
+    "listing_id",
+    "section",
+    "section_type",
+    "row",
+    "price",
+    "view",
+    "rating",
+    "match_status",
+    "photo_count",
+    "photo_urls",
+    "our_score",
+    "ring",
+]
 
 
 def norm_venue(s):
@@ -74,6 +107,15 @@ def find_photos(folder, full, base):
     return [], None
 
 
+def build_photo_url(photo_path, photos_root, image_base_url):
+    """Build the public URL served from the seats-data directory."""
+    source_name = os.path.basename(os.path.normpath(photos_root))
+    relative_path = os.path.relpath(photo_path, photos_root)
+    url_parts = [source_name, *relative_path.split(os.sep)]
+    encoded_path = "/".join(quote(part, safe="") for part in url_parts)
+    return f"{image_base_url.rstrip('/')}/{encoded_path}"
+
+
 def load_scores(scores_dir, venue):
     if not scores_dir or not os.path.isdir(scores_dir):
         return {}
@@ -89,24 +131,42 @@ def load_scores(scores_dir, venue):
     return m
 
 
-def main():
-    args = [a for a in sys.argv[1:] if not a.startswith("-")]
-    out = "matched.csv"
-    if "-o" in sys.argv:
-        out = sys.argv[sys.argv.index("-o") + 1]
-    if len(args) < 2:
-        print(__doc__); return
-    listings, photos_root = args[0], args[1]
-    scores_dir = args[2] if len(args) > 2 else None
+def parse_args():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("listings", help="Price JSON containing metadata and tickets.")
+    parser.add_argument(
+        "photos_root",
+        nargs="?",
+        default=DEFAULT_PHOTOS_ROOT,
+        help=f"Seat photo folder (default: {DEFAULT_PHOTOS_ROOT}).",
+    )
+    parser.add_argument(
+        "scores_dir",
+        nargs="?",
+        help="Optional directory containing <venue>_scores.csv files.",
+    )
+    parser.add_argument("-o", "--output", default="matched.csv")
+    parser.add_argument(
+        "--image-base-url",
+        default=DEFAULT_IMAGE_BASE_URL,
+        help=f"Base URL from serve_images.py (default: {DEFAULT_IMAGE_BASE_URL}).",
+    )
+    return parser.parse_args()
 
-    data = json.load(open(listings))
+
+def main():
+    args = parse_args()
+    photos_root = os.path.abspath(args.photos_root)
+
+    with open(args.listings, encoding="utf-8") as listings_file:
+        data = json.load(listings_file)
     venue = data["metadata"]["venue"]
     tickets = data["tickets"]
 
     subdirs = [d for d in os.listdir(photos_root) if os.path.isdir(os.path.join(photos_root, d))]
     vfolder = resolve_folder(venue, subdirs)
     folder = os.path.join(photos_root, vfolder) if vfolder else None
-    scores = load_scores(scores_dir, venue)
+    scores = load_scores(args.scores_dir, venue)
 
     print(f"Venue: {venue}")
     print(f"  photos folder : {vfolder or 'NOT FOUND'}")
@@ -114,7 +174,7 @@ def main():
 
     rows, summ = [], {}
     for t in tickets:
-        kind, full, base = classify(t["section"], t.get("section_type"))
+        kind, full, base = classify(t.get("section"), t.get("section_type"))
         photos, tag = ([], None)
         status = kind if kind != "section" else "no_photo"
         sc = {}
@@ -131,15 +191,19 @@ def main():
             "price": t.get("price"), "view": t.get("view"),
             "rating": t.get("rating") or t.get("rating_text"),
             "match_status": status, "photo_count": len(photos),
-            "photo_paths": " | ".join(os.path.relpath(p, photos_root) for p in photos),
+            "photo_urls": " | ".join(
+                build_photo_url(p, photos_root, args.image_base_url)
+                for p in photos
+            ),
             "our_score": sc.get("score", ""), "ring": sc.get("ring", ""),
         })
 
-    with open(out, "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
-        w.writeheader(); w.writerows(rows)
+    with open(args.output, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=OUTPUT_FIELDS)
+        writer.writeheader()
+        writer.writerows(rows)
 
-    print(f"\nWrote {out}  ({len(rows)} tickets)")
+    print(f"\nWrote {args.output}  ({len(rows)} tickets)")
     for k in sorted(summ):
         print(f"  {k:14s}: {summ[k]}")
 
