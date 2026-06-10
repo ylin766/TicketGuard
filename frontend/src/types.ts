@@ -37,12 +37,14 @@ export interface TicketReport {
   /** Live market median (SeatGeek P50) in USD. */
   marketMedian: number;
 
-  /** Four weighted dimensions surfaced in the report. */
+  /**
+   * Real analysis dimensions surfaced in the report. Only website credibility
+   * is backed by live backend data (the threat-intel + agent audit); the other
+   * mock dimensions (price/compliance/sightline) were removed since they had no
+   * real data source. Price fairness is shown by the dedicated price panels.
+   */
   dimensions: {
     websiteCredibility: DimensionResult;
-    price: DimensionResult;
-    compliance: DimensionResult;
-    sightline: DimensionResult;
   };
 
   /** Weighted aggregate score, 0–100. */

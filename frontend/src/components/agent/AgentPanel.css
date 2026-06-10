@@ -572,6 +572,117 @@
 .agent-meter-fill--caution { background: linear-gradient(90deg, #e3b15f, var(--agent-caution)); }
 .agent-meter-fill--safe { background: linear-gradient(90deg, var(--accent-soft), var(--agent-safe)); }
 
+/* OSINT agent's full written summary — the synthesised public-opinion verdict
+   (Part-1 react-agent trace conclusion) surfaced in the report. */
+.agent-verdict-text {
+  margin-top: 12px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-soft, #555a52);
+  white-space: pre-wrap;
+}
+
+/* ---- Structured findings: red flags + sources weighed ---- */
+.agent-findings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 18px;
+  margin-top: 16px;
+}
+@media (max-width: 560px) {
+  .agent-findings { grid-template-columns: 1fr; }
+}
+.agent-finding-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.agent-finding-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint, #8a8f87);
+}
+.agent-finding-label--risk {
+  color: var(--agent-danger, #d2483c);
+}
+.agent-finding-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.agent-finding-item {
+  position: relative;
+  padding-left: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--ink, #2c2f36);
+}
+.agent-finding-item::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 7px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink-faint, #8a8f87);
+}
+.agent-finding-item--risk::before {
+  background: var(--agent-danger, #d2483c);
+}
+
+/* ---- Evidence link chips ---- */
+.agent-source-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 16px;
+}
+.agent-source-chip {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-soft, #555a52);
+  text-decoration: none;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: inset 1px 1px 3px rgba(120, 124, 116, 0.28),
+    inset -1px -1px 3px rgba(255, 255, 255, 0.85);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+.agent-source-chip:hover {
+  transform: translateY(-1px);
+  color: var(--ink, #2c2f36);
+}
+
+/* ---- Collapsible full report ---- */
+.agent-fullreport {
+  margin-top: 16px;
+}
+.agent-fullreport-toggle {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent, #4a7c59);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-bottom: 1px dashed currentColor;
+}
+.agent-fullreport-text {
+  overflow: hidden;
+  max-height: 360px;
+  overflow-y: auto;
+  margin-top: 10px;
+  font-size: 12.5px;
+}
+
 .agent-phoenix {
   font-size: 12px;
   font-weight: 800;

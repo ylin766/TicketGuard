@@ -141,6 +141,11 @@
   font-size: 14px;
   font-weight: 800;
   color: var(--ink);
+  /* Truncate long source names so they can't overrun the trailing tag/pip
+     (e.g. "PhishStats" + "TIMED OUT" in a narrow two-column card). */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ti-pip {
@@ -413,17 +418,18 @@
 }
 
 .ti-spanel-tag {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   color: var(--ink-faint);
-  padding: 3px 8px;
+  padding: 3px 7px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.4);
   box-shadow: inset 1px 1px 2px rgba(120, 124, 116, 0.3);
   border: 1px dashed rgba(140, 142, 136, 0.45);
   flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .ti-spanel-loader {

@@ -71,8 +71,8 @@ export function SecurityRuntime({
     }
   };
 
-  const handleScanComplete = (sources: import("../../types").ThreatSource[], flagged: boolean) => {
-    onScanComplete?.({ sources, flagged });
+  const handleScanComplete = (cache: ThreatScanCache) => {
+    onScanComplete?.(cache);
   };
 
   return (

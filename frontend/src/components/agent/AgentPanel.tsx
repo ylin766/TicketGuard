@@ -201,6 +201,7 @@ export function AgentPanel({
     .slice(-2); // grab the last 2 successful tool results
 
   const [elapsedMs, setElapsedMs] = useState(0);
+  const [showFullReport, setShowFullReport] = useState(false);
   useEffect(() => {
     if (!live) return;
     const start = Date.now();
@@ -445,6 +446,87 @@ export function AgentPanel({
                 animate={{ width: `${report.score}%` }}
                 transition={{ duration: 0.6, ease: EASE }}
               />
+            </div>
+          )}
+
+          {/* Bottom-line takeaway — the concise judgment, not the whole wall. */}
+          {report.judgment && (
+            <p className="agent-verdict-text">{report.judgment}</p>
+          )}
+
+          {/* Structured fraud + credibility breakdown. */}
+          {(report.fraudPoints.length > 0 || report.crediblePoints.length > 0) && (
+            <div className="agent-findings">
+              {report.fraudPoints.length > 0 && (
+                <div className="agent-finding-group">
+                  <span className="agent-finding-label agent-finding-label--risk">
+                    Red flags
+                  </span>
+                  <ul className="agent-finding-list">
+                    {report.fraudPoints.map((p) => (
+                      <li key={p} className="agent-finding-item agent-finding-item--risk">
+                        {p}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {report.crediblePoints.length > 0 && (
+                <div className="agent-finding-group">
+                  <span className="agent-finding-label">Sources weighed</span>
+                  <ul className="agent-finding-list">
+                    {report.crediblePoints.map((p) => (
+                      <li key={p} className="agent-finding-item">
+                        {p}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Evidence links as compact platform chips. */}
+          {report.sources.length > 0 && (
+            <div className="agent-source-chips">
+              {report.sources.map((s) => (
+                <a
+                  key={s.url}
+                  className="agent-source-chip"
+                  href={s.url}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  {s.platform} ↗
+                </a>
+              ))}
+            </div>
+          )}
+
+          {/* Full report tucked behind a toggle so it never dominates. */}
+          {report.text && (
+            <div className="agent-fullreport">
+              <button
+                type="button"
+                className="agent-fullreport-toggle"
+                onClick={() => setShowFullReport((v) => !v)}
+                aria-expanded={showFullReport}
+              >
+                {showFullReport ? "Hide full report" : "Read full report"}
+              </button>
+              <AnimatePresence initial={false}>
+                {showFullReport && (
+                  <motion.p
+                    className="agent-verdict-text agent-fullreport-text"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3, ease: EASE }}
+                  >
+                    {report.text}
+                  </motion.p>
+                )}
+              </AnimatePresence>
             </div>
           )}
         </motion.div>

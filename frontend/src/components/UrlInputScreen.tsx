@@ -168,7 +168,7 @@ export function UrlInputScreen({ onAudit, loading, error }: UrlInputScreenProps)
             className="example-chip"
             disabled={loading}
             onClick={() => {
-              setUrl("stubhub.com/listing/98234");
+              setUrl(DEFAULT_URL);
               setTouched(false);
             }}
           >

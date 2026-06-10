@@ -21,10 +21,21 @@ export interface ThreatScanSummary {
   greyZone?: boolean;
 }
 
-/** Full scan result cache — sources + flagged — passed from pipeline to report. */
+/** Full scan result cache passed from the pipeline phase to the report. Carries
+ *  everything the report needs so it can be assembled WITHOUT re-running the
+ *  backend: the streamed sources plus the authoritative score / grey-zone /
+ *  explanation from the stream's `done` frame. */
 export interface ThreatScanCache {
   sources: import("../types").ThreatSource[];
   flagged: boolean;
+  /** Authoritative credibility score (0-100), or null when unavailable. */
+  score: number | null;
+  /** Backend risk band, e.g. "high" | "medium" | "low" (may be empty). */
+  riskLevel: string;
+  /** Human-readable score rationale (may be empty). */
+  scoreExplanation: string;
+  /** Backend grey-zone decision — whether the Layer-2 agent ran. */
+  greyZone: boolean;
 }
 
 interface ThreatIntelPanelProps {
@@ -46,9 +57,10 @@ interface ThreatIntelPanelProps {
    */
   cachedSources?: ThreatSource[];
   cachedFlagged?: boolean;
-  /** Called when the stream completes, passing all received sources + flagged.
-   *  Use this in the pipeline stage to build the cache for the report page. */
-  onComplete?: (sources: ThreatSource[], flagged: boolean) => void;
+  /** Called when the stream completes, passing the full scan cache (sources +
+   *  authoritative score/grey-zone/explanation). Use this in the pipeline stage
+   *  to build the cache the report page renders from — no re-fetch on report. */
+  onComplete?: (cache: ThreatScanCache) => void;
 }
 
 const STREAM_ENDPOINT = "http://localhost:8001/api/threat-intel/stream";
@@ -174,6 +186,8 @@ export function ThreatIntelPanel({
   // Authoritative score + grey-zone decision from the backend done frame.
   const scoreRef = useRef<number | null>(null);
   const greyZoneRef = useRef(false);
+  const riskLevelRef = useRef("");
+  const scoreExplanationRef = useRef("");
   // Accumulates all received sources so onComplete gets the full list.
   const sourcesRef = useRef<ThreatSource[]>([]);
 
@@ -192,6 +206,8 @@ export function ThreatIntelPanel({
     flaggedRef.current = false;
     scoreRef.current = null;
     greyZoneRef.current = false;
+    riskLevelRef.current = "";
+    scoreExplanationRef.current = "";
 
     const controller = new AbortController();
     controllerRef.current = controller;
@@ -199,7 +215,14 @@ export function ThreatIntelPanel({
     const fireDone = () => {
       if (doneFiredRef.current) return;
       doneFiredRef.current = true;
-      onCompleteRef.current?.(sourcesRef.current, flaggedRef.current);
+      onCompleteRef.current?.({
+        sources: sourcesRef.current,
+        flagged: flaggedRef.current,
+        score: scoreRef.current,
+        riskLevel: riskLevelRef.current,
+        scoreExplanation: scoreExplanationRef.current,
+        greyZone: greyZoneRef.current,
+      });
       onDoneRef.current?.({
         flagged: flaggedRef.current,
         alerts: alertsRef.current,
@@ -239,6 +262,8 @@ export function ThreatIntelPanel({
               status?: string;
               flagged?: boolean;
               score?: number | null;
+              risk_level?: string | null;
+              score_explanation?: string;
               grey_zone?: boolean;
             };
 
@@ -255,6 +280,8 @@ export function ThreatIntelPanel({
               flaggedRef.current = event.flagged ?? false;
               scoreRef.current = event.score ?? null;
               greyZoneRef.current = event.grey_zone ?? false;
+              riskLevelRef.current = event.risk_level ?? "";
+              scoreExplanationRef.current = event.score_explanation ?? "";
               setFlagged(event.flagged ?? false);
               setStreamStatus(event.status === "unavailable" ? "unavailable" : "done");
               fireDone();

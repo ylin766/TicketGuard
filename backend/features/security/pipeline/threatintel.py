@@ -80,6 +80,7 @@ def stream_threatintel(url: str) -> Generator[dict, None, None]:
             "flagged": False,
             "score": None,
             "risk_level": None,
+            "score_explanation": "",
             "grey_zone": True,  # can't tell → escalate, same as the orchestrator
         }
         return
@@ -105,9 +106,11 @@ def stream_threatintel(url: str) -> Generator[dict, None, None]:
             "flagged": flagged,
             "score": breakdown["score"],
             "risk_level": breakdown["risk_level"],
+            "score_explanation": breakdown["explanation"],
             "grey_zone": grey,
         }
     except Exception as exc:  # noqa: BLE001 - never break the stream on scoring
         logger.warning("score breakdown failed in stream: %s", exc)
         yield {"type": "done", "status": "ok", "flagged": flagged,
-               "score": None, "risk_level": None, "grey_zone": flagged}
+               "score": None, "risk_level": None, "score_explanation": "",
+               "grey_zone": flagged}

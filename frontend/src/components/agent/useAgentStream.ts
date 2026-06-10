@@ -4,6 +4,7 @@ import type {
   AgentStep,
   AgentTokenTotals,
   AgentStatus,
+  AgentSourceRef,
 } from "./types";
 
 const AGENT_ENDPOINT = "http://localhost:8001/api/osint/stream";
@@ -15,8 +16,16 @@ export interface AgentState {
   /** Tool calls (merged with their results) in order. */
   steps: AgentStep[];
   tokens: AgentTokenTotals;
-  /** Final parsed report (score + tier + text), or null until done. */
-  report: { score: number | null; tier: string | null; text: string } | null;
+  /** Final parsed report — structured breakdown + the full text fallback. */
+  report: {
+    score: number | null;
+    tier: string | null;
+    text: string;
+    fraudPoints: string[];
+    crediblePoints: string[];
+    sources: AgentSourceRef[];
+    judgment: string;
+  } | null;
   /** Aggregate stats from the done frame. */
   stats: {
     steps: number;
@@ -145,7 +154,15 @@ export function useAgentStream(
           case "report":
             return {
               ...prev,
-              report: { score: frame.score, tier: frame.tier, text: frame.text },
+              report: {
+                score: frame.score,
+                tier: frame.tier,
+                text: frame.text,
+                fraudPoints: frame.fraud_points ?? [],
+                crediblePoints: frame.credible_points ?? [],
+                sources: frame.sources ?? [],
+                judgment: frame.judgment ?? "",
+              },
             };
           case "done":
             return {

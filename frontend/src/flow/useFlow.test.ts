@@ -79,11 +79,13 @@ describe("useFlow state machine", () => {
     expect(result.current.phase).toBe("report");
   });
 
-  it("reduced motion jumps straight to report on start (a11y)", () => {
+  it("reduced motion skips the decorative beats but keeps the pipeline (a11y)", () => {
     mockReducedMotion(true);
     const { result } = renderHook(() => useFlow());
     act(() => result.current.start("example.com"));
-    expect(result.current.phase).toBe("report");
+    // Goes straight to the pipeline (not report): the audit data is gathered
+    // there and the report is assembled from it.
+    expect(result.current.phase).toBe("pipeline");
   });
 
   it("reset() returns to input and clears state", () => {
