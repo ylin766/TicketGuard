@@ -6,6 +6,14 @@ requires-python = ">=3.11"
 dependencies = [
     "google-adk>=1.0.0",
     "requests>=2.32.0",
+    # Layer 2 (browser-based security check) is REQUIRED, not optional: the
+    # grey-zone escalation drives a real browser via browser-use and reads pages
+    # with Gemini vision. After installing, run `playwright install chromium` to
+    # download the browser binary.
+    "browser-use>=0.5.0",
+    "google-genai>=1.0.0",
+    "tldextract>=5.0.0",
+    "Pillow>=10.0.0",
 ]
 
 [project.optional-dependencies]

@@ -1,0 +1,72 @@
+{
+  "module": "browser_security_check",
+  "input_url": "https://www.taobao.com/",
+  "final_url": "https://www.taobao.com/",
+  "is_ticket_site": false,
+  "risk_level": "low",
+  "risk_score": 0,
+  "verdict": "not_a_ticket_site",
+  "summary": "taobao.com does not appear to be a ticket-selling site; ticket-scam inspection was skipped.",
+  "claim": {
+    "claimed_platform": "Taobao",
+    "claimed_domain": "taobao.com",
+    "is_ticket_site": false,
+    "marketplace_type": "unknown",
+    "claimed_event": null,
+    "claimed_venue": null,
+    "claimed_city_state": null,
+    "claimed_date_time": null,
+    "visible_price_range": null,
+    "page_state": "unknown",
+    "confidence": "high",
+    "evidence": [
+      "CURRENT_URL is https://www.taobao.com/",
+      "PAGE_TITLE is '淘宝'",
+      "VISIBLE_TEXT states '淘宝网是阿里巴巴集团旗下的国际化网络购物平台'",
+      "VISIBLE_TEXT lists a wide variety of general consumer goods like '咸蛋黄', '包装纸', '刮刀', '补胎液', '抽纸', '打孔器', '拖把套', '磨脚神器', '牙刷架', '英文电子书', '小麦粒', '纯牛奶', '止汗石', 'iPadAir8保护壳', '标签贴纸', '蒜香朝天椒', '平底单鞋', '牛仔背带短裤', '防晒手套', '乳霜纸', '墙面保护膜', '凤梨酥', '短袖T恤', '发圈', '三脚架', '作业本', '短袖t恤', '孔雀鱼隔离繁殖盒', '温湿度计', '平板专用支架', '瑜伽服女', '书画练习纸', '防风夹子晾衣服', '牛奶咖啡专用牛乳', '烟管西裤', '芒果酸奶昔'.",
+      "No mention of event tickets, concerts, sports, theater, or festivals in the visible text or clickable elements."
+    ]
+  },
+  "sensitive_action": {
+    "is_sensitive_action_page": false,
+    "page_state": "unknown",
+    "action_types": [],
+    "payment_context": "none",
+    "payment_methods": [],
+    "requested_inputs": [],
+    "irreversible_action_visible": false,
+    "evidence": []
+  },
+  "trust_check": {
+    "current_registered_domain": null,
+    "claimed_domain": null,
+    "is_trusted_marketplace_domain": false,
+    "domain_matches_claimed_platform": null,
+    "domain_mismatch_reason": null,
+    "suspicious_redirect": false,
+    "event_reference_mismatch": null,
+    "off_platform_payment_detected": false,
+    "strong_flags": [],
+    "weak_flags": [],
+    "benign_context": []
+  },
+  "transitions": [],
+  "sensitive_surfaces": [],
+  "evidence": [
+    "Live registered domain is taobao.com",
+    "Page is not a ticket-selling marketplace — inspection skipped (out of scope)."
+  ],
+  "recommended_action": "This is not a ticket marketplace — do not attempt a ticket purchase here.",
+  "osint": null,
+  "snapshots": [
+    {
+      "step": 0,
+      "url": "https://www.taobao.com/",
+      "registered_domain": "taobao.com",
+      "title": "淘宝",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check_a2l7m6ev/step_0.png",
+      "error": null
+    }
+  ],
+  "errors": []
+}

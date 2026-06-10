@@ -2,8 +2,8 @@
 
 from google.adk.agents import LlmAgent
 
-from ....core.config import GEMINI_MODEL
-from .osint_tools import (
+from .....core.config import GEMINI_MODEL
+from .tools import (
     read_specific_url,
     search_consumer_reviews,
     search_general_opinions,

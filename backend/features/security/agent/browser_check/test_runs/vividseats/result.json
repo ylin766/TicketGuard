@@ -1,0 +1,343 @@
+{
+  "module": "browser_security_check",
+  "input_url": "https://www.vividseats.com/world-cup-soccer-tickets-mercedes-benz-stadium-6-18-2026--sports-soccer/production/5080471?quantity=2",
+  "final_url": "https://www.vividseats.com/world-cup-soccer-tickets-mercedes-benz-stadium-6-18-2026--sports-soccer/production/5080471?showDetails=VB15781952433&groupId=&qty=2",
+  "risk_level": "low",
+  "risk_score": 20,
+  "verdict": "likely_safe_browser_context",
+  "summary": "The page appears to be a legitimate Vivid Seats flow on vividseats.com with no strong scam signals in the browser context.",
+  "claim": {
+    "claimed_platform": "Vivid Seats",
+    "claimed_domain": "vividseats.com",
+    "marketplace_type": "resale",
+    "claimed_event": "Czechia vs South Africa - World Cup - Match 25 (Group A)",
+    "claimed_venue": "Mercedes-Benz Stadium",
+    "claimed_city_state": "Atlanta, GA",
+    "claimed_date_time": "Thursday June 18, 2026 12:00pm",
+    "visible_price_range": null,
+    "page_state": "login_required",
+    "confidence": "high",
+    "evidence": [
+      "VividSeats.com (PAGE_TITLE)",
+      "vividseats.com (REGISTERED_DOMAIN)",
+      "Czechia vs South Africa - World Cup - Match 25 (Group A) (VISIBLE_TEXT)",
+      "Mercedes-Benz Stadium - Atlanta, GA (VISIBLE_TEXT)",
+      "Thursday June 18, 2026 12:00pm (VISIBLE_TEXT)",
+      "Guest Checkout\nEnter your preferred email address to receive your tickets & order updates. (VISIBLE_TEXT)",
+      "Sign In\nSign in for faster checkout and earn rewards! (VISIBLE_TEXT)",
+      "Continue as a Guest (CLICKABLE_ELEMENTS)",
+      "Continue (CLICKABLE_ELEMENTS)"
+    ]
+  },
+  "sensitive_action": {
+    "is_sensitive_action_page": true,
+    "page_state": "login_required",
+    "action_types": [
+      "login"
+    ],
+    "payment_context": "none",
+    "payment_methods": [],
+    "requested_inputs": [
+      "email"
+    ],
+    "irreversible_action_visible": false,
+    "evidence": [
+      "Guest Checkout (VISIBLE_TEXT)",
+      "Enter your preferred email address to receive your tickets & order updates. (VISIBLE_TEXT)",
+      "Sign In (VISIBLE_TEXT)",
+      "Sign in for faster checkout and earn rewards! (VISIBLE_TEXT)",
+      "input | aria_label='Email' (CLICKABLE_ELEMENTS)",
+      "Continue as a Guest (CLICKABLE_ELEMENTS)",
+      "Continue (CLICKABLE_ELEMENTS)"
+    ]
+  },
+  "trust_check": {
+    "current_registered_domain": "vividseats.com",
+    "claimed_domain": "vividseats.com",
+    "is_trusted_marketplace_domain": true,
+    "domain_matches_claimed_platform": true,
+    "domain_mismatch_reason": null,
+    "suspicious_redirect": false,
+    "event_reference_mismatch": false,
+    "off_platform_payment_detected": true,
+    "strong_flags": [
+      "Off-platform payment requested (Zelle/Venmo/crypto/etc.)"
+    ],
+    "weak_flags": [
+      "Heavy urgency / scarcity language alongside other signals"
+    ],
+    "benign_context": [
+      "Trusted marketplace domain with matching brand",
+      "Event / venue / date matches the expected listing"
+    ]
+  },
+  "transitions": [
+    {
+      "step": 0,
+      "before_url": "https://www.vividseats.com/world-cup-soccer-tickets-mercedes-benz-stadium-6-18-2026--sports-soccer/production/5080471?quantity=2",
+      "clicked_index": 1,
+      "clicked_text": "Dismiss '15% Off Your First Purchase' modal",
+      "after_url": null,
+      "page_state_before": "event_listing",
+      "page_state_after": "unknown",
+      "reason": "Observed the email capture sensitive surface (login/email_address) in the modal. Now dismissing the modal to explore other sensitive branches on the event listing page, such as checkout/payment.",
+      "stopped_reason": null
+    },
+    {
+      "step": 1,
+      "before_url": "https://www.vividseats.com/world-cup-soccer-tickets-mercedes-benz-stadium-6-18-2026--sports-soccer/production/5080471?quantity=2",
+      "clicked_index": 42,
+      "clicked_text": "319",
+      "after_url": null,
+      "page_state_before": "event_listing",
+      "page_state_after": "unknown",
+      "reason": "Already explored the 'Sign in' path. On an event listing page, the next step to find sensitive surfaces like checkout/payment is to select a ticket listing. Clicking on the section number '319' (part of the first ticket listing) is a promising path to proceed with ticket selection.",
+      "stopped_reason": null
+    },
+    {
+      "step": 2,
+      "before_url": "https://www.vividseats.com/world-cup-soccer-tickets-mercedes-benz-stadium-6-18-2026--sports-soccer/production/5080471?showDetails=VB15924766690&groupId=&qty=2",
+      "clicked_index": null,
+      "clicked_text": "<go_back>",
+      "after_url": "https://www.vividseats.com/world-cup-soccer-tickets-mercedes-benz-stadium-6-18-2026--sports-soccer/production/5080471?quantity=2",
+      "page_state_before": "event_listing",
+      "page_state_after": "unknown",
+      "reason": "Observed sensitive surfaces (login, payment, billing info) accessible from the current event listing page via the 'Checkout' button and 'Sign In' link. Going back to explore other branches.",
+      "stopped_reason": null
+    },
+    {
+      "step": 3,
+      "before_url": "https://www.vividseats.com/world-cup-soccer-tickets-mercedes-benz-stadium-6-18-2026--sports-soccer/production/5080471?quantity=2",
+      "clicked_index": 9,
+      "clicked_text": "Sign In",
+      "after_url": null,
+      "page_state_before": "event_listing",
+      "page_state_after": "unknown",
+      "reason": "To explore the explicit 'Sign In' path, which is a distinct sensitive surface from the checkout flow previously observed. This will map the login demands directly.",
+      "stopped_reason": null
+    },
+    {
+      "step": 4,
+      "before_url": "https://www.vividseats.com/login",
+      "clicked_index": null,
+      "clicked_text": "<go_back>",
+      "after_url": "https://www.vividseats.com/world-cup-soccer-tickets-mercedes-benz-stadium-6-18-2026--sports-soccer/production/5080471?quantity=2",
+      "page_state_before": "login_required",
+      "page_state_after": "unknown",
+      "reason": "Observed the login page. Going back to the previous page to explore other sensitive branches.",
+      "stopped_reason": null
+    },
+    {
+      "step": 5,
+      "before_url": "https://www.vividseats.com/world-cup-soccer-tickets-mercedes-benz-stadium-6-18-2026--sports-soccer/production/5080471?quantity=2",
+      "clicked_index": 72,
+      "clicked_text": "308",
+      "after_url": null,
+      "page_state_before": "event_listing",
+      "page_state_after": "unknown",
+      "reason": "Exploring a different ticket listing ('308') to see if it leads to a new sensitive surface or a different checkout flow, as '319' was already explored.",
+      "stopped_reason": null
+    },
+    {
+      "step": 6,
+      "before_url": "https://www.vividseats.com/world-cup-soccer-tickets-mercedes-benz-stadium-6-18-2026--sports-soccer/production/5080471?showDetails=VB15781952433&groupId=&qty=2",
+      "clicked_index": 18,
+      "clicked_text": "Checkout",
+      "after_url": null,
+      "page_state_before": "event_listing",
+      "page_state_after": "unknown",
+      "reason": "The current page is an event listing with a specific ticket selected. Clicking 'Checkout' is the next logical step to explore a potential payment or billing sensitive surface. This is a new checkout path (different ticket ID) compared to previously explored ones, adhering to the breadth-first strategy.",
+      "stopped_reason": null
+    },
+    {
+      "step": 7,
+      "before_url": "https://www.vividseats.com/checkout?productionId=5080471&ticketId=VB15781952433&quantity=2&uuid=e27e1351-f77b-467e-a930-2f14bf1d405f&dealScore=7",
+      "clicked_index": null,
+      "clicked_text": "<go_back>",
+      "after_url": "https://www.vividseats.com/world-cup-soccer-tickets-mercedes-benz-stadium-6-18-2026--sports-soccer/production/5080471?showDetails=VB15781952433&groupId=&qty=2",
+      "page_state_before": "login_required",
+      "page_state_after": "unknown",
+      "reason": "Observed the login requirements on this sensitive checkout page. Going back to explore other branches from the previous page.",
+      "stopped_reason": null
+    },
+    {
+      "step": 8,
+      "before_url": "https://www.vividseats.com/world-cup-soccer-tickets-mercedes-benz-stadium-6-18-2026--sports-soccer/production/5080471?showDetails=VB15781952433&groupId=&qty=2",
+      "clicked_index": null,
+      "clicked_text": null,
+      "after_url": null,
+      "page_state_before": "event_listing",
+      "page_state_after": "unknown",
+      "reason": "All obvious sensitive paths (login and checkout/payment) have been explored from the event listing page. No new sensitive branches remain to be explored.",
+      "stopped_reason": "All obvious sensitive paths (login and checkout/payment) have been explored from the event listing page. No new sensitive branches remain to be explored."
+    }
+  ],
+  "sensitive_surfaces": [
+    {
+      "url": "https://www.vividseats.com/world-cup-soccer-tickets-mercedes-benz-stadium-6-18-2026--sports-soccer/production/5080471?quantity=2",
+      "page_state": "event_listing",
+      "reached": false,
+      "action_types": [
+        "login"
+      ],
+      "payment_context": "none",
+      "requested_inputs": [
+        "email_address"
+      ],
+      "irreversible_action_visible": false,
+      "evidence": [
+        "Sign In",
+        "Email Address",
+        "Get 15% Off",
+        "15% Off Your First Purchase"
+      ]
+    },
+    {
+      "url": "https://www.vividseats.com/world-cup-soccer-tickets-mercedes-benz-stadium-6-18-2026--sports-soccer/production/5080471?showDetails=VB15924766690&groupId=&qty=2",
+      "page_state": "event_listing",
+      "reached": false,
+      "action_types": [
+        "login",
+        "payment",
+        "billing_info"
+      ],
+      "payment_context": "inside_platform",
+      "requested_inputs": [],
+      "irreversible_action_visible": false,
+      "evidence": [
+        "Sign In",
+        "Checkout",
+        "Mobile Transfer"
+      ]
+    },
+    {
+      "url": "https://www.vividseats.com/login",
+      "page_state": "login_required",
+      "reached": true,
+      "action_types": [
+        "login"
+      ],
+      "payment_context": "none",
+      "requested_inputs": [
+        "email",
+        "first_name",
+        "zip_code"
+      ],
+      "irreversible_action_visible": false,
+      "evidence": [
+        "CURRENT_URL: https://www.vividseats.com/login",
+        "REGISTERED_DOMAIN: vividseats.com",
+        "VISIBLE_TEXT: Sign In",
+        "VISIBLE_TEXT: Returning Customer"
+      ]
+    },
+    {
+      "url": "https://www.vividseats.com/checkout?productionId=5080471&ticketId=VB15781952433&quantity=2&uuid=e27e1351-f77b-467e-a930-2f14bf1d405f&dealScore=7",
+      "page_state": "login_required",
+      "reached": true,
+      "action_types": [
+        "login"
+      ],
+      "payment_context": "none",
+      "requested_inputs": [
+        "email"
+      ],
+      "irreversible_action_visible": false,
+      "evidence": [
+        "Guest Checkout (VISIBLE_TEXT)",
+        "Enter your preferred email address to receive your tickets & order updates. (VISIBLE_TEXT)",
+        "Sign In (VISIBLE_TEXT)",
+        "Sign in for faster checkout and earn rewards! (VISIBLE_TEXT)"
+      ]
+    }
+  ],
+  "evidence": [
+    "Live registered domain is vividseats.com",
+    "Page claims platform: Vivid Seats",
+    "Off-platform payment requested (Zelle/Venmo/crypto/etc.)",
+    "Heavy urgency / scarcity language alongside other signals",
+    "Trusted marketplace domain with matching brand",
+    "Event / venue / date matches the expected listing",
+    "Observed a event_listing surface exposing login (not entered).",
+    "Observed a event_listing surface exposing login, payment, billing_info (not entered).",
+    "Reached login_required page — it requests: email, first_name, zip_code.",
+    "Reached login_required page — it requests: email."
+  ],
+  "recommended_action": "Continue only through the official platform checkout. Do not leave the platform for private payment.",
+  "osint": null,
+  "snapshots": [
+    {
+      "step": 0,
+      "url": "https://www.vividseats.com/world-cup-soccer-tickets-mercedes-benz-stadium-6-18-2026--sports-soccer/production/5080471?quantity=2",
+      "registered_domain": "vividseats.com",
+      "title": "Czechia vs South Africa - World Cup - Match 25 (Group A) tickets - Mercedes-Benz Stadium - 06/18/2026 | Vivid Seats",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check_nx33v1tt/step_0.png",
+      "error": null
+    },
+    {
+      "step": 1,
+      "url": "https://www.vividseats.com/world-cup-soccer-tickets-mercedes-benz-stadium-6-18-2026--sports-soccer/production/5080471?quantity=2",
+      "registered_domain": "vividseats.com",
+      "title": "Czechia vs South Africa - World Cup - Match 25 (Group A) tickets - Mercedes-Benz Stadium - 06/18/2026 | Vivid Seats",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check_nx33v1tt/step_1.png",
+      "error": null
+    },
+    {
+      "step": 2,
+      "url": "https://www.vividseats.com/world-cup-soccer-tickets-mercedes-benz-stadium-6-18-2026--sports-soccer/production/5080471?showDetails=VB15924766690&groupId=&qty=2",
+      "registered_domain": "vividseats.com",
+      "title": "Czechia vs South Africa - World Cup - Match 25 (Group A) tickets - Mercedes-Benz Stadium - 06/18/2026 | Vivid Seats",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check_nx33v1tt/step_2.png",
+      "error": null
+    },
+    {
+      "step": 3,
+      "url": "https://www.vividseats.com/world-cup-soccer-tickets-mercedes-benz-stadium-6-18-2026--sports-soccer/production/5080471?quantity=2",
+      "registered_domain": "vividseats.com",
+      "title": "Czechia vs South Africa - World Cup - Match 25 (Group A) tickets - Mercedes-Benz Stadium - 06/18/2026 | Vivid Seats",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check_nx33v1tt/step_3.png",
+      "error": null
+    },
+    {
+      "step": 4,
+      "url": "https://www.vividseats.com/login",
+      "registered_domain": "vividseats.com",
+      "title": "",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check_nx33v1tt/step_4.png",
+      "error": null
+    },
+    {
+      "step": 5,
+      "url": "https://www.vividseats.com/world-cup-soccer-tickets-mercedes-benz-stadium-6-18-2026--sports-soccer/production/5080471?quantity=2",
+      "registered_domain": "vividseats.com",
+      "title": "Czechia vs South Africa - World Cup - Match 25 (Group A) tickets - Mercedes-Benz Stadium - 06/18/2026 | Vivid Seats",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check_nx33v1tt/step_5.png",
+      "error": null
+    },
+    {
+      "step": 6,
+      "url": "https://www.vividseats.com/world-cup-soccer-tickets-mercedes-benz-stadium-6-18-2026--sports-soccer/production/5080471?showDetails=VB15781952433&groupId=&qty=2",
+      "registered_domain": "vividseats.com",
+      "title": "Czechia vs South Africa - World Cup - Match 25 (Group A) tickets - Mercedes-Benz Stadium - 06/18/2026 | Vivid Seats",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check_nx33v1tt/step_6.png",
+      "error": null
+    },
+    {
+      "step": 7,
+      "url": "https://www.vividseats.com/checkout?productionId=5080471&ticketId=VB15781952433&quantity=2&uuid=e27e1351-f77b-467e-a930-2f14bf1d405f&dealScore=7",
+      "registered_domain": "vividseats.com",
+      "title": "Checkout - VividSeats.com",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check_nx33v1tt/step_7.png",
+      "error": null
+    },
+    {
+      "step": 8,
+      "url": "https://www.vividseats.com/world-cup-soccer-tickets-mercedes-benz-stadium-6-18-2026--sports-soccer/production/5080471?showDetails=VB15781952433&groupId=&qty=2",
+      "registered_domain": "vividseats.com",
+      "title": "Czechia vs South Africa - World Cup - Match 25 (Group A) tickets - Mercedes-Benz Stadium - 06/18/2026 | Vivid Seats",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check_nx33v1tt/step_8.png",
+      "error": null
+    }
+  ],
+  "errors": []
+}

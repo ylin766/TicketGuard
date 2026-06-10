@@ -64,7 +64,14 @@ export function UrlInputScreen({ onAudit, loading, error }: UrlInputScreenProps)
 
       <h1 className="input-title sr-only">TicketGuard</h1>
 
-      <form className="input-card clay" onSubmit={handleSubmit} noValidate>
+      <motion.form
+        layoutId="data-carrier"
+        layout
+        className="input-card clay"
+        onSubmit={handleSubmit}
+        noValidate
+        style={{ borderRadius: "var(--radius-lg)" }}
+      >
         <div className={`neu-inset input-field${url ? " is-filled" : ""}`}>
           <span className="input-icon" aria-hidden="true">
             🔗
@@ -138,7 +145,7 @@ export function UrlInputScreen({ onAudit, loading, error }: UrlInputScreenProps)
             Try a sample
           </button>
         </div>
-      </form>
+      </motion.form>
 
       <ul className="trust-row">
         <li className="glass trust-chip">🌐 Site credibility</li>

@@ -7,10 +7,11 @@ import requests
 
 logger = logging.getLogger(__name__)
 
-# Fast APIs: max 2 tries, 3s then 5s (max 8s total wait).
-DEFAULT_TIMEOUT_LEVELS = [3, 5]
-# Slow/flaky APIs (e.g., crt.sh, RDAP): max 2 tries, 4s then 7s (max 11s total wait).
-SLOW_TIMEOUT_LEVELS = [4, 7]
+# TESTING: timeouts lowered for fast iteration (was [3, 5] / [4, 7]).
+# Fast APIs: single short try.
+DEFAULT_TIMEOUT_LEVELS = [2, 3]
+# Slow/flaky APIs (e.g., crt.sh, RDAP): single slightly longer try.
+SLOW_TIMEOUT_LEVELS = [3, 4]
 
 
 def fetch_with_retry(
@@ -35,7 +36,7 @@ def fetch_with_retry(
                     f"Request to {url} failed (timeout={timeout}s). Retrying... "
                     f"({i + 1}/{len(levels)} attempts used)"
                 )
-                time.sleep(1)  # small backoff before retrying
+                time.sleep(0.3)  # small backoff before retrying
 
     if last_exception:
         raise last_exception

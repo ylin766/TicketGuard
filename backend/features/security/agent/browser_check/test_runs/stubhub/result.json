@@ -1,0 +1,98 @@
+{
+  "module": "browser_security_check",
+  "input_url": "https://www.stubhub.com/world-cup-zapopan-tickets-6-11-2026/event/153033402/?quantity=2",
+  "final_url": "https://www.stubhub.com/world-cup-zapopan-tickets-6-11-2026/event/153033402/?quantity=2",
+  "risk_level": "medium",
+  "risk_score": 30,
+  "verdict": "suspicious_needs_manual_review",
+  "summary": "The page on stubhub.com has uncertain signals and warrants manual review before any purchase.",
+  "claim": {
+    "claimed_platform": "StubHub",
+    "claimed_domain": "stubhub.com",
+    "marketplace_type": "resale",
+    "claimed_event": "World Cup",
+    "claimed_venue": "Zapopan",
+    "claimed_city_state": null,
+    "claimed_date_time": "2026-06-11",
+    "visible_price_range": null,
+    "page_state": "blocked_or_captcha",
+    "confidence": "high",
+    "evidence": [
+      "StubHub logo is visible in the screenshot.",
+      "The current URL is on the stubhub.com domain.",
+      "The screenshot displays Chinese text '访问暂时受限' (Access temporarily restricted).",
+      "The screenshot displays Chinese text '为什么需要经过「我不是机器人」的验证？' (Why do I need to pass 'I'm not a robot' verification?), indicating a bot/captcha check.",
+      "The URL contains 'world-cup-zapopan-tickets-6-11-2026' which implies the event, venue, and date."
+    ]
+  },
+  "sensitive_action": {
+    "is_sensitive_action_page": false,
+    "page_state": "blocked_or_captcha",
+    "action_types": [
+      "none"
+    ],
+    "payment_context": "none",
+    "payment_methods": [],
+    "requested_inputs": [],
+    "irreversible_action_visible": false,
+    "evidence": [
+      "StubHub logo is visible in the screenshot.",
+      "The current URL is on the stubhub.com domain.",
+      "The screenshot displays Chinese text '访问暂时受限' (Access temporarily restricted).",
+      "The screenshot displays Chinese text '为什么需要经过「我不是机器人」的验证？' (Why do I need to pass 'I'm not a robot' verification?), indicating a bot/captcha check.",
+      "The page is a captcha/blocked page and does not request sensitive information or an irreversible action."
+    ]
+  },
+  "trust_check": {
+    "current_registered_domain": "stubhub.com",
+    "claimed_domain": "stubhub.com",
+    "is_trusted_marketplace_domain": true,
+    "domain_matches_claimed_platform": true,
+    "domain_mismatch_reason": null,
+    "suspicious_redirect": false,
+    "event_reference_mismatch": false,
+    "off_platform_payment_detected": false,
+    "strong_flags": [],
+    "weak_flags": [
+      "Could not inspect the purchase flow (blocked_or_captcha)"
+    ],
+    "benign_context": [
+      "Trusted marketplace domain with matching brand",
+      "Event / venue / date matches the expected listing"
+    ]
+  },
+  "transitions": [
+    {
+      "step": 0,
+      "before_url": "https://www.stubhub.com/world-cup-zapopan-tickets-6-11-2026/event/153033402/?quantity=2",
+      "clicked_index": null,
+      "clicked_text": null,
+      "after_url": null,
+      "page_state_before": "blocked_or_captcha",
+      "page_state_after": "unknown",
+      "reason": "The current page is blocked by a captcha. I cannot proceed with exploration on this page. Going back to try a different path.",
+      "stopped_reason": "No earlier page to return to; ending."
+    }
+  ],
+  "sensitive_surfaces": [],
+  "evidence": [
+    "Live registered domain is stubhub.com",
+    "Page claims platform: StubHub",
+    "Could not inspect the purchase flow (blocked_or_captcha)",
+    "Trusted marketplace domain with matching brand",
+    "Event / venue / date matches the expected listing"
+  ],
+  "recommended_action": "Proceed with caution and verify the seller/event through the official platform. Never pay via Zelle/Venmo/Cash App/crypto/gift card or accept a private off-platform transfer.",
+  "osint": null,
+  "snapshots": [
+    {
+      "step": 0,
+      "url": "https://www.stubhub.com/world-cup-zapopan-tickets-6-11-2026/event/153033402/?quantity=2",
+      "registered_domain": "stubhub.com",
+      "title": "stubhub.com",
+      "screenshot_path": "/var/folders/fb/mcy8g1q9207f45xww5fpqlm00000gn/T/ticket_browser_check_iao0_esq/step_0.png",
+      "error": null
+    }
+  ],
+  "errors": []
+}
