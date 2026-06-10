@@ -257,6 +257,48 @@ def _prices(listings: list[dict]) -> list[float]:
     ]
 
 
+# Currency symbols/prefixes seen on geo-localized ticket pages, longest first so
+# multi-char prefixes (S$, US$, HK$) win over a bare "$".
+_CURRENCY_PATTERNS = (
+    ("US$", "USD"),
+    ("S$", "SGD"),
+    ("A$", "AUD"),
+    ("CA$", "CAD"),
+    ("C$", "CAD"),
+    ("HK$", "HKD"),
+    ("NZ$", "NZD"),
+    ("R$", "BRL"),
+    ("MX$", "MXN"),
+    ("¥", "JPY"),
+    ("円", "JPY"),
+    ("£", "GBP"),
+    ("€", "EUR"),
+    ("₩", "KRW"),
+    ("₹", "INR"),
+    ("$", "USD"),  # bare dollar last
+)
+
+
+def detect_currency(listings: list[dict], default: str = "USD") -> str:
+    """Detect the ISO currency code from the scraped listings' raw price text.
+
+    Ticket sites localize prices by geography (e.g. StubHub may render SGD/JPY),
+    so the currency must be read from the page, not assumed to be USD.
+    """
+    blob = " ".join(
+        str(x.get("raw") or "")
+        for x in listings
+        if isinstance(x, dict)
+    )
+    if not blob:
+        return default
+    for symbol, code in _CURRENCY_PATTERNS:
+        if symbol in blob:
+            return code
+    return default
+
+
+
 def _norm(v) -> str:
     return str(v).strip().lower() if v is not None else ""
 
@@ -351,10 +393,12 @@ Return a strict JSON object:
   "verdict": "good_deal"|"fair"|"slightly_high"|"overpriced"|"unknown",
   "headline": string,                     // one short sentence, buyer-facing
   "assessment": string,                   // 1-2 sentences explaining the verdict
-  "savings_hint": string|null,            // e.g. "Comparable seats sell for ~$X"
+  "savings_hint": string|null,            // e.g. "Comparable seats sell for ~X"
   "tips": [string, ...]                   // 1-3 short, practical tips
 }}
-Base every claim on the data above. Output JSON only."""
+All money is in the currency given by stats.currency; quote amounts with that
+currency code, never assume US dollars. Base every claim on the data above.
+Output JSON only."""
 
 
 def evaluate(user: dict, stats: dict, recs: list[dict]) -> dict:
@@ -393,7 +437,9 @@ def _fallback_verdict(stats: dict, user_price: Optional[float]) -> dict:
         "headline": head,
         "assessment": f"The price sits at the {pct}th percentile of {stats.get('count')} live listings.",
         "savings_hint": (
-            f"Median is ${stats.get('median'):.0f}." if stats.get("median") else None
+            f"Median is {stats.get('median'):.0f} {stats.get('currency', '')}.".strip()
+            if stats.get("median")
+            else None
         ),
         "tips": [],
     }
@@ -443,6 +489,11 @@ def analyze(
     user_section = user.get("section")
 
     stats = compute_market_stats(listings, user_price, user_section)
+    # Currency is geo-localized on the page; detect it so the UI formats right.
+    currency = detect_currency(listings)
+    stats["currency"] = currency
+    if not user.get("currency"):
+        user["currency"] = currency
     recs = recommend_cheaper(listings, user_price, user_section)
     analysis = evaluate(user, stats, recs) or _fallback_verdict(stats, user_price)
     # Guarantee the fallback shape even if Gemini returned a partial object.

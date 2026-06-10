@@ -4,13 +4,18 @@ import "./PriceAnalysisPanel.css";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-function fmtUsd(n: number | null | undefined): string {
+function fmtMoney(n: number | null | undefined, currency = "USD"): string {
   if (n == null) return "—";
-  return n.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  });
+  try {
+    return n.toLocaleString("en-US", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 0,
+    });
+  } catch {
+    // Unknown/invalid currency code — fall back to a plain number + code.
+    return `${n.toLocaleString("en-US", { maximumFractionDigits: 0 })} ${currency}`;
+  }
 }
 
 const VERDICT_META: Record<
@@ -25,7 +30,8 @@ const VERDICT_META: Record<
 };
 
 export function PriceAnalysisPanel({ state }: { state: PriceState }) {
-  const { status, analysis, stats, userListing, recommendations } = state;
+  const { status, analysis, stats, userListing, recommendations, currency } =
+    state;
 
   if (status === "analyzing") {
     return (
@@ -75,7 +81,7 @@ export function PriceAnalysisPanel({ state }: { state: PriceState }) {
         {userListing?.price_per_ticket != null && (
           <div className="pap-fig neu-inset">
             <span className="pap-fig-label">Your ticket</span>
-            <strong>{fmtUsd(userListing.price_per_ticket)}</strong>
+            <strong>{fmtMoney(userListing.price_per_ticket, currency)}</strong>
             {userListing.section && (
               <span className="pap-fig-sub">Sec {userListing.section}</span>
             )}
@@ -84,7 +90,7 @@ export function PriceAnalysisPanel({ state }: { state: PriceState }) {
         {stats?.median != null && (
           <div className="pap-fig neu-inset">
             <span className="pap-fig-label">Market median</span>
-            <strong>{fmtUsd(stats.median)}</strong>
+            <strong>{fmtMoney(stats.median, currency)}</strong>
             {stats.count != null && (
               <span className="pap-fig-sub">{stats.count} listings</span>
             )}
@@ -94,8 +100,8 @@ export function PriceAnalysisPanel({ state }: { state: PriceState }) {
           <div className="pap-fig neu-inset">
             <span className="pap-fig-label">Fair range</span>
             <strong>
-              {fmtUsd(stats.fair_price_range.low)}–
-              {fmtUsd(stats.fair_price_range.high)}
+              {fmtMoney(stats.fair_price_range.low, currency)}–
+              {fmtMoney(stats.fair_price_range.high, currency)}
             </strong>
           </div>
         )}
@@ -119,7 +125,7 @@ export function PriceAnalysisPanel({ state }: { state: PriceState }) {
           <ul>
             {recommendations.map((r, i) => (
               <li key={r.listing_id ?? i} className="pap-rec neu-inset">
-                <strong>{fmtUsd(r.price)}</strong>
+                <strong>{fmtMoney(r.price, currency)}</strong>
                 <span className="pap-rec-seat">
                   Sec {r.section ?? "—"}
                   {r.row != null ? ` · Row ${r.row}` : ""}

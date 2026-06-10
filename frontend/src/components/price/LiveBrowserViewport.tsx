@@ -11,17 +11,22 @@ import "./LiveBrowserViewport.css";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-function fmtUsd(n: number | null): string {
+function fmtMoney(n: number | null, currency = "USD"): string {
   if (n == null) return "—";
-  return n.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  });
+  try {
+    return n.toLocaleString("en-US", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 0,
+    });
+  } catch {
+    return `${n.toLocaleString("en-US", { maximumFractionDigits: 0 })} ${currency}`;
+  }
 }
 
 export function LiveBrowserViewport({ state }: { state: PriceState }) {
-  const { status, source, latestFrame, action, median, count, error } = state;
+  const { status, source, latestFrame, action, median, count, error, currency } =
+    state;
   const live = status === "streaming";
 
   return (
@@ -74,7 +79,7 @@ export function LiveBrowserViewport({ state }: { state: PriceState }) {
             : action || (live ? "Opening marketplace…" : "Queued")}
         </span>
         <span className="lbv-result">
-          <span className="lbv-result-median">{fmtUsd(median)}</span>
+          <span className="lbv-result-median">{fmtMoney(median, currency)}</span>
           <span className="lbv-result-label">
             median{count > 0 ? ` · ${count} listings` : ""}
           </span>

@@ -44,6 +44,7 @@ export interface PriceStats {
   same_section_median?: number | null;
   same_section_count?: number;
   fair_price_range?: { low: number; high: number } | null;
+  currency?: string;
 }
 
 export type PriceVerdict =
@@ -75,8 +76,12 @@ export interface PriceState {
   listings: PriceListing[];
   median: number | null;
   count: number;
+  /** ISO currency code detected from the page (geo-localized). */
+  currency: string;
   /** Buyer's own ticket (vision-extracted), {} until 'done'. */
   userListing: UserListing | null;
+  /** The same seat located on our reference market (cross-site), {} if none. */
+  sameSeat: PriceListing | null;
   stats: PriceStats | null;
   analysis: PriceAnalysis | null;
   recommendations: PriceListing[];
@@ -92,7 +97,9 @@ const INITIAL: PriceState = {
   listings: [],
   median: null,
   count: 0,
+  currency: "USD",
   userListing: null,
+  sameSeat: null,
   stats: null,
   analysis: null,
   recommendations: [],
@@ -110,6 +117,7 @@ type PriceSseFrame =
       listings: PriceListing[];
       metadata?: Record<string, unknown>;
       user_listing?: UserListing;
+      same_seat?: PriceListing;
       stats?: PriceStats;
       analysis?: PriceAnalysis;
       recommendations?: PriceListing[];
@@ -163,7 +171,9 @@ export function usePriceStream(
               median: frame.median,
               count: frame.count,
               listings: frame.listings ?? [],
+              currency: frame.stats?.currency ?? prev.currency,
               userListing: frame.user_listing ?? null,
+              sameSeat: frame.same_seat ?? null,
               stats: frame.stats ?? null,
               analysis: frame.analysis ?? null,
               recommendations: frame.recommendations ?? [],

@@ -100,3 +100,14 @@ def test_find_same_seat_cross_site():
     assert analysis.find_same_seat({"section": None, "row": "2"}, _LISTINGS) == {}
     # Section with no matching row -> empty.
     assert analysis.find_same_seat({"section": "Z", "row": "9"}, _LISTINGS) == {}
+
+
+def test_detect_currency():
+    assert analysis.detect_currency([{"raw": "S$561 incl. fees"}]) == "SGD"
+    assert analysis.detect_currency([{"raw": "$738 incl. fees"}]) == "USD"
+    assert analysis.detect_currency([{"raw": "¥142883"}]) == "JPY"
+    assert analysis.detect_currency([{"raw": "£99 each"}]) == "GBP"
+    assert analysis.detect_currency([{"raw": "US$120"}]) == "USD"
+    # Empty / unknown -> default.
+    assert analysis.detect_currency([]) == "USD"
+    assert analysis.detect_currency([{"raw": "no symbol here"}]) == "USD"

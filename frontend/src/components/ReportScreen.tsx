@@ -37,6 +37,18 @@ function formatUsd(value: number): string {
   });
 }
 
+function formatMoney(value: number, currency = "USD"): string {
+  try {
+    return value.toLocaleString("en-US", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 0,
+    });
+  } catch {
+    return `${value.toLocaleString("en-US", { maximumFractionDigits: 0 })} ${currency}`;
+  }
+}
+
 export function ReportScreen({
   report,
   onBack,
@@ -90,7 +102,7 @@ export function ReportScreen({
                 </div>
                 <div className="price-pill neu-inset">
                   <span className="eyebrow">Market median</span>
-                  <strong>{formatUsd(marketMedian)}</strong>
+                  <strong>{formatMoney(marketMedian, price.currency)}</strong>
                 </div>
                 <div className="price-pill neu-inset">
                   <span className="eyebrow">Markup</span>
