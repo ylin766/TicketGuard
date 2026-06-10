@@ -93,44 +93,13 @@ def _parse_report(text: str) -> dict:
 
 
 def _maybe_setup_phoenix() -> str | None:
-    """Enable Arize Phoenix tracing if credentials are present. Returns the
-    Phoenix workspace URL (for the frontend to deep-link to) or None.
+    """Backwards-compatible shim: telemetry is now bootstrapped centrally at
+    server startup (see ``backend.observability.telemetry``). This just returns
+    the Phoenix workspace URL (initializing on first use if startup hasn't run,
+    e.g. in a standalone test harness)."""
+    from ...observability.telemetry import init_telemetry
 
-    Safe to call once per process; OpenInference instrumentation is idempotent
-    enough for our purposes and failures are swallowed (tracing is optional).
-    """
-    api_key = os.environ.get("PHOENIX_API_KEY")
-    endpoint = os.environ.get(
-        "PHOENIX_COLLECTOR_ENDPOINT",
-        "https://app.phoenix.arize.com/s/linyushuhong/v1/traces",
-    )
-    if not api_key:
-        return None
-    try:
-        from opentelemetry import trace as _trace
-        from opentelemetry.sdk.trace import TracerProvider
-        from opentelemetry.sdk.trace.export import BatchSpanProcessor
-        from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
-            OTLPSpanExporter,
-        )
-        from openinference.instrumentation.google_adk import GoogleADKInstrumentor
-
-        if not getattr(_maybe_setup_phoenix, "_done", False):
-            exporter = OTLPSpanExporter(
-                endpoint=endpoint,
-                headers={"Authorization": f"Bearer {api_key}"},
-            )
-            provider = TracerProvider()
-            provider.add_span_processor(BatchSpanProcessor(exporter))
-            _trace.set_tracer_provider(provider)
-            GoogleADKInstrumentor().instrument(tracer_provider=provider)
-            _maybe_setup_phoenix._done = True  # type: ignore[attr-defined]
-            logger.info("[OSINT] Phoenix tracing enabled → %s", endpoint)
-        # Derive the human UI URL from the collector endpoint.
-        return endpoint.replace("/v1/traces", "")
-    except Exception as exc:  # noqa: BLE001 - tracing must never break the stream
-        logger.warning("[OSINT] Phoenix tracing unavailable: %s", exc)
-        return None
+    return init_telemetry()
 
 
 async def stream_osint(url: str) -> AsyncGenerator[dict, None]:

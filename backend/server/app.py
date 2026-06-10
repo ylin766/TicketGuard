@@ -26,6 +26,7 @@ from ..features.security.orchestrator import run_security_audit
 from ..features.security.pipeline import run_pipeline
 from ..features.security.pipeline.threatintel import stream_threatintel
 from ..features.security.agent.osint_stream import stream_osint
+from ..observability.telemetry import init_telemetry
 
 _env_path = Path(__file__).parent.parent / ".env"
 load_dotenv(_env_path)
@@ -33,6 +34,18 @@ load_dotenv(_env_path)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="TicketGuard API", version="0.1.0")
+
+
+@app.on_event("startup")
+def _bootstrap_telemetry() -> None:
+    """Wire Phoenix/OpenTelemetry once, for every LLM path (ADK + google.genai).
+
+    Done at startup (not per-request) so the OSINT stream, the security audit's
+    browser-check + grey-zone escalation, and direct Gemini vision calls all
+    emit traces. The Phoenix workspace URL is cached on app.state for deep-links.
+    """
+    app.state.phoenix_url = init_telemetry()
+
 
 app.add_middleware(
     CORSMiddleware,
