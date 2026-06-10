@@ -88,7 +88,7 @@ _NETWORKIDLE_TIMEOUT_MS = 3000
 _MAX_SNAPSHOT_CHARS = 12000
 
 # When run on-screen (PRICE_BROWSER_ONSCREEN=1) keep browser-use's default
-# top-left window position; off-screen mode suppresses this (see below).
+# top-left window position; off-screen mode runs headless (no window at all).
 _DEFAULT_WINDOW_POSITION = {"width": 0, "height": 0}
 
 
@@ -204,20 +204,21 @@ class BrowserCheckRunner:
         try:
             from browser_use import BrowserSession  # lazy: heavy + needs Chromium
 
-            # Headed for accuracy/anti-bot, but parked far OFF-SCREEN so no window
-            # flashes in the user's face — they watch our clay viewport instead
-            # (same treatment as the price scrapers). Override with
-            # PRICE_BROWSER_ONSCREEN=1 to debug with a visible window.
+            # Off-screen window parking proved unreliable on Windows (the window
+            # still flashed in front of the user), so off-screen mode now runs a
+            # real HEADLESS browser: no OS window is ever created, which is the
+            # only way to *guarantee* nothing appears on-screen. Screenshots still
+            # work headless and feed the clay viewport via on_frame, so the UX is
+            # unchanged. Set PRICE_BROWSER_ONSCREEN=1 to debug with a visible,
+            # headed window.
             offscreen = os.environ.get("PRICE_BROWSER_ONSCREEN") != "1"
-            # Park the window far off-screen. The profile's own window_position
-            # field only accepts non-negative coords, so to move the window off
-            # the left edge we (a) suppress that field by passing None — otherwise
-            # browser-use appends --window-position=0,0 AFTER our args and wins —
-            # and (b) pass the negative position through args ourselves.
-            window_position = None if offscreen else _DEFAULT_WINDOW_POSITION
-            launch_args = (
-                ["--window-position=-32000,-32000"] if offscreen else []
-            )
+            # Headless when off-screen (no window at all); headed only when the
+            # developer explicitly asks to see it.
+            headless = True if offscreen else self.headless
+            # window_position / off-screen launch args only matter for a real
+            # (headed) window; in headless mode there is no window to place.
+            window_position = _DEFAULT_WINDOW_POSITION if not headless else None
+            launch_args: list[str] = []
             # Force Playwright's bundled Chromium (identical to the scrapers).
             # Without this, browser-use's discovery misses Chromium on Windows
             # and falls back to system Edge.
@@ -229,7 +230,7 @@ class BrowserCheckRunner:
             # read-only fraud probe but make the (headed, Windows) Chromium cold
             # start blow past browser-use's 30s launch timeout.
             session_kwargs = dict(
-                headless=self.headless,
+                headless=headless,
                 highlight_elements=False,
                 enable_default_extensions=False,
                 window_position=window_position,
