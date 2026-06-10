@@ -4,6 +4,8 @@ import { ThreatIntelPanel } from "../ThreatIntelPanel";
 import type { ThreatScanSummary, ThreatScanCache } from "../ThreatIntelPanel";
 import { AgentPanel } from "./AgentPanel";
 import { useAgentStream, type AgentState } from "./useAgentStream";
+import { AgentBrowserViewport } from "./AgentBrowserViewport";
+import { useBrowserCheckStream } from "./useBrowserCheckStream";
 
 /**
  * The security unit's runtime body. The two investigations are a FRONT→BACK
@@ -46,6 +48,9 @@ export function SecurityRuntime({
 }) {
   const [stage, setStage] = useState<Stage>("scan");
   const agent = useAgentStream(url, stage === "opinion");
+  // Layer-2 browser probe runs alongside the OSINT opinion agent in the grey
+  // zone, streaming the headed browser's exploration into the clay viewport.
+  const browser = useBrowserCheckStream(url, stage === "opinion");
 
   useEffect(() => {
     if (agent.status === "done" || agent.status === "error") {
@@ -110,7 +115,10 @@ export function SecurityRuntime({
                 transition: { type: "spring", stiffness: 110, damping: 16, mass: 1, delay: 0.08 },
               }}
             >
-              <AgentPanel state={agent} variant="runtime" />
+              <div className="sec-opinion-stack">
+                <AgentBrowserViewport state={browser} />
+                <AgentPanel state={agent} variant="runtime" />
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

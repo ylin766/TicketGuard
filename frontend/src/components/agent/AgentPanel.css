@@ -30,6 +30,17 @@
   transform-origin: left center;
 }
 
+/* Grey-zone (Layer 2) shows the live browser probe above the OSINT opinion
+   trace, stacked in one scrollable column. */
+.sec-opinion-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 /* The carried-over scan verdict, pinned above the agent stage as continuity. */
 .sec-verdict-chip {
   display: flex;
