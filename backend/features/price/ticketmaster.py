@@ -367,22 +367,37 @@ async def extract_event_metadata(page: Page, ticket_count: int) -> dict:
     return metadata
 
 
-async def main():
-    ticket_count = ask_ticket_count()
+async def fetch_ticketmaster(url: str | None = None, qty: int = 2, on_frame=None) -> dict:
+    """Scrape Ticketmaster resale prices for ``url`` at ``qty`` tickets.
 
-    print(f"Target: {EVENT_URL}")
-    print(f"Tickets: {ticket_count}\n")
+    Importable, no console I/O. Returns:
+        {"source": "ticketmaster", "metadata": {...}, "listings": [..]}
+
+    ``on_frame(step:int, png_bytes:bytes, action:str)`` is an optional callback
+    invoked after each browser milestone with a screenshot. It must never raise.
+    """
+    target_url = url or EVENT_URL
+    step = {"n": 0}
+
+    async def frame(action: str, page: "Page | None") -> None:
+        if on_frame is None or page is None:
+            return
+        try:
+            png = await page.screenshot(type="png")
+            on_frame(step["n"], png, action)
+            step["n"] += 1
+        except Exception:  # noqa: BLE001
+            pass
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(
-            headless=False,
+            headless=False,  # resale sites degrade / block under headless
             args=[
                 "--disable-blink-features=AutomationControlled",
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
             ],
         )
-
         context = await browser.new_context(
             viewport={"width": 1280, "height": 900},
             user_agent=(
@@ -392,53 +407,52 @@ async def main():
             ),
             locale="en-US",
         )
-
-        await context.add_init_script("""
+        await context.add_init_script(
+            """
             Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
             window.chrome = { runtime: {} };
-        """)
-
+            """
+        )
         page = await context.new_page()
+        try:
+            await page.goto(target_url, wait_until="domcontentloaded", timeout=60_000)
+            await page.wait_for_timeout(3000)
+            await frame("Opened event page", page)
 
-        print("Opening page...")
-        await page.goto(EVENT_URL, wait_until="domcontentloaded", timeout=60_000)
-        await page.wait_for_timeout(3000)
+            await close_popups(page)
+            loaded = await wait_for_ticket_list(page)
+            await frame("Ticket list loaded" if loaded else "No tickets found", page)
+            if not loaded:
+                return {"source": "ticketmaster", "metadata": {}, "listings": []}
 
-        await close_popups(page)
+            await close_popups(page)
+            await select_ticket_quantity(page, qty)
+            await frame(f"Selected {qty} tickets", page)
 
-        print("Waiting for ticket list...")
-        loaded = await wait_for_ticket_list(page)
+            await scroll_load_all(page)
+            await frame("Loaded all tickets", page)
 
-        if not loaded:
-            print("Could not load ticket data. Saving page_dump.html")
-            with open("page_dump.html", "w", encoding="utf-8") as f:
-                f.write(await page.content())
+            seats = await extract_seats(page, qty)
+            metadata = await extract_event_metadata(page, qty)
+            await frame(f"Extracted {len(seats)} listings", page)
+
+            return {"source": "ticketmaster", "metadata": metadata, "listings": seats}
+        finally:
             await browser.close()
-            return
 
-        await close_popups(page)
 
-        await select_ticket_quantity(page, ticket_count)
-
-        print("Scrolling to load all tickets...")
-        await scroll_load_all(page)
-
-        seats = await extract_seats(page, ticket_count)
-
-        metadata = await extract_event_metadata(page, ticket_count)
-
-        output = {
-            "metadata": metadata,
-            "tickets": seats,
-        }
-
-        with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-            json.dump(output, f, ensure_ascii=False, indent=2)
-
-        await browser.close()
-
-    print(f"\nSaved {len(seats)} tickets to {OUTPUT_FILE}")
-    print(json.dumps(metadata, ensure_ascii=False, indent=2))
+async def main():
+    """CLI entry point (manual run): prompts for quantity, writes JSON file."""
+    qty = ask_ticket_count()
+    result = await fetch_ticketmaster(EVENT_URL, qty)
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+        json.dump(
+            {"metadata": result["metadata"], "tickets": result["listings"]},
+            f,
+            ensure_ascii=False,
+            indent=2,
+        )
+    print(f"Saved {len(result['listings'])} tickets to {OUTPUT_FILE}")
 
 
 if __name__ == "__main__":

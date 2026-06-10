@@ -446,15 +446,33 @@ async def extract_event_metadata(page: Page, target_url: str, ticket_count: int)
     return metadata
 
 
-async def main():
-    ticket_count = ask_ticket_count()
-    target_url = build_quantity_url(DEFAULT_URL, ticket_count)
+async def fetch_stubhub(url: str | None = None, qty: int = 2, on_frame=None) -> dict:
+    """Scrape StubHub seat inventory for ``url`` at ``qty`` tickets.
 
-    print(f"\nOpening: {target_url}\n")
+    Importable, no console I/O. Returns:
+        {"source": "stubhub", "metadata": {...}, "listings": [..seat dicts..]}
+
+    ``on_frame(step:int, png_bytes:bytes, action:str)`` is an optional callback
+    invoked after each browser milestone with a screenshot, so a caller can
+    stream the headed browser's view to a UI. It must never raise (failures are
+    swallowed so they can't break the scrape).
+    """
+    target_url = build_quantity_url(url or DEFAULT_URL, qty)
+    step = {"n": 0}
+
+    async def frame(action: str, page: "Page | None") -> None:
+        if on_frame is None or page is None:
+            return
+        try:
+            png = await page.screenshot(type="png")
+            on_frame(step["n"], png, action)
+            step["n"] += 1
+        except Exception:  # noqa: BLE001 - screenshotting must not break the scrape
+            pass
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(
-            headless=False,
+            headless=False,  # resale sites degrade / block under headless
             args=[
                 "--disable-blink-features=AutomationControlled",
                 "--no-sandbox",
@@ -462,7 +480,6 @@ async def main():
                 "--disable-infobars",
             ],
         )
-
         context = await browser.new_context(
             viewport={"width": 1400, "height": 900},
             user_agent=(
@@ -473,51 +490,56 @@ async def main():
             locale="en-US",
             timezone_id="America/New_York",
         )
-
-        await context.add_init_script("""
+        await context.add_init_script(
+            """
             Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
             Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
             Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
             window.chrome = { runtime: {} };
-        """)
-
-        page = await context.new_page()
-
-        await page.goto(target_url, wait_until="domcontentloaded", timeout=60000)
-        await page.wait_for_timeout(3000)
-
-        await close_popups(page)
-        await dismiss_ticket_modal(page)
-        await close_popups(page)
-
-        loaded = await wait_for_listings(page)
-
-        if not loaded:
-            print("Still no [data-listing-id]. Saving page_dump.html and stopping.")
-            with open("page_dump.html", "w", encoding="utf-8") as f:
-                f.write(await page.content())
-            await browser.close()
-            return
-
-        await scroll_and_click_show_more(page)
-
-        seats = await extract_seats(page)
-
-        metadata = await extract_event_metadata(
-            page=page,
-            target_url=target_url,
-            ticket_count=ticket_count,
+            """
         )
+        page = await context.new_page()
+        try:
+            await page.goto(target_url, wait_until="domcontentloaded", timeout=60000)
+            await page.wait_for_timeout(3000)
+            await frame("Opened event page", page)
 
-        output_data = {
-            "metadata": metadata,
-            "tickets": seats,
-        }
+            await close_popups(page)
+            await dismiss_ticket_modal(page)
+            await close_popups(page)
+            await frame("Dismissed popups", page)
 
-        with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-            json.dump(output_data, f, indent=2, ensure_ascii=False)
+            loaded = await wait_for_listings(page)
+            await frame("Listings loaded" if loaded else "No listings found", page)
+            if not loaded:
+                return {"source": "stubhub", "metadata": {}, "listings": []}
 
-        await browser.close()
+            await scroll_and_click_show_more(page)
+            await frame("Loaded all listings", page)
+
+            seats = await extract_seats(page)
+            metadata = await extract_event_metadata(
+                page=page, target_url=target_url, ticket_count=qty
+            )
+            await frame(f"Extracted {len(seats)} listings", page)
+
+            return {"source": "stubhub", "metadata": metadata, "listings": seats}
+        finally:
+            await browser.close()
+
+
+async def main():
+    """CLI entry point (manual run): prompts for quantity, writes JSON file."""
+    qty = ask_ticket_count()
+    result = await fetch_stubhub(DEFAULT_URL, qty)
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+        json.dump(
+            {"metadata": result["metadata"], "tickets": result["listings"]},
+            f,
+            indent=2,
+            ensure_ascii=False,
+        )
+    print(f"Saved {len(result['listings'])} listings to {OUTPUT_FILE}")
 
     print(f"\nSaved {len(seats)} seats to {OUTPUT_FILE}\n")
     print(json.dumps(metadata, indent=2, ensure_ascii=False))
