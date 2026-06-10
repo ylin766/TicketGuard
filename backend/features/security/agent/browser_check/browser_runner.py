@@ -383,12 +383,12 @@ class BrowserCheckRunner:
         from google.adk.runners import InMemoryRunner
         from google.genai import types as genai_types
 
-        from .....core.config import GEMINI_MODEL
+        from .....core.config import build_gemini_model
         from .llm.prompts import BROWSE_REACT_INSTRUCTION
 
         agent = LlmAgent(
             name="ticket_browse_explorer",
-            model=GEMINI_MODEL,
+            model=build_gemini_model(),
             description="Observe-only ticket-page explorer.",
             instruction=BROWSE_REACT_INSTRUCTION,
             tools=self._build_tools(),

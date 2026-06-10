@@ -2,7 +2,7 @@
 
 from google.adk.agents import LlmAgent
 
-from .....core.config import GEMINI_MODEL
+from .....core.config import build_gemini_model
 from .tools import (
     read_specific_url,
     search_consumer_reviews,
@@ -14,7 +14,7 @@ from .prompt import OSINT_AGENT_PROMPT
 
 osint_subagent = LlmAgent(
     name="osint_subagent",
-    model=GEMINI_MODEL,
+    model=build_gemini_model(),
     instruction=OSINT_AGENT_PROMPT,
     description="Investigates ticketing URLs using social media, Reddit, Trustpilot, and web searches to detect fraud.",
     tools=[
