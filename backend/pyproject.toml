@@ -6,20 +6,19 @@ requires-python = ">=3.11"
 dependencies = [
     "google-adk>=1.0.0",
     "requests>=2.32.0",
-]
-
-[project.optional-dependencies]
-# Browser control for full preprocess (screenshots). Optional for the skeleton.
-browser = ["selenium>=4.20.0"]
-# Browser-based security check (Layer 2): drives a real browser via browser-use
-# and reads pages with Gemini vision. Run `browser-use install` after installing
-# to download Chromium.
-browser-security = [
+    # Layer 2 (browser-based security check) is REQUIRED, not optional: the
+    # grey-zone escalation drives a real browser via browser-use and reads pages
+    # with Gemini vision. After installing, run `playwright install chromium` to
+    # download the browser binary.
     "browser-use>=0.5.0",
     "google-genai>=1.0.0",
     "tldextract>=5.0.0",
     "Pillow>=10.0.0",
 ]
+
+[project.optional-dependencies]
+# Browser control for full preprocess (screenshots). Optional for the skeleton.
+browser = ["selenium>=4.20.0"]
 # Security detectors use only `requests` (already a core dependency).
 security = []
 # Arize observability (partner integration).
