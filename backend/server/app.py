@@ -157,3 +157,39 @@ async def osint_stream(url: str) -> StreamingResponse:
             "X-Accel-Buffering": "no",
         },
     )
+
+
+@app.get("/api/price/stream")
+async def price_stream(url: str, qty: int = 2) -> StreamingResponse:
+    """SSE stream of live market-price collection for ``url`` at ``qty`` tickets.
+
+    Drives a HEADED browser (resale sites degrade under headless) and streams a
+    per-step screenshot so the frontend can show a live "clay viewport" instead
+    of a raw OS window, followed by the aggregated listings + median.
+
+    Frame format (text/event-stream), see price.service.stream_price:
+        data: {"type":"start","url":...,"source":...}\n\n
+        data: {"type":"frame","step":int,"action":str,"image":"data:image/png;base64,…"}\n\n
+        data: {"type":"done","median":float|null,"count":int,"listings":[...]}\n\n
+        data: {"type":"error","message":str}\n\n
+    """
+    from ..features.price.service import stream_price
+
+    async def event_generator():
+        try:
+            async for event in stream_price(url, qty):
+                yield f"data: {json.dumps(event)}\n\n"
+        except asyncio.CancelledError:  # client disconnected
+            raise
+        except Exception as exc:  # noqa: BLE001 - last-resort error frame
+            logger.exception("Price stream error")
+            yield f"data: {json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
