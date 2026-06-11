@@ -28,22 +28,31 @@ function surfaceLabel(state: string): string {
 type SurfaceTone = "danger" | "warn" | "muted";
 
 /**
- * Classify a surface by what it ACTUALLY asks for, not the model's page_state
- * guess — a step that only collects email + phone is contact info, not payment,
- * even if the page is on the way to checkout.
+ * Classify a surface by what it ACTUALLY asks the buyer to fill in
+ * (``requested_inputs``) — NOT by the page's ``action_types``. A checkout step's
+ * action_types say "payment" even when this particular form only collects a name
+ * + address + email, so mixing the two mislabels a contact form as "Payment".
+ * action_types / page_state are only a fallback when no concrete fields were seen.
  */
 function classifySurface(s: SensitiveSurface): { label: string; tone: SurfaceTone } {
-  const txt = `${s.requested_inputs.join(" ")} ${s.action_types.join(" ")}`.toLowerCase();
-  const has = (...kws: string[]) => kws.some((k) => txt.includes(k));
+  const inputs = s.requested_inputs.join(" ").toLowerCase();
+  const hasIn = (...kws: string[]) => kws.some((k) => inputs.includes(k));
 
-  if (has("password")) return { label: "Login", tone: "danger" };
-  if (has("payment", "card", "billing", "cvv", "credit"))
+  // Primary: the real fields the form requests.
+  if (hasIn("password")) return { label: "Login", tone: "danger" };
+  if (hasIn("card", "cvv", "credit", "card_number", "payment", "iban"))
     return { label: "Payment", tone: "danger" };
-  if (has("otp", "verification", "verification_code"))
-    return { label: "Verification code", tone: "danger" };
-  if (has("transfer")) return { label: "Ticket transfer", tone: "danger" };
-  if (has("email", "phone", "name", "zip", "address"))
-    return { label: "Contact info", tone: "warn" };
+  if (hasIn("otp", "verification")) return { label: "Verification code", tone: "danger" };
+  if (hasIn("transfer")) return { label: "Ticket transfer", tone: "danger" };
+  if (hasIn("name", "email", "phone", "mobile", "address", "zip", "post", "city"))
+    return { label: "Personal details", tone: "warn" };
+
+  // Fallback: no concrete inputs captured — describe the page's declared role.
+  const actions = s.action_types.join(" ").toLowerCase();
+  if (actions.includes("password") || s.page_state === "login_required")
+    return { label: "Login", tone: "danger" };
+  if (actions.includes("payment") || s.page_state === "payment_required")
+    return { label: "Payment page", tone: "warn" };
   return { label: surfaceLabel(s.page_state), tone: "muted" };
 }
 
@@ -56,7 +65,15 @@ interface BrandView {
   text: string;
 }
 
-function describeBrand(brand: BrandCheck): BrandView {
+/**
+ * The brand check is only meaningful when there is a RECOGNIZED brand/marketplace
+ * to verify against — a trusted whitelisted domain, or a page claiming a known
+ * brand (which the backend resolved to True=on its official domain or
+ * False=impersonation). A site that merely claims its own unknown name (e.g.
+ * "eTicketing.co" on eticketing.co) has nothing to check, so we render no brand
+ * row at all and let the sensitive surfaces + OSINT reputation speak instead.
+ */
+function describeBrand(brand: BrandCheck): BrandView | null {
   if (brand.matches === false) {
     return {
       tone: "bad",
@@ -73,16 +90,8 @@ function describeBrand(brand: BrandCheck): BrandView {
   if (brand.matches === true) {
     return { tone: "good", text: `Brand matches its domain · ${brand.domain ?? ""}` };
   }
-  if (brand.claimed_platform) {
-    return {
-      tone: "neutral",
-      text: `Claims ${brand.claimed_platform} on ${brand.domain ?? "this domain"}`,
-    };
-  }
-  return {
-    tone: "neutral",
-    text: `Unrecognized site · ${brand.domain ?? "unknown domain"}`,
-  };
+  // No recognized brand to verify (matches === null, untrusted domain) → no row.
+  return null;
 }
 
 export function BrowserFindings({
@@ -92,10 +101,10 @@ export function BrowserFindings({
   brand: BrandCheck | null;
   surfaces: SensitiveSurface[];
 }) {
-  const hasBrand = !!(brand && (brand.claimed_platform || brand.domain));
-  if (!hasBrand && surfaces.length === 0) return null;
-
   const brandView = brand ? describeBrand(brand) : null;
+  const hasOffPlatform = !!brand?.off_platform_payment;
+  // Nothing verifiable to show (unknown site, no off-platform flag, no surfaces).
+  if (!brandView && !hasOffPlatform && surfaces.length === 0) return null;
 
   return (
     <div className="bfind">
