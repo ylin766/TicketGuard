@@ -1,0 +1,167 @@
+{
+  "metadata": {
+    "source": "ticketmaster",
+    "event_url": "https://www.ticketmaster.com/event/tm_wc_monterrey",
+    "event_name": "Argentina vs Nigeria - World Cup Group C",
+    "venue": "Estadio BBVA",
+    "city": "Monterrey",
+    "currency": "MXN",
+    "fixture": true
+  },
+  "tickets": [
+    {
+      "source": "fixture",
+      "section": "General",
+      "row": 32,
+      "price": 11299,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "General",
+      "row": 11,
+      "price": 8817,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea",
+      "row": null,
+      "price": 18139,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Cabecera Norte",
+      "row": null,
+      "price": 15405,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "General",
+      "row": null,
+      "price": 8852,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Cabecera Norte",
+      "row": 28,
+      "price": 10793,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Cabecera Norte",
+      "row": null,
+      "price": 11240,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Cabecera Norte",
+      "row": null,
+      "price": 11965,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Cabecera Norte",
+      "row": null,
+      "price": 10365,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "General",
+      "row": 16,
+      "price": 10673,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "General",
+      "row": null,
+      "price": 9130,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea",
+      "row": 31,
+      "price": 14259,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea",
+      "row": null,
+      "price": 16648,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Cabecera Norte",
+      "row": 31,
+      "price": 10893,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Cabecera Norte",
+      "row": 21,
+      "price": 11775,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea",
+      "row": null,
+      "price": 14134,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea",
+      "row": 22,
+      "price": 16803,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea",
+      "row": 31,
+      "price": 12719,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "General",
+      "row": 33,
+      "price": 9810,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Cabecera Norte",
+      "row": null,
+      "price": 10526,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea",
+      "row": 37,
+      "price": 16953,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "General",
+      "row": null,
+      "price": 12220,
+      "view": "Obstructed"
+    }
+  ]
+}

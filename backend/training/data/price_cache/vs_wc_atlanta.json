@@ -1,0 +1,181 @@
+{
+  "metadata": {
+    "source": "vividseats",
+    "event_url": "https://www.vividseats.com/event/vs_wc_atlanta",
+    "event_name": "USA vs Italy - World Cup Group D",
+    "venue": "Mercedes-Benz Stadium",
+    "city": "Atlanta",
+    "currency": "USD",
+    "fixture": true
+  },
+  "tickets": [
+    {
+      "source": "fixture",
+      "section": "108",
+      "row": 31,
+      "price": 2168,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "126",
+      "row": null,
+      "price": 1914,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "126",
+      "row": null,
+      "price": 1940,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "330",
+      "row": null,
+      "price": 1430,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "212",
+      "row": 33,
+      "price": 1626,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "126",
+      "row": 26,
+      "price": 2145,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "108",
+      "row": 32,
+      "price": 2167,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "126",
+      "row": 37,
+      "price": 1750,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "108",
+      "row": null,
+      "price": 2438,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "108",
+      "row": null,
+      "price": 1747,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "330",
+      "row": null,
+      "price": 1622,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "126",
+      "row": null,
+      "price": 1770,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "126",
+      "row": 12,
+      "price": 1622,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "212",
+      "row": 34,
+      "price": 2048,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "126",
+      "row": 16,
+      "price": 2141,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "212",
+      "row": 25,
+      "price": 1912,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "126",
+      "row": 12,
+      "price": 1640,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "212",
+      "row": null,
+      "price": 1889,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "330",
+      "row": 22,
+      "price": 1337,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "108",
+      "row": 11,
+      "price": 1734,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "330",
+      "row": 10,
+      "price": 1308,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "212",
+      "row": null,
+      "price": 1976,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "212",
+      "row": 40,
+      "price": 1601,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "212",
+      "row": null,
+      "price": 1853,
+      "view": "Obstructed"
+    }
+  ]
+}

@@ -1,0 +1,272 @@
+{
+  "metadata": {
+    "source": "stubhub",
+    "event_url": "https://www.stubhub.com/event/sh_wc_match23",
+    "event_name": "Argentina vs Mexico - World Cup Group C",
+    "venue": "SoFi Stadium",
+    "city": "Los Angeles",
+    "currency": "USD",
+    "fixture": true
+  },
+  "tickets": [
+    {
+      "source": "fixture",
+      "section": "318",
+      "row": null,
+      "price": 963,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "230",
+      "row": 6,
+      "price": 1276,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "230",
+      "row": null,
+      "price": 1084,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": 26,
+      "price": 1559,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "230",
+      "row": null,
+      "price": 1422,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "VIP",
+      "row": null,
+      "price": 1005,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "230",
+      "row": null,
+      "price": 1144,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": null,
+      "price": 1442,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": null,
+      "price": 1409,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "115",
+      "row": 13,
+      "price": 1707,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "318",
+      "row": null,
+      "price": 1073,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "115",
+      "row": 17,
+      "price": 1436,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": null,
+      "price": 1745,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "115",
+      "row": null,
+      "price": 1190,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "115",
+      "row": 14,
+      "price": 1468,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "115",
+      "row": 26,
+      "price": 1722,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "115",
+      "row": 10,
+      "price": 1477,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "VIP",
+      "row": null,
+      "price": 1170,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "VIP",
+      "row": null,
+      "price": 1325,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": 3,
+      "price": 1654,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "230",
+      "row": null,
+      "price": 1409,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": 34,
+      "price": 1855,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": 37,
+      "price": 1569,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "230",
+      "row": null,
+      "price": 1120,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": 24,
+      "price": 1566,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "318",
+      "row": null,
+      "price": 1275,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "VIP",
+      "row": 16,
+      "price": 1300,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "VIP",
+      "row": 39,
+      "price": 938,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "230",
+      "row": 20,
+      "price": 1266,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "VIP",
+      "row": null,
+      "price": 1061,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "VIP",
+      "row": null,
+      "price": 909,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "318",
+      "row": 26,
+      "price": 1037,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "VIP",
+      "row": 2,
+      "price": 1310,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "VIP",
+      "row": 14,
+      "price": 1181,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "115",
+      "row": 8,
+      "price": 1626,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "230",
+      "row": null,
+      "price": 1138,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": 6,
+      "price": 1552,
+      "view": "Side View"
+    }
+  ]
+}
