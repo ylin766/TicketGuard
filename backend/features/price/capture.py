@@ -31,7 +31,11 @@ async def capture_screenshot(
         "--disable-dev-shm-usage",
     ]
     if offscreen:
-        args.append("--window-position=-32000,-32000")
+        # New headless mode: no OS window is ever created (off-screen
+        # window-parking still flashes a window on macOS), yet it renders through
+        # the full browser path — far less bot-detectable than legacy headless.
+        # Override with PRICE_BROWSER_ONSCREEN=1 to watch a real window.
+        args.append("--headless=new")
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=False, args=args)
