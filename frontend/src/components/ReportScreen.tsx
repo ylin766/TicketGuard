@@ -6,7 +6,7 @@ import { RiskGauge } from "./RiskGauge";
 import { ScoreCard } from "./ScoreCard";
 import { ThreatIntelPanel } from "./ThreatIntelPanel";
 import { AgentPanel } from "./agent/AgentPanel";
-import { BrowserFindings } from "./agent/BrowserFindings";
+import { AgentBrowserViewport } from "./agent/AgentBrowserViewport";
 import type { BrowserCheckState } from "./agent/useBrowserCheckStream";
 import { LiveBrowserViewport } from "./price/LiveBrowserViewport";
 import { PriceAnalysisPanel } from "./price/PriceAnalysisPanel";
@@ -179,12 +179,7 @@ export function ReportScreen({
 
           {agentCache && <AgentPanel state={agentCache} variant="report" />}
 
-          {browserCache && (
-            <BrowserFindings
-              brand={browserCache.brand}
-              surfaces={browserCache.sensitiveSurfaces}
-            />
-          )}
+          {browserCache && <AgentBrowserViewport state={browserCache} />}
         </div>
 
         <div className="report-col-side">
