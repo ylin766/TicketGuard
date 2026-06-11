@@ -157,35 +157,66 @@ def is_trusted_domain(domain: Optional[str]) -> bool:
     return bool(domain) and domain in TRUSTED_TICKET_DOMAINS
 
 
+def _resolve_brand_aliases(claimed_platform: str) -> Optional[list[str]]:
+    """Resolve a free-text brand claim to its known-official domains, or None.
+
+    Handles both an exact key ("Ticketmaster") and a noisy claim that merely
+    *contains* a known brand ("FIFA World Cup 2026" -> ``fifa``). Multi-word brand
+    keys match as a substring; single-word keys must match a whole token, so a
+    short key like "axs" can't accidentally hit "relaxsale".
+
+    Args:
+        claimed_platform: The brand text the page presents itself as.
+
+    Returns:
+        The list of official domains backing the brand, or None if no known brand
+        is recognizable in the claim.
+    """
+    key = " ".join(claimed_platform.lower().split())
+    if not key:
+        return None
+    exact = PLATFORM_DOMAIN_ALIASES.get(key)
+    if exact:
+        return exact
+    tokens = set(key.split())
+    for name, domains in PLATFORM_DOMAIN_ALIASES.items():
+        if " " in name:
+            if name in key:
+                return domains
+        elif name in tokens:
+            return domains
+    return None
+
+
 def platform_matches_domain(
     claimed_platform: Optional[str],
     current_domain: Optional[str],
-    claimed_domain: Optional[str] = None,
+    claimed_domain: Optional[str] = None,  # kept for call-site compat; unused
 ) -> Optional[bool]:
-    """Whether the claimed platform/brand is consistent with the live domain.
+    """Whether the claimed brand is consistent with the live domain.
+
+    A positive match (``True``) is asserted ONLY when the live domain is one of
+    the claimed brand's known-official domains — i.e. effectively a whitelisted
+    domain. A page that merely *self-declares* its own domain proves nothing and
+    can never earn a green match here: that was a scam blind spot, because any
+    look-alike site (e.g. ``fifaworldcup26.sale`` claiming FIFA) could simply
+    print its own domain and pass.
 
     Args:
         claimed_platform: Brand the page presents itself as (e.g. "Ticketmaster").
         current_domain: The live registrable domain the browser is actually on.
-        claimed_domain: A domain the page explicitly claims, if any.
+        claimed_domain: Unused — retained only for call-site compatibility.
 
     Returns:
-        True if consistent, False if a known brand is on the wrong domain, or
-        None if there is no brand claim to check against.
+        True  -> a recognized brand ON one of its official domains.
+        False -> a recognized brand on the WRONG domain (impersonation / look-alike).
+        None  -> no recognizable brand to anchor on (fall through to the
+                 sensitive-action + OSINT reputation layers).
     """
-    if not current_domain:
+    if not current_domain or not claimed_platform:
         return None
-
-    # An explicit claimed domain that matches the live domain is consistent.
-    if claimed_domain and registered_domain(claimed_domain) == current_domain:
-        return True
-
-    if not claimed_platform:
-        return None
-
-    aliases = PLATFORM_DOMAIN_ALIASES.get(claimed_platform.lower().strip())
+    aliases = _resolve_brand_aliases(claimed_platform)
     if not aliases:
-        # We don't recognize the claimed brand — can't assert a mismatch.
         return None
     return current_domain in aliases
 
