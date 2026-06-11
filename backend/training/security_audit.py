@@ -24,7 +24,9 @@ measured by the same weighted-final objective.
 
 from __future__ import annotations
 
+import asyncio
 import logging
+import os
 import time
 
 logger = logging.getLogger(__name__)
@@ -35,6 +37,12 @@ OSINT_COMPONENT = "osint_prompt"
 
 # Co-equal blend of the two agents' 0–100 scores (NOT a fallback). Tunable.
 DEFAULT_AGENT_WEIGHTS: dict[str, float] = {"react": 0.5, "osint": 0.5}
+
+# Shorter browser exploration during training/eval: we only need a stable signal
+# (does the blended score approach the authoritative one), not a deep crawl. Each
+# action costs ~2 LLM calls plus settle waits, so fewer actions = much faster
+# iteration. Override via env if a run needs deeper exploration.
+_TRAIN_MAX_ACTIONS = int(os.getenv("SECURITY_TRAIN_MAX_ACTIONS", "4"))
 
 
 def dual_seed_candidate() -> dict[str, str]:
@@ -85,6 +93,7 @@ async def _run_react(url: str, react_instruction: str | None) -> dict:
             url,
             enable_osint=False,            # OSINT runs separately, co-equal
             headless=True,
+            max_actions=_TRAIN_MAX_ACTIONS,  # shorter exploration for fast iteration
             react_instruction=react_instruction,
         )
         return result if isinstance(result, dict) else {}
@@ -136,11 +145,12 @@ async def run_security_dual_audit(
     react_instruction = candidate.get(REACT_COMPONENT)
     osint_instruction = candidate.get(OSINT_COMPONENT)
 
-    # SERIAL on purpose: running both agents concurrently spikes Vertex
-    # concurrency and trips 429 RESOURCE_EXHAUSTED. The two are co-equal in the
-    # scoring blend regardless of run order.
-    react = await _run_react(url, react_instruction)
-    osint = await _run_osint(url, osint_instruction)
+    # PARALLEL: the two co-equal agents run concurrently (each never raises, so a
+    # failure in one can't abort the gather). This halves wall-clock per example.
+    react, osint = await asyncio.gather(
+        _run_react(url, react_instruction),
+        _run_osint(url, osint_instruction),
+    )
 
     react_score = react.get("risk_score")
     osint_score = osint.get("score")

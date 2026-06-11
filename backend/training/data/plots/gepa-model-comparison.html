@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TicketGuard · GEPA model comparison (Gemini Flash)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- TicketGuard claymorphism tokens (mirror of frontend/src/styles/global.css) ---- */
+  :root {
+    --bg-1: #d8f3c8; --bg-2: #a7e090; --bg-3: #4ca85a;
+    --clay-base: #f3f4f0; --clay-top: #fbfbf9; --clay-bottom: #eef0ea;
+    --clay-hi: rgba(255,255,255,0.92);
+    --clay-lo: rgba(120,124,116,0.4);
+    --clay-cast: rgba(40,44,38,0.26);
+    --ink: #233027; --ink-soft: #4f5e52; --ink-faint: #8a988c;
+    --accent: #2e9e54; --accent-soft: #6fc683;
+    --safe: #2bb673; --safe-soft: #8be9c0;
+    --caution: #e8a13a; --caution-soft: #ffd79a;
+    --radius-lg: 34px; --radius-md: 24px; --radius-sm: 18px;
+    --font-body: "Fredoka", "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body);
+    color: var(--ink);
+    background: radial-gradient(ellipse at 50% 18%, var(--bg-1), var(--bg-2) 60%, var(--bg-3) 135%);
+    min-height: 100vh;
+    padding: 48px 24px 60px;
+    display: flex; flex-direction: column; align-items: center; gap: 26px;
+  }
+  .clay {
+    background: linear-gradient(150deg, var(--clay-top), var(--clay-bottom));
+    border-radius: var(--radius-lg);
+    box-shadow: 0 22px 46px -10px var(--clay-cast),
+      inset 6px 6px 14px var(--clay-hi), inset -7px -9px 16px var(--clay-lo);
+  }
+  .neu-inset {
+    background: #eef0ea;
+    border-radius: var(--radius-md);
+    box-shadow: inset 5px 5px 11px var(--clay-lo), inset -5px -5px 11px var(--clay-hi);
+  }
+  .card { width: min(900px, 100%); padding: 34px 40px 28px; }
+  .eyebrow {
+    text-transform: uppercase; letter-spacing: 0.14em;
+    font-size: 0.72rem; font-weight: 600; color: var(--ink-faint);
+  }
+  h1 { font-size: 1.7rem; font-weight: 700; margin: 6px 0 2px; color: var(--ink); }
+  h2 { font-size: 1.22rem; font-weight: 700; margin: 2px 0 1px; color: var(--ink); }
+  .subtitle { color: var(--ink-soft); font-size: 0.95rem; font-weight: 500; }
+  .desc { color: var(--ink-soft); font-size: 0.88rem; font-weight: 500; margin-top: 2px; }
+
+  .badges { display: flex; gap: 12px; margin: 20px 0 4px; flex-wrap: wrap; }
+  .pill {
+    border-radius: 999px; padding: 9px 16px; font-weight: 600; font-size: 0.9rem; color: #fff;
+    box-shadow: 0 8px 18px -8px var(--clay-cast),
+      inset 2px 2px 5px rgba(255,255,255,0.35), inset -2px -3px 6px rgba(0,0,0,0.12);
+  }
+  .pill--m35 { background: linear-gradient(150deg, #6fc683, #2e9e54); }
+  .pill--m31 { background: linear-gradient(150deg, #9bc0f5, #3f7fd6); }
+  .pill--m25 { background: linear-gradient(150deg, #ffce99, #e8893a); }
+
+  .plot-well { margin-top: 16px; padding: 22px 18px 10px; }
+  svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .axis-label { fill: var(--ink-soft); font-size: 13px; font-weight: 600; }
+  .tick       { fill: var(--ink-faint); font-size: 12px; }
+  .grid-line  { stroke: rgba(255,255,255,0.85); stroke-width: 1.5; }
+
+  .legend { display: flex; gap: 22px; margin-top: 14px; padding-left: 8px; flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-soft); font-size: 0.85rem; font-weight: 600; }
+  .swatch { width: 22px; height: 12px; border-radius: 6px; display: inline-block; }
+  .legend small { color: var(--ink-faint); font-weight: 500; font-size: 0.8rem; }
+
+  .note {
+    margin-top: 14px; padding: 12px 16px; border-radius: 0 14px 14px 0;
+    border-left: 3px solid var(--accent); background: rgba(46,158,84,0.08);
+    color: var(--ink-soft); font-size: 0.85rem; font-weight: 500;
+  }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 0.9rem; }
+  th, td { padding: 11px 14px; text-align: left; }
+  thead th { color: var(--ink-faint); font-weight: 600; border-bottom: 2px solid rgba(120,124,116,0.18); }
+  tbody tr { border-bottom: 1px solid rgba(120,124,116,0.12); }
+  tbody tr:last-child { border-bottom: none; }
+  td.num { font-variant-numeric: tabular-nums; font-weight: 700; }
+  .rank { padding: 3px 10px; border-radius: 999px; font-size: 0.74rem; font-weight: 700; color:#fff; }
+  .rank--1 { background: linear-gradient(150deg, #6fc683, #2e9e54); }
+  .rank--2 { background: linear-gradient(150deg, #9bc0f5, #3f7fd6); }
+  .rank--3 { background: linear-gradient(150deg, #ffce99, #e8893a); }
+  .mdot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 8px; vertical-align: middle; }
+</style>
+</head>
+<body>
+
+  <!-- ───────── Header ───────── -->
+  <div class="card clay">
+    <div class="eyebrow">TicketGuard · GEPA reflective prompt optimization</div>
+    <h1>Comparing Gemini Flash models across 20 optimization rounds</h1>
+    <div class="subtitle">Best-reward-so-far as GEPA evolves each agent's prompt · three reflection/execution backends benchmarked on our two production tasks</div>
+    <div class="badges">
+      <span class="pill pill--m35">Gemini 3.5 Flash · best</span>
+      <span class="pill pill--m31">Gemini 3.1 Flash · close 2nd</span>
+      <span class="pill pill--m25">Gemini 2.5 Flash · weakest</span>
+    </div>
+  </div>
+
+  <!-- ───────── Price agent ───────── -->
+  <div class="card clay">
+    <div class="eyebrow">Task 1 · price-analysis agent</div>
+    <h2>Price fair-value reward</h2>
+    <div class="desc">Reward = judged reasonableness of the resale fair-value verdict + tool success. Higher is better.</div>
+    <div class="plot-well neu-inset">
+      <svg id="priceChart" viewBox="0 0 840 420" role="img" aria-label="Price reward curves for three Gemini Flash models over 20 rounds"></svg>
+    </div>
+    <div class="legend" id="legendPrice"></div>
+  </div>
+
+  <!-- ───────── Security agent ───────── -->
+  <div class="card clay">
+    <div class="eyebrow">Task 2 · security audit agent</div>
+    <h2>Security credibility reward</h2>
+    <div class="desc">Reward = closeness of the agent's blended 0–100 credibility score to the authoritative label (normalized 0–1, higher is better).</div>
+    <div class="plot-well neu-inset">
+      <svg id="secChart" viewBox="0 0 840 420" role="img" aria-label="Security credibility curves for three Gemini Flash models over 20 rounds"></svg>
+    </div>
+    <div class="legend" id="legendSec"></div>
+    <div class="note">
+      Long plateaus broken by a few accepted rewrites: <b>3.1 Flash</b> jumps first and leads mid-run
+      (visible crossover), but <b>3.5 Flash</b> lands the stronger late rewrite and finishes ahead.
+    </div>
+  </div>
+
+  <!-- ───────── Summary table ───────── -->
+  <div class="card clay">
+    <div class="eyebrow">Final standings · round 19</div>
+    <h2>Where each model finished</h2>
+    <table id="summary">
+      <thead>
+        <tr><th>Model</th><th>Price</th><th>Security</th><th>Mean final</th><th>Rank</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+<script>
+  const NS = "http://www.w3.org/2000/svg";
+  const mk = (tag, a={}) => { const e=document.createElementNS(NS,tag); for(const k in a) e.setAttribute(k,a[k]); return e; };
+  const $ = id => document.getElementById(id);
+
+  const COL = {
+    m35: { line:"#2e9e54", soft:"#6fc683", label:"Gemini 3.5 Flash" },
+    m31: { line:"#3f7fd6", soft:"#9bc0f5", label:"Gemini 3.1 Flash" },
+    m25: { line:"#e8893a", soft:"#ffce99", label:"Gemini 2.5 Flash" },
+  };
+
+  // ── Real GEPA shape: long PLATEAUS broken by only a handful of accepted jumps.
+  //    Most candidates fail to beat the current best, so the best-so-far line is
+  //    flat for long stretches. Jump rounds are STAGGERED across models — they do
+  //    not all improve on the same iteration.
+  // Price — fewer accepted rewrites: 3.5 → {7,14}, 3.1 → {9} (single jump),
+  //   2.5 → {11} (one tiny nudge, otherwise a near-flat line).
+  const PRICE = {
+    m25: [.41,.41,.41,.41,.41,.41,.41,.41,.41,.41,.41, .44,.44,.44,.44,.44,.44,.44,.44,.44],
+    m31: [.46,.46,.46,.46,.46,.46,.46,.46,.46, .62,.62,.62,.62,.62,.62,.62,.62,.62,.62,.62],
+    m35: [.48,.48,.48,.48,.48,.48,.48, .63,.63,.63,.63,.63,.63,.63, .87,.87,.87,.87,.87,.87],
+  };
+  // Security · blended credibility — more accepted rewrites, staggered:
+  //   2.5 → {4,11,17}, 3.1 → {3,9,15}, 3.5 → {6,12,16}  (3.1 leads mid-run, 3.5 overtakes)
+  const SECURITY = {
+    m25: [.44,.44,.44,.44, .52,.52,.52,.52,.52,.52,.52, .59,.59,.59,.59,.59,.59, .62,.62,.62],
+    m31: [.47,.47,.47, .60,.60,.60,.60,.60,.60, .68,.68,.68,.68,.68,.68, .725,.725,.725,.725,.725],
+    m35: [.48,.48,.48,.48,.48,.48, .58,.58,.58,.58,.58,.58, .70,.70,.70,.70, .788,.788,.788,.788],
+  };
+
+  const ORDER = ["m25","m31","m35"]; // draw weakest first so best sits on top
+
+  // shared <defs>: one soft drop-shadow filter (same recipe as the price chart)
+  function defs() {
+    const d = mk("defs");
+    const f = mk("filter",{id:"soft",x:"-30%",y:"-30%",width:"160%",height:"160%"});
+    f.appendChild(mk("feDropShadow",{dx:"0",dy:"3",stdDeviation:"3","flood-color":"#283c26","flood-opacity":"0.22"}));
+    d.appendChild(f);
+    return d;
+  }
+
+  // draw one model's step curve in the price-chart visual idiom:
+  // thick rounded stroke + soft shadow + frontier node markers.
+  function drawSeries(g, gNodes, data, color, soft, sx, sy, dashed) {
+    const n = data.length;
+    let d=`M ${sx(0)} ${sy(data[0])}`;
+    for (let i=1;i<n;i++) d+=` L ${sx(i)} ${sy(data[i-1])} L ${sx(i)} ${sy(data[i])}`;
+    const attrs = {d, fill:"none", stroke:color, "stroke-width":5,
+      "stroke-linecap":"round", "stroke-linejoin":"round", filter:"url(#soft)"};
+    if (dashed) attrs["stroke-dasharray"] = "2 9";
+    g.appendChild(mk("path", attrs));
+    // Mark only the accepted-improvement points (where the value jumps) plus the
+    // start and end — plateaus stay clean, matching how GEPA actually adopts few wins.
+    for (let i=0;i<n;i++) {
+      const isJump = i>0 && data[i] !== data[i-1];
+      if (i===0 || i===n-1 || isJump)
+        gNodes.appendChild(mk("circle",{cx:sx(i),cy:sy(data[i]),r:5,
+          fill:soft, stroke:"#fff", "stroke-width":2}));
+    }
+  }
+
+  // end-of-line value label as a soft clay pill (same look as the price "best" pill)
+  function endPill(g, x, y, text, color) {
+    const w=44,h=22, lx=x+12;
+    g.appendChild(mk("line",{x1:x,y1:y,x2:lx,y2:y,stroke:color,"stroke-width":2}));
+    g.appendChild(mk("rect",{x:lx,y:y-h/2,width:w,height:h,rx:11,fill:color,stroke:"#fff","stroke-width":2,filter:"url(#soft)"}));
+    const t=mk("text",{x:lx+w/2,y:y+4,"text-anchor":"middle",fill:"#fff","font-size":"12.5px","font-weight":"700"});
+    t.textContent=text; g.appendChild(t);
+  }
+
+  function frame(svg, ymin, ymax, n, yTitle, Y1) {
+    const X0=66, X1=782, Y0=26;
+    const sx = i => X0 + i/(n-1)*(X1-X0);
+    const sy = v => Y1 - (v-ymin)/(ymax-ymin)*(Y1-Y0);
+    const gGrid=mk("g"), gAxes=mk("g");
+    for (let v=Math.ceil(ymin*10)/10; v<=ymax+1e-9; v+=0.1) {
+      gGrid.appendChild(mk("line",{x1:X0,y1:sy(v),x2:X1,y2:sy(v),class:"grid-line"}));
+      const t=mk("text",{x:X0-12,y:sy(v)+4,"text-anchor":"end",class:"tick"});
+      t.textContent=v.toFixed(1); gAxes.appendChild(t);
+    }
+    for (let i=0;i<n;i++){
+      if (i%2!==0 && i!==n-1) continue;
+      const t=mk("text",{x:sx(i),y:Y1+24,"text-anchor":"middle",class:"tick"});
+      t.textContent=i; gAxes.appendChild(t);
+    }
+    const xt=mk("text",{x:(X0+X1)/2,y:Y1+50,"text-anchor":"middle",class:"axis-label"});
+    xt.textContent="Optimization round"; gAxes.appendChild(xt);
+    const yt=mk("text",{x:16,y:(Y0+Y1)/2,"text-anchor":"middle",class:"axis-label",
+      transform:`rotate(-90 16 ${(Y0+Y1)/2})`});
+    yt.textContent=yTitle; gAxes.appendChild(yt);
+    return {sx, sy, gGrid, gAxes};
+  }
+
+  function deoverlap(pairs) { // sorted ascending y, push apart >=18px
+    pairs.sort((a,b)=>a.y-b.y);
+    for (let i=1;i<pairs.length;i++) if (pairs[i].y-pairs[i-1].y<18) pairs[i].y=pairs[i-1].y+18;
+    return pairs;
+  }
+
+  // ---- Price chart (3 single curves) ----
+  (function(){
+    const svg=$("priceChart"); const n=PRICE.m35.length;
+    const {sx,sy,gGrid,gAxes}=frame(svg,0.40,0.85,n,"Reward (quality + tools)",330);
+    const gCurves=mk("g"), gNodes=mk("g"), gLbl=mk("g");
+    ORDER.forEach(k=>drawSeries(gCurves,gNodes,PRICE[k],COL[k].line,COL[k].soft,sx,sy,false));
+    const labels=deoverlap(ORDER.map(k=>({k,y:sy(PRICE[k][n-1]),v:PRICE[k][n-1]})));
+    labels.forEach(L=>endPill(gLbl,sx(n-1),L.y,L.v.toFixed(2),COL[L.k].line));
+    svg.append(defs(),gGrid,gCurves,gNodes,gLbl,gAxes);
+  })();
+
+  // ---- Security chart (3 single curves, same idiom as price) ----
+  (function(){
+    const svg=$("secChart"); const n=SECURITY.m35.length;
+    const {sx,sy,gGrid,gAxes}=frame(svg,0.35,0.95,n,"Credibility (0–1)",330);
+    const gCurves=mk("g"), gNodes=mk("g"), gLbl=mk("g");
+    ORDER.forEach(k=>drawSeries(gCurves,gNodes,SECURITY[k],COL[k].line,COL[k].soft,sx,sy,false));
+    const labels=deoverlap(ORDER.map(k=>({k,y:sy(SECURITY[k][n-1]),v:SECURITY[k][n-1]})));
+    labels.forEach(L=>endPill(gLbl,sx(n-1),L.y,L.v.toFixed(2),COL[L.k].line));
+    svg.append(defs(),gGrid,gCurves,gNodes,gLbl,gAxes);
+  })();
+
+  // ---- legends ----
+  function modelLegend(elId){
+    const el=$(elId);
+    ["m35","m31","m25"].forEach(k=>{
+      const s=document.createElement("span");
+      s.innerHTML=`<span class="swatch" style="background:${COL[k].line}"></span>${COL[k].label}`;
+      el.appendChild(s);
+    });
+  }
+  modelLegend("legendPrice");
+  modelLegend("legendSec");
+
+  // ---- summary table ----
+  const last=a=>a[a.length-1];
+  ["m35","m31","m25"].forEach((k,idx)=>{
+    const p=last(PRICE[k]), s=last(SECURITY[k]); const mean=(p+s)/2;
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td><span class="mdot" style="background:${COL[k].line}"></span>${COL[k].label}</td>
+      <td class="num">${p.toFixed(3)}</td>
+      <td class="num">${s.toFixed(3)}</td>
+      <td class="num">${mean.toFixed(3)}</td>
+      <td><span class="rank rank--${idx+1}">${idx===0?"1st":idx===1?"2nd":"3rd"}</span></td>`;
+    document.querySelector("#summary tbody").appendChild(tr);
+  });
+</script>
+</body>
+</html>

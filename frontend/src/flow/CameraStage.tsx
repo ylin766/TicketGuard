@@ -62,7 +62,9 @@ export function CameraStage({
           {inMiddle && (
             <motion.div
               key="dataflow"
-              className="flow-scene flow-scene--flow"
+              className={`flow-scene flow-scene--flow${
+                phase === "pipeline" ? " flow-scene--pipeline" : ""
+              }`}
               /* The carrier itself is the shared-layout element; don't fade the
                  wrapper or it would hide the morph. */
               initial={false}

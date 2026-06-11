@@ -151,7 +151,12 @@ export function ProcessUnits({
                 </div>
               )}
 
-              <motion.div className="punit-body" layout>
+              {/* No `layout` here: inside the shared LayoutGroup it animated
+                  this body's box against its SIBLINGS, so when one unit (e.g.
+                  the security probe) changed height the whole 3-part column slid
+                  /jittered together. The runtime children animate their own
+                  entry, so the body doesn't need layout projection. */}
+              <div className="punit-body">
                 {u.key === "security" ? (
                   isPipeline ? (
                     <SecurityRuntime
@@ -188,7 +193,7 @@ export function ProcessUnits({
                     </div>
                   )
                 )}
-              </motion.div>
+              </div>
             </motion.div>
           </motion.div>
         );

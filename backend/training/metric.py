@@ -289,12 +289,17 @@ def score_regression(
 
     direction = ""
     if abs_err > 0:
-        direction = (" Push the blended score "
-                     + ("DOWN" if final_f > auth else "UP")
-                     + f" toward {auth:.0f}.")
+        if final_f > auth:
+            direction = (f" Push the credibility score DOWN toward {auth:.0f} "
+                         "(treat this site as LESS trustworthy / more scam-like).")
+        else:
+            direction = (f" Push the credibility score UP toward {auth:.0f} "
+                         "(treat this site as MORE trustworthy / less scam-like).")
     else:
         direction = " On target."
     feedback = (
+        "SCALE: 0-100 CREDIBILITY where HIGHER = SAFER / more trustworthy and "
+        "LOWER = more likely a scam (this is NOT a risk score). "
         f"{'CORRECT' if correct else 'WRONG SIDE'}: blended final={final_f:.0f} "
         f"(react={react}, osint={osint}) vs authoritative={auth:.0f} "
         f"['{truth_label}']. Absolute error {abs_err:.0f}/100 -> reward {reward:.2f}."

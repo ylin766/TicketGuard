@@ -118,6 +118,48 @@ def plot_tool_success(records: list[IterationRecord], out_path: Path) -> Path:
     return out_path
 
 
+def plot_error_decline(records: list[IterationRecord], out_path: Path) -> Path:
+    """Gap-to-authoritative (0–100 absolute error) vs iteration, one line each
+    for the React agent, the OSINT agent, and their blended final score.
+
+    This is the dual-agent regression story: both co-equal agents' errors should
+    shrink as GEPA optimizes their prompts toward the authoritative score.
+    Reads best-so-far errors from each record's ``extra`` (monotone non-increasing).
+    """
+    items = sorted(records, key=lambda r: r.iteration)
+    fig, ax = plt.subplots(figsize=(7, 4.5))
+
+    series = [
+        ("react_error", "React agent", "#2e9e54", "o"),
+        ("osint_error", "OSINT agent", "#e8a13a", "s"),
+        ("blended_error", "Blended final", "#233027", "^"),
+    ]
+    plotted = False
+    for key, label, color, marker in series:
+        pts = [
+            (r.iteration, r.extra.get(key))
+            for r in items
+            if isinstance(r.extra, dict) and r.extra.get(key) is not None
+        ]
+        if pts:
+            xs, ys = zip(*pts)
+            ax.plot(xs, ys, marker=marker, color=color, label=label, linewidth=2)
+            plotted = True
+
+    ax.set_xlabel("GEPA iteration")
+    ax.set_ylabel("Gap to authoritative score (|error|, 0–100)")
+    ax.set_title("Both agents converge to the authoritative score")
+    ax.set_ylim(0, None)
+    ax.grid(True, alpha=0.3)
+    _integer_xaxis(ax)
+    if plotted:
+        ax.legend()
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=140)
+    plt.close(fig)
+    return out_path
+
+
 def plot_run(run_name: str, plot_dir: Path | None = None) -> list[Path]:
     """Render all figures for a run; returns the saved PNG paths. Returns [] when
     the run log is empty (e.g. no training has run yet)."""
@@ -132,6 +174,12 @@ def plot_run(run_name: str, plot_dir: Path | None = None) -> list[Path]:
         plot_reward_curve(records, out_dir / f"{run_name}_reward_curve.png"),
         plot_tool_success(records, out_dir / f"{run_name}_tool_success.png"),
     ]
+    # Dual-agent runs carry per-agent errors in extra; add the convergence chart.
+    if any(isinstance(r.extra, dict) and r.extra.get("react_error") is not None
+           for r in records):
+        saved.append(
+            plot_error_decline(records, out_dir / f"{run_name}_error_decline.png")
+        )
     logger.info("[plots] saved %d figure(s) to %s", len(saved), out_dir)
     return saved
 
