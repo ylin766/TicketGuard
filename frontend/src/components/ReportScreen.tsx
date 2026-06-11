@@ -179,7 +179,9 @@ export function ReportScreen({
 
           {agentCache && <AgentPanel state={agentCache} variant="report" />}
 
-          {browserCache && <AgentBrowserViewport state={browserCache} />}
+          {browserCache && (
+            <AgentBrowserViewport state={browserCache} layout="split" />
+          )}
         </div>
 
         <div className="report-col-side">
