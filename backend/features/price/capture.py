@@ -10,7 +10,6 @@ PNG bytes or None.
 from __future__ import annotations
 
 import logging
-import os
 from typing import Callable, Optional
 
 logger = logging.getLogger("ticketguard.price.capture")
@@ -24,14 +23,16 @@ async def capture_screenshot(
     """Open ``url`` headed/off-screen, return one screenshot's PNG bytes."""
     from playwright.async_api import async_playwright
 
-    offscreen = os.environ.get("PRICE_BROWSER_ONSCREEN") != "1"
+    from .browser_visibility import offscreen_launch_args
+
     args = [
         "--disable-blink-features=AutomationControlled",
         "--no-sandbox",
         "--disable-dev-shm-usage",
+        # Per-OS off-screen strategy (headless=new on Windows so no window ever
+        # flashes; window-parking elsewhere). PRICE_BROWSER_ONSCREEN=1 to debug.
+        *offscreen_launch_args(),
     ]
-    if offscreen:
-        args.append("--window-position=-32000,-32000")
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=False, args=args)

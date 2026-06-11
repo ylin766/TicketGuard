@@ -1,10 +1,11 @@
 import asyncio
 import json
-import os
 import re
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 from playwright.async_api import async_playwright, Page
+
+from .browser_visibility import offscreen_launch_args
 
 
 DEFAULT_URL = "https://www.stubhub.com/world-cup-atlanta-tickets-6-15-2026/event/153022393/"
@@ -479,14 +480,11 @@ async def fetch_stubhub(url: str | None = None, qty: int = 2, on_frame=None) -> 
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
                 "--disable-infobars",
-                # Headed for accuracy, but parked far off-screen so no window
-                # flashes in the user's face — they watch our clay viewport
-                # instead. Override with PRICE_BROWSER_ONSCREEN=1 to debug.
-                *(
-                    []
-                    if os.environ.get("PRICE_BROWSER_ONSCREEN") == "1"
-                    else ["--window-position=-32000,-32000"]
-                ),
+                # Headed for accuracy, but hidden from the user (they watch our
+                # clay viewport). Per-OS strategy: headless=new on Windows so no
+                # window ever flashes; off-screen window-parking elsewhere.
+                # Override with PRICE_BROWSER_ONSCREEN=1 to debug.
+                *offscreen_launch_args(),
             ],
         )
         context = await browser.new_context(

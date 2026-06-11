@@ -11,9 +11,10 @@ Run:
 
 import asyncio
 import json
-import os
 import re
 from playwright.async_api import async_playwright, Page
+
+from .browser_visibility import offscreen_launch_args
 
 
 EVENT_URL = "https://www.ticketmaster.com/world-cup-match-59-group-d-inglewood-06-25-2026/event/Z7r9jZ1A7434Z"
@@ -397,13 +398,10 @@ async def fetch_ticketmaster(url: str | None = None, qty: int = 2, on_frame=None
                 "--disable-blink-features=AutomationControlled",
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
-                # Headed for accuracy, parked off-screen so no window flashes;
-                # override with PRICE_BROWSER_ONSCREEN=1 to debug.
-                *(
-                    []
-                    if os.environ.get("PRICE_BROWSER_ONSCREEN") == "1"
-                    else ["--window-position=-32000,-32000"]
-                ),
+                # Headed for accuracy, hidden from the user. Per-OS strategy:
+                # headless=new on Windows so no window ever flashes; off-screen
+                # window-parking elsewhere. PRICE_BROWSER_ONSCREEN=1 to debug.
+                *offscreen_launch_args(),
             ],
         )
         context = await browser.new_context(
