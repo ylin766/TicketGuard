@@ -6,6 +6,8 @@ import { RiskGauge } from "./RiskGauge";
 import { ScoreCard } from "./ScoreCard";
 import { ThreatIntelPanel } from "./ThreatIntelPanel";
 import { AgentPanel } from "./agent/AgentPanel";
+import { BrowserFindings } from "./agent/BrowserFindings";
+import type { BrowserCheckState } from "./agent/useBrowserCheckStream";
 import { LiveBrowserViewport } from "./price/LiveBrowserViewport";
 import { PriceAnalysisPanel } from "./price/PriceAnalysisPanel";
 import type { PriceState } from "./price/usePriceStream";
@@ -19,6 +21,8 @@ interface ReportScreenProps {
   threatCache?: ThreatScanCache;
   /** Cached AGENT agent trace from the pipeline phase. */
   agentCache?: AgentState;
+  /** Cached Layer-2 browser-probe findings (brand check + sensitive surfaces). */
+  browserCache?: BrowserCheckState;
   /** Live/finished price stream state, owned by App (ran during the pipeline). */
   price: PriceState;
 }
@@ -54,6 +58,7 @@ export function ReportScreen({
   onBack,
   threatCache,
   agentCache,
+  browserCache,
   price,
 }: ReportScreenProps) {
   const { dimensions } = report;
@@ -159,6 +164,13 @@ export function ReportScreen({
           </section>
 
           {agentCache && <AgentPanel state={agentCache} variant="report" />}
+
+          {browserCache && (
+            <BrowserFindings
+              brand={browserCache.brand}
+              surfaces={browserCache.sensitiveSurfaces}
+            />
+          )}
         </div>
 
         <div className="report-col-side">

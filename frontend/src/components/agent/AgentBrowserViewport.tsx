@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import type { BrowserCheckState } from "./useBrowserCheckStream";
+import { BrowserFindings } from "./BrowserFindings";
 import "../price/LiveBrowserViewport.css";
 
 /**
@@ -21,12 +22,22 @@ const VERDICT_TONE: Record<string, string> = {
 };
 
 export function AgentBrowserViewport({ state }: { state: BrowserCheckState }) {
-  const { status, latestFrame, action, verdict, riskLevel, summary, error } =
-    state;
+  const {
+    status,
+    latestFrame,
+    action,
+    verdict,
+    riskLevel,
+    summary,
+    brand,
+    sensitiveSurfaces,
+    error,
+  } = state;
   const live = status === "streaming";
   const tone = riskLevel ? VERDICT_TONE[riskLevel.toLowerCase()] ?? "" : "";
 
   return (
+    <>
     <div className="lbv">
       <div className="lbv-head">
         <span className="lbv-dot-row" aria-hidden="true">
@@ -81,5 +92,10 @@ export function AgentBrowserViewport({ state }: { state: BrowserCheckState }) {
         )}
       </div>
     </div>
+
+    {status === "done" && (
+      <BrowserFindings brand={brand} surfaces={sensitiveSurfaces} />
+    )}
+    </>
   );
 }

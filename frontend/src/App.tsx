@@ -92,6 +92,7 @@ export default function App() {
                 onBack={handleBack}
                 threatCache={threatCache ?? undefined}
                 agentCache={greyZone ? agent : undefined}
+                browserCache={greyZone ? browser : undefined}
                 price={price}
               />
             ) : (
