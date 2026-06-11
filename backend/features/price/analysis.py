@@ -264,14 +264,19 @@ Page URL: {url}
 Numbers must be plain (e.g. 738, not "$738"). Output JSON only."""
 
 
-def extract_user_listing(image_bytes: Optional[bytes], url: str) -> dict:
+def extract_user_listing(
+    image_bytes: Optional[bytes], url: str, prompt: Optional[str] = None
+) -> dict:
     """Use Gemini vision to extract the buyer's own ticket from a screenshot.
 
+    ``prompt`` overrides the default extraction prompt (used by the GEPA training
+    loop to evaluate a candidate prompt); it must contain a ``{url}`` placeholder.
     Returns ``{}`` if no screenshot or extraction failed.
     """
     if not image_bytes:
         return {}
-    data = _gemini_json(_EXTRACT_PROMPT.format(url=url), image_bytes)
+    template = prompt or _EXTRACT_PROMPT
+    data = _gemini_json(template.format(url=url), image_bytes)
     return data if isinstance(data, dict) else {}
 
 
@@ -424,10 +429,17 @@ currency code, never assume US dollars. Base every claim on the data above.
 Output JSON only."""
 
 
-def evaluate(user: dict, stats: dict, recs: list[dict]) -> dict:
-    """Ask Gemini for a buyer-facing verdict grounded in the market stats."""
+def evaluate(
+    user: dict, stats: dict, recs: list[dict], prompt: Optional[str] = None
+) -> dict:
+    """Ask Gemini for a buyer-facing verdict grounded in the market stats.
+
+    ``prompt`` overrides the default evaluation prompt (used by the GEPA training
+    loop); it must contain ``{user}``, ``{stats}`` and ``{recs}`` placeholders.
+    """
+    template = prompt or _EVAL_PROMPT
     data = _gemini_json(
-        _EVAL_PROMPT.format(
+        template.format(
             user=json.dumps(user, ensure_ascii=False),
             stats=json.dumps(stats, ensure_ascii=False),
             recs=json.dumps(recs[:5], ensure_ascii=False),
@@ -521,10 +533,25 @@ def analyze(
             user_price = sp
     user_section = user.get("section")
 
+    # Currency normalization: the buyer's ticket and the reference market may be
+    # quoted in different host-country currencies (USD/CAD/MXN at a 3-nation
+    # World Cup). When they differ, convert the market listings into the buyer's
+    # currency via the live FX tool so the comparison is apples-to-apples.
+    market_currency = detect_currency(listings)
+    user_currency = user.get("currency") or market_currency
+    fx_applied = None
+    if user_currency and market_currency and user_currency != market_currency:
+        from .fx import normalize_listings_currency
+
+        listings = normalize_listings_currency(listings, user_currency, market_currency)
+        fx_applied = {"from": market_currency, "to": user_currency}
+
     stats = compute_market_stats(listings, user_price, user_section)
-    # Currency is geo-localized on the page; detect it so the UI formats right.
-    currency = detect_currency(listings)
+    # After normalization the market is in the buyer's currency; report that.
+    currency = user_currency or market_currency
     stats["currency"] = currency
+    if fx_applied:
+        stats["fx_converted_from"] = fx_applied["from"]
     if not user.get("currency"):
         user["currency"] = currency
     recs = recommend_cheaper(listings, user_price, user_section)
