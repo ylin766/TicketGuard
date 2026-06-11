@@ -181,6 +181,72 @@ def score_audit(
     )
 
 
+# Blend weights for agents WITHOUT ground truth (price, seat): there is no
+# correctness term, so reward rests on the LLM judge plus tool reliability.
+DEFAULT_JUDGE_ONLY_WEIGHTS: dict[str, float] = {
+    "judge": 0.8,
+    "tool_success": 0.2,
+}
+
+
+def score_judge_only(
+    audit: dict,
+    judged: dict[str, dict],
+    *,
+    weights: dict[str, float] | None = None,
+) -> MetricResult:
+    """Score an audit that has NO ground-truth label (price / seat).
+
+    Reward comes from the LLM judge (grounding/consistency/usefulness) plus the
+    objective tool-success rate — never from a correctness comparison, since
+    there is no truth to compare against. ``correct``/``predicted_label`` stay
+    ``None`` so aggregation treats these as unscored-for-accuracy.
+    """
+    weights = weights or DEFAULT_JUDGE_ONLY_WEIGHTS
+    feedback_parts: list[str] = []
+
+    # Average the judge dimensions directly (equal weight) — price/seat have
+    # their own rubric dimension names, so we don't route through the
+    # security-keyed REWARD_WEIGHTS here.
+    dim_scores = [
+        float(p["score"])
+        for p in (judged or {}).values()
+        if isinstance(p, dict) and p.get("score") is not None
+    ]
+    judge_val = (sum(dim_scores) / len(dim_scores)) if dim_scores else None
+    if judge_val is not None:
+        feedback_parts.append(f"Judge reward: {judge_val:.2f}.")
+    for dim, payload in (judged or {}).items():
+        expl = (payload or {}).get("explanation")
+        if expl:
+            feedback_parts.append(f"[{dim}] {expl}")
+
+    tsr = tool_success_rate(audit.get("agent_audit"))
+    if tsr is not None:
+        feedback_parts.append(f"Tool success rate: {tsr:.0%}.")
+
+    present: dict[str, float] = {}
+    if judge_val is not None:
+        present["judge"] = judge_val
+    if tsr is not None:
+        present["tool_success"] = tsr
+
+    total_w = sum(weights.get(k, 0.0) for k in present)
+    blended = (
+        sum(weights.get(k, 0.0) * v for k, v in present.items()) / total_w
+        if total_w > 0
+        else 0.0
+    )
+
+    return MetricResult(
+        score=round(blended, 4),
+        correct=None,
+        predicted_label=None,
+        components={"judge": judge_val, "tool_success": tsr},
+        feedback=" ".join(feedback_parts) or "No judge/tool signal available.",
+    )
+
+
 def aggregate_metrics(results: list[MetricResult]) -> dict[str, float]:
     """Summarize a batch of per-example results into dataset-level numbers the
     learning curve plots: mean reward, accuracy, and mean tool success."""

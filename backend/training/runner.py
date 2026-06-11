@@ -18,7 +18,7 @@ import logging
 from typing import Awaitable, Callable, Protocol
 
 from .dataset import EvalExample
-from .metric import MetricResult, aggregate_metrics, score_audit
+from .metric import MetricResult, aggregate_metrics, score_audit, score_judge_only
 
 logger = logging.getLogger(__name__)
 
@@ -46,10 +46,14 @@ async def run_example(
     *,
     threshold: int,
     judge_fn: JudgeFn | None = None,
+    judge_only: bool = False,
 ) -> MetricResult:
     """Audit one labelled URL and score it. Never raises: a failed audit becomes
     a zero-score result whose feedback carries the error, so one bad URL can't
-    abort a whole training batch (GEPA's contract)."""
+    abort a whole training batch (GEPA's contract).
+
+    ``judge_only=True`` scores agents with no ground truth (price/seat) on judge
+    + tool-success alone, ignoring ``example.label``."""
     try:
         audit = await audit_fn(example.url, candidate)
     except Exception as exc:  # noqa: BLE001 - per-example failures must not abort
@@ -69,6 +73,8 @@ async def run_example(
         except Exception as exc:  # noqa: BLE001 - judge is best-effort
             logger.warning("[runner] judge failed for %s: %s", example.url, exc)
 
+    if judge_only:
+        return score_judge_only(audit, judged or {})
     return score_audit(
         audit, example.label, threshold=threshold, judged=judged
     )
@@ -81,6 +87,7 @@ async def run_split(
     *,
     threshold: int,
     judge_fn: JudgeFn | None = None,
+    judge_only: bool = False,
 ) -> tuple[list[MetricResult], dict[str, float]]:
     """Audit + score every example in a split (sequentially — audits are heavy
     and rate-limited). Returns the per-example results and the aggregate summary
@@ -90,7 +97,8 @@ async def run_split(
     for ex in examples:
         results.append(
             await run_example(
-                ex, candidate, audit_fn, threshold=threshold, judge_fn=judge_fn
+                ex, candidate, audit_fn, threshold=threshold,
+                judge_fn=judge_fn, judge_only=judge_only,
             )
         )
     summary = aggregate_metrics(results)
