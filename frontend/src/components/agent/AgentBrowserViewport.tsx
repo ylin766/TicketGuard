@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import type { BrowserCheckState } from "./useBrowserCheckStream";
+import { BrowserFindings } from "./BrowserFindings";
 import "../price/LiveBrowserViewport.css";
 
 /**
@@ -20,14 +21,31 @@ const VERDICT_TONE: Record<string, string> = {
   low: "good",
 };
 
-export function AgentBrowserViewport({ state }: { state: BrowserCheckState }) {
-  const { status, latestFrame, action, verdict, riskLevel, summary, error } =
-    state;
+export function AgentBrowserViewport({
+  state,
+  layout = "stacked",
+}: {
+  state: BrowserCheckState;
+  /** "stacked" = head/screen/result top-to-bottom (live flow). "split" = head on
+   *  top, screenshot LEFT and the result/findings RIGHT (report page). */
+  layout?: "stacked" | "split";
+}) {
+  const {
+    status,
+    latestFrame,
+    action,
+    verdict,
+    riskLevel,
+    summary,
+    brand,
+    sensitiveSurfaces,
+    error,
+  } = state;
   const live = status === "streaming";
   const tone = riskLevel ? VERDICT_TONE[riskLevel.toLowerCase()] ?? "" : "";
 
   return (
-    <div className="lbv">
+    <div className={`lbv${layout === "split" ? " lbv--split" : ""}`}>
       <div className="lbv-head">
         <span className="lbv-dot-row" aria-hidden="true">
           <span className="lbv-tdot lbv-tdot--r" />
@@ -43,42 +61,58 @@ export function AgentBrowserViewport({ state }: { state: BrowserCheckState }) {
         {status === "done" && <span className="lbv-badge">DONE</span>}
       </div>
 
-      <div className="lbv-screen">
-        <AnimatePresence mode="popLayout">
-          {latestFrame ? (
-            <motion.img
-              key={latestFrame.step}
-              className="lbv-frame"
-              src={latestFrame.image}
-              alt={latestFrame.action}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25, ease: EASE }}
-            />
-          ) : (
-            <div className="lbv-skeleton" aria-label="Loading">
-              <span className="lbv-scan" />
-            </div>
-          )}
-        </AnimatePresence>
-        {error && <div className="lbv-error">{error}</div>}
-      </div>
+      {/* In "split" the body is a row (screen | side); in "stacked" the wrappers
+          are display:contents so head/screen/foot/findings flow as one column. */}
+      <div className="lbv-body">
+        <div className="lbv-screen">
+          <AnimatePresence mode="popLayout">
+            {latestFrame ? (
+              <motion.img
+                key={latestFrame.step}
+                className="lbv-frame"
+                src={latestFrame.image}
+                alt={latestFrame.action}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25, ease: EASE }}
+              />
+            ) : (
+              <div className="lbv-skeleton" aria-label="Loading">
+                <span className="lbv-scan" />
+              </div>
+            )}
+          </AnimatePresence>
+          {error && <div className="lbv-error">{error}</div>}
+        </div>
 
-      <div className="lbv-foot">
-        <span className="lbv-action">
-          {error
-            ? "Security probe unavailable"
-            : status === "done"
-              ? summary || "Investigation complete"
-              : action || (live ? "Opening site…" : "Queued")}
-        </span>
-        {verdict && (
-          <span className={`lbv-result lbv-verdict--${tone}`}>
-            <span className="lbv-result-median">{riskLevel ?? verdict}</span>
-            <span className="lbv-result-label">{verdict}</span>
-          </span>
-        )}
+        <div className="lbv-side">
+          <div className="lbv-foot">
+            <span className="lbv-action">
+              {error
+                ? "Security probe unavailable"
+                : status === "done"
+                  ? summary || "Investigation complete"
+                  : action || (live ? "Opening site…" : "Queued")}
+            </span>
+            {verdict && (
+              <span className={`lbv-result lbv-verdict--${tone}`}>
+                <span className="lbv-result-median">{riskLevel ?? verdict}</span>
+                <span className="lbv-result-label">{verdict}</span>
+              </span>
+            )}
+          </div>
+
+          {/* Structured findings live INSIDE the clay frame (like the price
+              frame's median stat), not as a separate card below it. */}
+          {status === "done" && (
+            <BrowserFindings
+              brand={brand}
+              surfaces={sensitiveSurfaces}
+              variant="frame"
+            />
+          )}
+        </div>
       </div>
     </div>
   );

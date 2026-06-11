@@ -6,6 +6,8 @@ import { RiskGauge } from "./RiskGauge";
 import { ScoreCard } from "./ScoreCard";
 import { ThreatIntelPanel } from "./ThreatIntelPanel";
 import { AgentPanel } from "./agent/AgentPanel";
+import { AgentBrowserViewport } from "./agent/AgentBrowserViewport";
+import type { BrowserCheckState } from "./agent/useBrowserCheckStream";
 import { LiveBrowserViewport } from "./price/LiveBrowserViewport";
 import { PriceAnalysisPanel } from "./price/PriceAnalysisPanel";
 import type { PriceState } from "./price/usePriceStream";
@@ -19,6 +21,8 @@ interface ReportScreenProps {
   threatCache?: ThreatScanCache;
   /** Cached AGENT agent trace from the pipeline phase. */
   agentCache?: AgentState;
+  /** Cached Layer-2 browser-probe findings (brand check + sensitive surfaces). */
+  browserCache?: BrowserCheckState;
   /** Live/finished price stream state, owned by App (ran during the pipeline). */
   price: PriceState;
 }
@@ -54,6 +58,7 @@ export function ReportScreen({
   onBack,
   threatCache,
   agentCache,
+  browserCache,
   price,
 }: ReportScreenProps) {
   const { dimensions } = report;
@@ -125,6 +130,20 @@ export function ReportScreen({
         <div className="report-gauge-card clay">
           <span className="eyebrow">Trust Assessment</span>
           <RiskGauge score={report.overallScore} verdict={report.verdict} />
+          {threatCache?.deductions && threatCache.deductions.length > 0 ? (
+            <ul className="gauge-why-list">
+              {threatCache.deductions.map((d, i) => (
+                <li key={`${d.label}-${i}`}>
+                  <span className="gauge-why-label">{d.label}</span>
+                  <span className="gauge-why-pts">−{d.points}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            report.security?.score_explanation && (
+              <p className="gauge-why">{report.security.score_explanation}</p>
+            )
+          )}
           {report.security?.phoenix_url && (
             <a
               className="phoenix-link"
@@ -159,6 +178,10 @@ export function ReportScreen({
           </section>
 
           {agentCache && <AgentPanel state={agentCache} variant="report" />}
+
+          {browserCache && (
+            <AgentBrowserViewport state={browserCache} layout="split" />
+          )}
         </div>
 
         <div className="report-col-side">

@@ -1,0 +1,127 @@
+.bfind {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  /* Solid off-white to match the Threat Intelligence / report panels (no grass
+     showing through). */
+  background: linear-gradient(180deg, #fbfbf9, #eef0ea);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.7),
+    0 6px 16px rgba(60, 80, 40, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.82rem;
+}
+
+/* "frame" variant: no card chrome of its own — it lives flush inside the live
+   security viewport's clay frame as a footer, separated only by a hairline. */
+.bfind--frame {
+  margin-top: 0;
+  padding: 10px 2px 2px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  border-top: 1px solid rgba(120, 124, 116, 0.22);
+}
+
+.bfind-title {
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted, #6b7280);
+}
+
+.bfind-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: baseline;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.bfind-row--good {
+  background: color-mix(in srgb, var(--safe, #3fb96a) 12%, white);
+}
+.bfind-row--bad {
+  background: color-mix(in srgb, var(--danger, #e23b3b) 12%, white);
+}
+.bfind-row--neutral {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.bfind-key {
+  flex: 0 0 auto;
+  font-weight: 600;
+  color: var(--muted, #6b7280);
+  min-width: 86px;
+}
+.bfind-row--good .bfind-key {
+  color: color-mix(in srgb, var(--safe, #3fb96a) 80%, black);
+}
+.bfind-row--bad .bfind-key {
+  color: color-mix(in srgb, var(--danger, #e23b3b) 80%, black);
+}
+
+.bfind-val {
+  flex: 1 1 60%;
+  color: #374151;
+  line-height: 1.35;
+}
+
+.bfind-surfaces {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bfind-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.bfind-surface {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.bfind-tag {
+  flex: 0 0 auto;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(120, 130, 110, 0.16);
+  color: #4b5563;
+}
+
+/* Tone by what the surface demands: payment/login/transfer = danger,
+   contact info = caution, everything else = muted. */
+.bfind-tag--danger {
+  background: color-mix(in srgb, var(--danger, #e23b3b) 16%, white);
+  color: color-mix(in srgb, var(--danger, #e23b3b) 82%, black);
+}
+.bfind-tag--warn {
+  background: color-mix(in srgb, var(--caution, #e2a83b) 20%, white);
+  color: color-mix(in srgb, var(--caution, #e2a83b) 78%, black);
+}
+.bfind-tag--muted {
+  background: rgba(120, 130, 110, 0.16);
+  color: #4b5563;
+}
+
+.bfind-asks {
+  flex: 1 1 auto;
+  color: #4b5563;
+  font-size: 0.8rem;
+}

@@ -10,6 +10,26 @@ export interface BrowserFrame {
   ts: number;
 }
 
+/** Brand / domain consistency the probe verified. */
+export interface BrandCheck {
+  claimed_platform: string | null;
+  claimed_event: string | null;
+  domain: string | null;
+  /** true = brand matches its domain, false = mismatch, null = no brand claimed. */
+  matches: boolean | null;
+  trusted: boolean | null;
+  mismatch_reason: string | null;
+  off_platform_payment: boolean | null;
+}
+
+/** One sensitive surface the probe reached + what it demands. */
+export interface SensitiveSurface {
+  page_state: string;
+  reached: boolean;
+  action_types: string[];
+  requested_inputs: string[];
+}
+
 export type BrowserCheckStatus = "idle" | "streaming" | "done" | "error";
 
 export interface BrowserCheckState {
@@ -21,6 +41,8 @@ export interface BrowserCheckState {
   riskLevel: string | null;
   riskScore: number | null;
   summary: string | null;
+  brand: BrandCheck | null;
+  sensitiveSurfaces: SensitiveSurface[];
   error: string | null;
 }
 
@@ -33,6 +55,8 @@ const INITIAL: BrowserCheckState = {
   riskLevel: null,
   riskScore: null,
   summary: null,
+  brand: null,
+  sensitiveSurfaces: [],
   error: null,
 };
 
@@ -45,6 +69,8 @@ type BrowserSseFrame =
       risk_level: string | null;
       risk_score: number | null;
       summary: string | null;
+      brand?: BrandCheck | null;
+      sensitive_surfaces?: SensitiveSurface[];
     }
   | { type: "error"; message: string };
 
@@ -93,6 +119,8 @@ export function useBrowserCheckStream(
               riskLevel: frame.risk_level,
               riskScore: frame.risk_score,
               summary: frame.summary,
+              brand: frame.brand ?? null,
+              sensitiveSurfaces: frame.sensitive_surfaces ?? [],
             };
           case "error":
             return { ...prev, status: "error", error: frame.message };

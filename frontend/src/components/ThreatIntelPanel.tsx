@@ -25,6 +25,12 @@ export interface ThreatScanSummary {
  *  everything the report needs so it can be assembled WITHOUT re-running the
  *  backend: the streamed sources plus the authoritative score / grey-zone /
  *  explanation from the stream's `done` frame. */
+/** One point deduction that pulled the credibility score below 100. */
+export interface ScoreDeduction {
+  label: string;
+  points: number;
+}
+
 export interface ThreatScanCache {
   sources: import("../types").ThreatSource[];
   flagged: boolean;
@@ -34,6 +40,8 @@ export interface ThreatScanCache {
   riskLevel: string;
   /** Human-readable score rationale (may be empty). */
   scoreExplanation: string;
+  /** Itemised point deductions (threat sources + context flags). */
+  deductions: ScoreDeduction[];
   /** Backend grey-zone decision — whether the Layer-2 agent ran. */
   greyZone: boolean;
 }
@@ -188,6 +196,7 @@ export function ThreatIntelPanel({
   const greyZoneRef = useRef(false);
   const riskLevelRef = useRef("");
   const scoreExplanationRef = useRef("");
+  const deductionsRef = useRef<ScoreDeduction[]>([]);
   // Accumulates all received sources so onComplete gets the full list.
   const sourcesRef = useRef<ThreatSource[]>([]);
 
@@ -208,6 +217,7 @@ export function ThreatIntelPanel({
     greyZoneRef.current = false;
     riskLevelRef.current = "";
     scoreExplanationRef.current = "";
+    deductionsRef.current = [];
 
     const controller = new AbortController();
     controllerRef.current = controller;
@@ -221,6 +231,7 @@ export function ThreatIntelPanel({
         score: scoreRef.current,
         riskLevel: riskLevelRef.current,
         scoreExplanation: scoreExplanationRef.current,
+        deductions: deductionsRef.current,
         greyZone: greyZoneRef.current,
       });
       onDoneRef.current?.({
@@ -264,6 +275,7 @@ export function ThreatIntelPanel({
               score?: number | null;
               risk_level?: string | null;
               score_explanation?: string;
+              deductions?: ScoreDeduction[];
               grey_zone?: boolean;
             };
 
@@ -282,6 +294,7 @@ export function ThreatIntelPanel({
               greyZoneRef.current = event.grey_zone ?? false;
               riskLevelRef.current = event.risk_level ?? "";
               scoreExplanationRef.current = event.score_explanation ?? "";
+              deductionsRef.current = event.deductions ?? [];
               setFlagged(event.flagged ?? false);
               setStreamStatus(event.status === "unavailable" ? "unavailable" : "done");
               fireDone();

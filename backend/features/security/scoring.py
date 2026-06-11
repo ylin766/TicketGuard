@@ -216,66 +216,63 @@ def _ratio_scaled_penalty(base: int, detected: object, total: object) -> int:
     return int(base * ratio)
 
 
-def _context_penalty(context: list[dict] | None) -> tuple[int, list[str]]:
+def _context_penalty(context: list[dict] | None) -> tuple[int, list[dict]]:
     """Sum the credibility penalties from the non-threat intelligence sources.
 
     The returned penalty is the raw (uncapped) total; the caller applies
-    ``CONTEXT_PENALTY_CAP``. Human-readable flags are returned alongside for the
-    breakdown, in source order.
+    ``CONTEXT_PENALTY_CAP``. A structured per-item list is returned alongside for
+    the breakdown, in source order — each item is ``{"label", "points"}``.
 
     Args:
         context: The ``security_result["context"]`` list (may be None).
 
     Returns:
-        A ``(raw_penalty, flags)`` tuple.
+        A ``(raw_penalty, items)`` tuple.
     """
     penalty = 0
-    flags: list[str] = []
+    items: list[dict] = []
+
+    def add(points: int, label: str) -> None:
+        nonlocal penalty
+        penalty += points
+        items.append({"label": label, "points": points})
 
     rdap = _find(context, "RDAP")
     if rdap is not None:
         registered_on = rdap.get("registered_on")
         age = compute_domain_age_days(registered_on)
         if age is None:
-            penalty += RDAP_UNKNOWN_AGE_PENALTY
-            flags.append("Domain registration date could not be verified")
+            add(RDAP_UNKNOWN_AGE_PENALTY, "Domain registration date could not be verified")
         elif age < NEW_DOMAIN_DAYS:
-            penalty += RDAP_NEW_DOMAIN_PENALTY
-            flags.append(f"Domain registered {age} days ago")
+            add(RDAP_NEW_DOMAIN_PENALTY, f"Domain registered {age} days ago")
         elif age < YOUNG_DOMAIN_DAYS:
-            penalty += RDAP_YOUNG_DOMAIN_PENALTY
-            flags.append(f"Domain registered {age} days ago")
+            add(RDAP_YOUNG_DOMAIN_PENALTY, f"Domain registered {age} days ago")
 
     tranco = _find(context, "Tranco")
     if tranco is not None:
         rank = tranco.get("rank")
         if rank is None:
-            penalty += TRANCO_NO_RANK_PENALTY
-            flags.append("Not in the Tranco popularity list")
+            add(TRANCO_NO_RANK_PENALTY, "Not in the Tranco popularity list")
         elif isinstance(rank, (int, float)) and rank > TRANCO_LOW_RANK_THRESHOLD:
-            penalty += TRANCO_LOW_RANK_PENALTY
-            flags.append(f"Very low Tranco rank ({int(rank)})")
+            add(TRANCO_LOW_RANK_PENALTY, f"Very low Tranco rank ({int(rank)})")
 
     wayback = _find(context, "Wayback")
     if wayback is not None and not wayback.get("has_snapshot"):
-        penalty += WAYBACK_NO_SNAPSHOT_PENALTY
-        flags.append("No Wayback Machine history")
+        add(WAYBACK_NO_SNAPSHOT_PENALTY, "No Wayback Machine history")
 
     crtsh = _find(context, "crt.sh")
     if crtsh is not None:
         cert_count = crtsh.get("certificate_count")
         if isinstance(cert_count, int) and cert_count < MIN_CERTIFICATE_COUNT:
-            penalty += FEW_CERTS_PENALTY
-            flags.append("Almost no TLS certificate history")
+            add(FEW_CERTS_PENALTY, "Almost no TLS certificate history")
 
     ipgeo = _find(context, "IPGeo")
     if ipgeo is not None:
         country = ipgeo.get("country")
         if country and country not in COMMON_HOSTING_COUNTRIES:
-            penalty += FOREIGN_HOSTING_PENALTY
-            flags.append(f"Hosted in an unusual country ({country})")
+            add(FOREIGN_HOSTING_PENALTY, f"Hosted in an unusual country ({country})")
 
-    return penalty, flags
+    return penalty, items
 
 
 # --------------------------------------------------------------------------- #
@@ -375,6 +372,7 @@ def generate_score_breakdown(security_result: dict | None) -> dict:
             "context_penalty": 0,
             "threat_sources_triggered": [],
             "context_flags": [],
+            "deductions": [],
             "explanation": (
                 "Threat intelligence was unavailable, so risk could not be "
                 "determined."
@@ -390,9 +388,16 @@ def generate_score_breakdown(security_result: dict | None) -> dict:
         for f in findings
         if f.get("threat") is True
     ]
+    # Per-threat-source deductions (label + the points it cost), for the UI.
+    threat_items = [
+        {"label": f"{f.get('name', 'A source')} flagged this URL", "points": pen}
+        for f in findings
+        if (pen := _threat_penalty_for(f)) > 0
+    ]
 
-    raw_context_penalty, context_flags = _context_penalty(context)
+    raw_context_penalty, context_items = _context_penalty(context)
     context_penalty = min(raw_context_penalty, CONTEXT_PENALTY_CAP)
+    context_flags = [i["label"] for i in context_items]
 
     score = _clamp(100 - threat_penalty - context_penalty, 0, 100)
 
@@ -403,5 +408,8 @@ def generate_score_breakdown(security_result: dict | None) -> dict:
         "context_penalty": context_penalty,
         "threat_sources_triggered": triggered,
         "context_flags": context_flags,
+        # Flat, ordered list of every point deduction (threat first, then
+        # context) so the UI can list exactly what cost the site its points.
+        "deductions": threat_items + context_items,
         "explanation": _build_explanation(triggered, context_flags),
     }

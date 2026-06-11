@@ -136,6 +136,49 @@
   background: rgba(210, 72, 60, 0.08);
 }
 
+/* ---- Layout wrappers ----
+   Default (stacked): the wrappers vanish (display:contents) so head / screen /
+   foot / findings flow as one clay column — identical to the original markup. */
+.lbv-body,
+.lbv-side {
+  display: contents;
+}
+
+/* "split" (report): head spans the top; screenshot LEFT, result/findings RIGHT. */
+.lbv--split {
+  max-width: 760px;
+}
+.lbv--split .lbv-body {
+  display: flex;
+  flex-direction: row;
+  gap: 14px;
+  align-items: flex-start;
+}
+.lbv--split .lbv-screen {
+  flex: 1 1 56%;
+  min-width: 0;
+}
+.lbv--split .lbv-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 44%;
+  min-width: 0;
+}
+/* Stack the verdict under a wrapping summary in the narrow right column. */
+.lbv--split .lbv-foot {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.lbv--split .lbv-action {
+  white-space: normal;
+  overflow: visible;
+}
+.lbv--split .lbv-result {
+  align-items: flex-start;
+}
+
 /* ---- Foot: action narration + median result ---- */
 .lbv-foot {
   display: flex;

@@ -61,6 +61,41 @@ def test_platform_matches_domain():
     assert platform_matches_domain("Live Nation", "ticketmaster.com") is True
 
 
+def test_platform_match_green_only_for_official_domain():
+    # Self-declaring your own domain must NOT earn a green match (the old blind
+    # spot): a look-alike claiming a known brand on a cheap TLD is impersonation.
+    assert platform_matches_domain(
+        "FIFA World Cup 2026", "fifaworldcup26.sale", claimed_domain="fifaworldcup26.sale"
+    ) is False
+    # A noisy claim that merely contains a known brand still resolves it.
+    assert platform_matches_domain("FIFA World Cup 2026", "fifa.com") is True
+    # No recognizable brand → None, even when the page declares its own domain.
+    assert platform_matches_domain(
+        "TicketXYZ Resale", "ticketxyz.shop", claimed_domain="ticketxyz.shop"
+    ) is None
+    # Short single-word keys must token-match, not substring-match.
+    assert platform_matches_domain("Relaxsale Tickets", "relaxsale.com") is None
+
+
+def test_case4b_brand_impersonation_on_lookalike_is_high():
+    """A look-alike claiming FIFA on a .sale TLD is flagged, not green-lit."""
+    url = "https://fifaworldcup26.sale/checkout"
+    snaps = [_snap(url, body="Buy 2026 FIFA World Cup tickets — enter card details")]
+    claim = ClaimExtraction(
+        claimed_platform="FIFA World Cup 2026", claimed_domain="fifaworldcup26.sale",
+        page_state="payment_required",
+    )
+    sensitive = SensitiveActionDetection(
+        is_sensitive_action_page=True, page_state="payment_required",
+        action_types=["payment"],
+    )
+    trust, level, score, verdict, *_ = _evaluate(url, snaps, claim, sensitive)
+    assert trust.domain_matches_claimed_platform is False
+    assert trust.is_trusted_marketplace_domain is False
+    assert level == "high"
+    assert verdict == "high_risk_likely_ticket_scam"
+
+
 # --------------------------------------------------------------------------- #
 # Plan scenario 1: legit event listing                                        #
 # --------------------------------------------------------------------------- #

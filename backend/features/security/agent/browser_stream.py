@@ -11,7 +11,11 @@ Frame contract (each yielded dict is one ``data:`` SSE line):
     {"type":"start","url":str,"agent":"browser_check","ts":float}
     {"type":"frame","step":int,"action":str,"image":"data:image/png;base64,…","ts":float}
     {"type":"done","verdict":str|None,"risk_level":str|None,"risk_score":int|None,
-     "summary":str|None}
+     "summary":str|None,
+     "brand":{"claimed_platform":str|None,"domain":str|None,"matches":bool|None,
+              "trusted":bool|None,"mismatch_reason":str|None,"off_platform_payment":bool|None},
+     "sensitive_surfaces":[{"page_state":str,"reached":bool,"action_types":[str],
+                            "requested_inputs":[str]}]}
     {"type":"error","message":str}
 
 Best-effort: any failure becomes an ``error`` frame; the agent itself never
@@ -56,10 +60,15 @@ async def stream_browser_check(url: str, max_actions: int = 8) -> AsyncGenerator
         from .browser_check.browser_security_tool import browser_security_check
 
         # Headed: resale sites degrade under headless and the whole point is to
-        # show the live browser. enable_osint stays on (the reputation subagent
-        # folds into the final result, though it isn't screenshot-streamed).
+        # show the live browser. enable_osint is OFF here — the OSINT reputation
+        # subagent runs on its own dedicated stream (osint-stream), so leaving it
+        # on would re-run the whole reputation pass and waste ~40-60s per audit.
         return await browser_security_check(
-            url, max_actions=max_actions, headless=False, on_frame=on_frame
+            url,
+            max_actions=max_actions,
+            headless=False,
+            on_frame=on_frame,
+            enable_osint=False,
         )
 
     task = asyncio.create_task(_run())
@@ -74,13 +83,45 @@ async def stream_browser_check(url: str, max_actions: int = 8) -> AsyncGenerator
                 continue
 
         result = await task
+        trust = result.get("trust_check") or {}
+        claim = result.get("claim") or {}
+        surfaces = result.get("sensitive_surfaces") or []
         yield {
             "type": "done",
             "verdict": result.get("verdict"),
             "risk_level": result.get("risk_level"),
             "risk_score": result.get("risk_score"),
             "summary": result.get("summary"),
+            # Brand / domain consistency (the "is this really who it claims?" check).
+            "brand": {
+                "claimed_platform": claim.get("claimed_platform"),
+                "claimed_event": claim.get("claimed_event"),
+                "domain": trust.get("current_registered_domain"),
+                "matches": trust.get("domain_matches_claimed_platform"),
+                "trusted": trust.get("is_trusted_marketplace_domain"),
+                "mismatch_reason": trust.get("domain_mismatch_reason"),
+                "off_platform_payment": trust.get("off_platform_payment_detected"),
+            },
+            # Sensitive surfaces the agent reached + what each one asks for.
+            "sensitive_surfaces": [
+                {
+                    "page_state": s.get("page_state"),
+                    "reached": s.get("reached"),
+                    "action_types": s.get("action_types") or [],
+                    "requested_inputs": s.get("requested_inputs") or [],
+                }
+                for s in surfaces
+            ],
         }
     except Exception as exc:  # noqa: BLE001 - surface any failure as an error frame
         logger.exception("[security] browser stream failed")
         yield {"type": "error", "message": str(exc)}
+    finally:
+        # Client disconnected (GeneratorExit) or we errored mid-run: tear down the
+        # in-flight browser task so we don't leak an orphaned headed Chromium.
+        if not task.done():
+            task.cancel()
+            try:
+                await task
+            except (asyncio.CancelledError, Exception):  # noqa: BLE001
+                logger.info("[security] browser task cancelled on disconnect")
