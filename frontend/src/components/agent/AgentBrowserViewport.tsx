@@ -37,7 +37,6 @@ export function AgentBrowserViewport({ state }: { state: BrowserCheckState }) {
   const tone = riskLevel ? VERDICT_TONE[riskLevel.toLowerCase()] ?? "" : "";
 
   return (
-    <>
     <div className="lbv">
       <div className="lbv-head">
         <span className="lbv-dot-row" aria-hidden="true">
@@ -91,11 +90,16 @@ export function AgentBrowserViewport({ state }: { state: BrowserCheckState }) {
           </span>
         )}
       </div>
-    </div>
 
-    {status === "done" && (
-      <BrowserFindings brand={brand} surfaces={sensitiveSurfaces} />
-    )}
-    </>
+      {/* Structured findings live INSIDE the clay frame as a footer (like the
+          price frame's median stat), not as a separate card below it. */}
+      {status === "done" && (
+        <BrowserFindings
+          brand={brand}
+          surfaces={sensitiveSurfaces}
+          variant="frame"
+        />
+      )}
+    </div>
   );
 }

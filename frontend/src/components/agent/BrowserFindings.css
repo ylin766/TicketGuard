@@ -14,6 +14,18 @@
   font-size: 0.82rem;
 }
 
+/* "frame" variant: no card chrome of its own — it lives flush inside the live
+   security viewport's clay frame as a footer, separated only by a hairline. */
+.bfind--frame {
+  margin-top: 0;
+  padding: 10px 2px 2px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  border-top: 1px solid rgba(120, 124, 116, 0.22);
+}
+
 .bfind-title {
   font-weight: 700;
   font-size: 0.72rem;

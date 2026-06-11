@@ -97,9 +97,13 @@ function describeBrand(brand: BrandCheck): BrandView | null {
 export function BrowserFindings({
   brand,
   surfaces,
+  variant = "card",
 }: {
   brand: BrandCheck | null;
   surfaces: SensitiveSurface[];
+  /** "card" = standalone panel (report); "frame" = flush footer inside the
+   *  live security viewport, sharing its clay frame. */
+  variant?: "card" | "frame";
 }) {
   const brandView = brand ? describeBrand(brand) : null;
   const hasOffPlatform = !!brand?.off_platform_payment;
@@ -107,8 +111,10 @@ export function BrowserFindings({
   if (!brandView && !hasOffPlatform && surfaces.length === 0) return null;
 
   return (
-    <div className="bfind">
-      <div className="bfind-title">Browser findings</div>
+    <div className={`bfind${variant === "frame" ? " bfind--frame" : ""}`}>
+      <div className="bfind-title">
+        {variant === "frame" ? "Findings" : "Browser findings"}
+      </div>
 
       {brandView && (
         <div className={`bfind-row bfind-row--${brandView.tone}`}>
