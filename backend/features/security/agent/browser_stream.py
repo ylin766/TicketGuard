@@ -60,10 +60,15 @@ async def stream_browser_check(url: str, max_actions: int = 8) -> AsyncGenerator
         from .browser_check.browser_security_tool import browser_security_check
 
         # Headed: resale sites degrade under headless and the whole point is to
-        # show the live browser. enable_osint stays on (the reputation subagent
-        # folds into the final result, though it isn't screenshot-streamed).
+        # show the live browser. enable_osint is OFF here — the OSINT reputation
+        # subagent runs on its own dedicated stream (osint-stream), so leaving it
+        # on would re-run the whole reputation pass and waste ~40-60s per audit.
         return await browser_security_check(
-            url, max_actions=max_actions, headless=False, on_frame=on_frame
+            url,
+            max_actions=max_actions,
+            headless=False,
+            on_frame=on_frame,
+            enable_osint=False,
         )
 
     task = asyncio.create_task(_run())
@@ -111,3 +116,12 @@ async def stream_browser_check(url: str, max_actions: int = 8) -> AsyncGenerator
     except Exception as exc:  # noqa: BLE001 - surface any failure as an error frame
         logger.exception("[security] browser stream failed")
         yield {"type": "error", "message": str(exc)}
+    finally:
+        # Client disconnected (GeneratorExit) or we errored mid-run: tear down the
+        # in-flight browser task so we don't leak an orphaned headed Chromium.
+        if not task.done():
+            task.cancel()
+            try:
+                await task
+            except (asyncio.CancelledError, Exception):  # noqa: BLE001
+                logger.info("[security] browser task cancelled on disconnect")
