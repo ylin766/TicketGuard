@@ -247,6 +247,76 @@ def score_judge_only(
     )
 
 
+def score_regression(
+    audit: dict,
+    authoritative_score: int | float,
+    *,
+    threshold: int = DEFAULT_SAFE_THRESHOLD,
+) -> MetricResult:
+    """Score a dual-agent audit by how close its blended 0–100 score lands to the
+    dataset's AUTHORITATIVE 0–100 score (regression, not classification).
+
+        reward = 1 - |final - authoritative| / 100        (clamped to [0, 1])
+
+    A binary correctness flag (both sides of ``threshold``) is also recorded for
+    a human-readable accuracy line, but the optimizer maximizes the smooth reward
+    so it gets gradient even when the predicted side is already right.
+    """
+    final = audit.get("score")
+    auth = float(authoritative_score)
+    truth_label = "safe" if auth >= threshold else "risky"
+
+    if final is None:
+        return MetricResult(
+            score=0.0,
+            correct=False,
+            predicted_label=None,
+            components={"final": None, "authoritative": auth, "abs_error": None,
+                        "tool_success": tool_success_rate(audit.get("agent_audit"))},
+            feedback=(f"ABSTAINED: no blended score produced; authoritative "
+                      f"score was {auth:.0f} ('{truth_label}')."),
+        )
+
+    final_f = float(final)
+    abs_err = abs(final_f - auth)
+    reward = max(0.0, 1.0 - abs_err / 100.0)
+    predicted = predict_label(final_f, threshold)
+    correct = predicted == truth_label
+
+    react = audit.get("react_score")
+    osint = audit.get("osint_score")
+    tsr = tool_success_rate(audit.get("agent_audit"))
+
+    direction = ""
+    if abs_err > 0:
+        direction = (" Push the blended score "
+                     + ("DOWN" if final_f > auth else "UP")
+                     + f" toward {auth:.0f}.")
+    else:
+        direction = " On target."
+    feedback = (
+        f"{'CORRECT' if correct else 'WRONG SIDE'}: blended final={final_f:.0f} "
+        f"(react={react}, osint={osint}) vs authoritative={auth:.0f} "
+        f"['{truth_label}']. Absolute error {abs_err:.0f}/100 -> reward {reward:.2f}."
+        + direction
+    )
+
+    return MetricResult(
+        score=round(reward, 4),
+        correct=correct,
+        predicted_label=predicted,
+        components={
+            "final": final_f,
+            "react": react,
+            "osint": osint,
+            "authoritative": auth,
+            "abs_error": abs_err,
+            "tool_success": tsr,
+        },
+        feedback=feedback,
+    )
+
+
 def aggregate_metrics(results: list[MetricResult]) -> dict[str, float]:
     """Summarize a batch of per-example results into dataset-level numbers the
     learning curve plots: mean reward, accuracy, and mean tool success."""
@@ -261,10 +331,20 @@ def aggregate_metrics(results: list[MetricResult]) -> dict[str, float]:
     )
     tsrs = [r.components.get("tool_success") for r in results]
     tsrs = [t for t in tsrs if t is not None]
-    return {
+    summary = {
         "mean_score": round(sum(scored) / len(scored), 4),
         "accuracy": round(accuracy, 4),
         "mean_tool_success": round(sum(tsrs) / len(tsrs), 4) if tsrs else None,
         "n": len(results),
         "n_scored": len(judged_correct),
     }
+    # Regression runs (dual-agent vs authoritative score) carry an abs-error; if
+    # present, surface the mean absolute error (0–100) on the summary too.
+    abs_errs = [
+        r.components.get("abs_error")
+        for r in results
+        if r.components.get("abs_error") is not None
+    ]
+    if abs_errs:
+        summary["mean_abs_error"] = round(sum(abs_errs) / len(abs_errs), 2)
+    return summary

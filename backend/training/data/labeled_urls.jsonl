@@ -1,28 +1,32 @@
 # Ground-truth labelled URLs for TicketGuard security audit (teammate-collected).
 # 10 legitimate ticketing platforms + 10 verified phishing sites (PhishTank).
-# Format: one JSON object per line — {"url","label","note"}. label ∈ {safe,risky}.
+# Format: one JSON object per line — {"url","label","score","note"}.
+#   label ∈ {safe,risky}   — coarse binary ground truth
+#   score ∈ 0..100         — AUTHORITATIVE credibility (higher = safer); the
+#                            regression target the two agents' weighted final
+#                            score should converge toward.
 # Lines starting with # and blank lines are ignored.
 
-# --- safe: legitimate ticketing platforms ---
-{"url": "https://www.viagogo.com", "label": "safe", "note": "global resale marketplace"}
-{"url": "https://www.vividseats.com", "label": "safe", "note": "established resale marketplace"}
-{"url": "https://www.tickpick.com", "label": "safe", "note": "no-fee resale marketplace"}
-{"url": "https://www.ticketnetwork.com", "label": "safe", "note": "resale exchange platform"}
-{"url": "https://www.ticketsmarter.com", "label": "safe", "note": "licensed resale marketplace"}
-{"url": "https://www.gotickets.com", "label": "safe", "note": "established secondary marketplace"}
-{"url": "https://www.ticombo.com", "label": "safe", "note": "fan-to-fan resale marketplace"}
-{"url": "https://www.gigsberg.com", "label": "safe", "note": "international ticket marketplace"}
-{"url": "https://www.livefootballtickets.com", "label": "safe", "note": "football-focused resale marketplace"}
-{"url": "https://www.sportsevents365.com", "label": "safe", "note": "sports/event ticket provider"}
+# --- safe: legitimate ticketing platforms (authoritative 76–92) ---
+{"url": "https://www.viagogo.com", "label": "safe", "score": 80, "note": "global resale; known for hidden fees, not perfect"}
+{"url": "https://www.vividseats.com", "label": "safe", "score": 90, "note": "established large resale marketplace"}
+{"url": "https://www.tickpick.com", "label": "safe", "score": 92, "note": "no-fee resale, strong reputation"}
+{"url": "https://www.ticketnetwork.com", "label": "safe", "score": 85, "note": "mature resale exchange"}
+{"url": "https://www.ticketsmarter.com", "label": "safe", "score": 85, "note": "licensed resale marketplace"}
+{"url": "https://www.gotickets.com", "label": "safe", "score": 84, "note": "established secondary marketplace"}
+{"url": "https://www.ticombo.com", "label": "safe", "score": 80, "note": "legitimate but smaller-scale marketplace"}
+{"url": "https://www.gigsberg.com", "label": "safe", "score": 78, "note": "international platform, lower recognition"}
+{"url": "https://www.livefootballtickets.com", "label": "safe", "score": 76, "note": "legitimate but some delivery complaints"}
+{"url": "https://www.sportsevents365.com", "label": "safe", "score": 82, "note": "established sports/event ticket provider"}
 
-# --- risky: verified phishing sites (source: PhishTank, verified + online) ---
-{"url": "https://ticket-k-964352.com/", "label": "risky", "note": "phishtank 9423235; randomized throwaway ticket domain"}
-{"url": "https://ticketmaster.ticketmaster-kupteraz.lat/?id=cdda7bce8ff482e637fa8d3af62ee39a&frontend=TicketMaster_checkout", "label": "risky", "note": "phishtank 9422054; Ticketmaster impersonation on lookalike .lat domain"}
-{"url": "https://votrportail-administratiffr-ticketad2410-3892.wpdevcloud.com/wp-admin/adusart/redirect", "label": "risky", "note": "phishtank 9420094; admin-portal lure on compromised wpdevcloud host"}
-{"url": "https://recoveryticket-11345.com/", "label": "risky", "note": "phishtank 9400235; Coinbase-targeted recovery-ticket scam"}
-{"url": "https://oktaticket.com/", "label": "risky", "note": "phishtank 9368762; Okta-style support-ticket phish"}
-{"url": "https://help.ipsconfirm.com/profile/ticket/76561198168115188", "label": "risky", "note": "phishtank 9366048; Steam-style support-ticket lure"}
-{"url": "https://www.pidz.live/services/ticket.php", "label": "risky", "note": "phishtank 9196338; generic ticket.php phishing kit"}
-{"url": "https://cheap-tickets.us/raden.php", "label": "risky", "note": "phishtank 9193509; landing page behind a google.com/url redirect wrapper"}
-{"url": "https://www.ticket2u.com.my/form/34394", "label": "risky", "note": "phishtank 8468239; credential-harvest form lure"}
-{"url": "https://phantom-wallet.zendesk.com/agent/tickets/40390", "label": "risky", "note": "phishtank 8122232; Phantom-wallet support-ticket impersonation"}
+# --- risky: verified phishing sites (PhishTank, verified + online; authoritative 3–10) ---
+{"url": "https://ticket-k-964352.com/", "label": "risky", "score": 5, "note": "phishtank 9423235; randomized throwaway ticket domain"}
+{"url": "https://ticketmaster.ticketmaster-kupteraz.lat/?id=cdda7bce8ff482e637fa8d3af62ee39a&frontend=TicketMaster_checkout", "label": "risky", "score": 3, "note": "phishtank 9422054; Ticketmaster impersonation on lookalike .lat domain"}
+{"url": "https://votrportail-administratiffr-ticketad2410-3892.wpdevcloud.com/wp-admin/adusart/redirect", "label": "risky", "score": 5, "note": "phishtank 9420094; admin-portal lure on compromised wpdevcloud host"}
+{"url": "https://recoveryticket-11345.com/", "label": "risky", "score": 4, "note": "phishtank 9400235; Coinbase-targeted recovery-ticket scam"}
+{"url": "https://oktaticket.com/", "label": "risky", "score": 6, "note": "phishtank 9368762; Okta-style support-ticket phish"}
+{"url": "https://help.ipsconfirm.com/profile/ticket/76561198168115188", "label": "risky", "score": 6, "note": "phishtank 9366048; Steam-style support-ticket lure"}
+{"url": "https://www.pidz.live/services/ticket.php", "label": "risky", "score": 5, "note": "phishtank 9196338; generic ticket.php phishing kit"}
+{"url": "https://cheap-tickets.us/raden.php", "label": "risky", "score": 5, "note": "phishtank 9193509; landing page behind a google.com/url redirect wrapper"}
+{"url": "https://www.ticket2u.com.my/form/34394", "label": "risky", "score": 10, "note": "phishtank 8468239; credential-harvest form lure"}
+{"url": "https://phantom-wallet.zendesk.com/agent/tickets/40390", "label": "risky", "score": 8, "note": "phishtank 8122232; Phantom-wallet support-ticket impersonation"}

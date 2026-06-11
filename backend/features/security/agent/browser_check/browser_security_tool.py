@@ -26,6 +26,7 @@ async def browser_security_check(
     enable_osint: bool = True,
     headless: bool = True,
     on_frame: Optional[Callable[[int, bytes, str], None]] = None,
+    react_instruction: Optional[str] = None,
 ) -> dict[str, Any]:
     """Browser-based ticket-scam security check.
 
@@ -55,7 +56,8 @@ async def browser_security_check(
         A ``BrowserSecurityResult`` as a JSON-serializable dict.
     """
     runner = BrowserCheckRunner(
-        max_actions=max_actions, headless=headless, on_frame=on_frame
+        max_actions=max_actions, headless=headless, on_frame=on_frame,
+        react_instruction=react_instruction,
     )
     result = await runner.run(
         url=url,

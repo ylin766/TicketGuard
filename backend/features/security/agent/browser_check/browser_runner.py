@@ -162,11 +162,15 @@ class BrowserCheckRunner:
     """Guard-railed, agent-driven browser probe for one ticket URL."""
 
     def __init__(self, max_actions: int = 8, headless: bool = True,
-                 on_frame: Optional[Callable[[int, bytes, str], None]] = None):
+                 on_frame: Optional[Callable[[int, bytes, str], None]] = None,
+                 react_instruction: Optional[str] = None):
         self.max_actions = max(1, min(max_actions, _HARD_ACTION_CAP))
         self.headless = headless
         self.workdir = tempfile.mkdtemp(prefix="ticket_browser_check_")
         self._session = None
+        # Optional ReAct exploration prompt override (GEPA training injects the
+        # candidate prompt here; production leaves it None to use the default).
+        self._react_instruction = react_instruction
         # Optional live-frame sink: called as on_frame(step, png_bytes, action)
         # after each page observation so a UI can play the agent's exploration.
         # Must never raise.
@@ -390,7 +394,7 @@ class BrowserCheckRunner:
             name="ticket_browse_explorer",
             model=build_gemini_model(),
             description="Observe-only ticket-page explorer.",
-            instruction=BROWSE_REACT_INSTRUCTION,
+            instruction=self._react_instruction or BROWSE_REACT_INSTRUCTION,
             tools=self._build_tools(),
         )
         app = "ticket_browse"

@@ -46,6 +46,7 @@ class EvalExample:
     url: str
     label: Label
     note: str = ""
+    authoritative_score: int | None = None
 
     @property
     def is_risky(self) -> bool:
@@ -90,7 +91,22 @@ def parse_example(obj: dict, *, line_no: int | None = None) -> EvalExample:
             f"must be one of {sorted(VALID_LABELS)}"
         )
     note = (obj.get("note") or "").strip()
-    return EvalExample(url=url, label=label, note=note)  # type: ignore[arg-type]
+    raw_score = obj.get("score")
+    score: int | None = None
+    if raw_score is not None:
+        try:
+            score = int(raw_score)
+        except (TypeError, ValueError):
+            raise ValueError(
+                f"dataset record has non-integer 'score' {raw_score!r}{where}: {obj!r}"
+            )
+        if not 0 <= score <= 100:
+            raise ValueError(
+                f"dataset record 'score' {score} out of range 0..100{where}: {obj!r}"
+            )
+    return EvalExample(  # type: ignore[arg-type]
+        url=url, label=label, note=note, authoritative_score=score
+    )
 
 
 def load_dataset(path: str | Path | None = None) -> list[EvalExample]:
