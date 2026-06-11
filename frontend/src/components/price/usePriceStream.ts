@@ -16,7 +16,54 @@ export interface PriceListing {
   row?: string | number | null;
   listing_id?: string | null;
   badges?: string[];
+  /** Seat-photo match status (set by backend seats.match_seats). */
+  match_status?:
+    | "matched"
+    | "matched_base"
+    | "no_photo"
+    | "category"
+    | "supporters"
+    | "unmatchable";
+  /** Number of seat-view photos found for this section. */
+  photo_count?: number;
+  /** Public URLs for this section's seat-view photos (served at /seat-photos). */
+  photo_urls?: string[];
+  /** Seat-agent grade, present only for the top-N graded listings (else null). */
+  seat_score?: SeatScore | null;
   [key: string]: unknown;
+}
+
+/** One graded dimension from the seat agent (0–100 + a short reason). */
+export interface SeatDimension {
+  score: number;
+  note: string;
+}
+
+/** Keys of the seat-agent rubric (mirrors backend DIMENSION_WEIGHTS). */
+export type SeatDimensionKey =
+  | "view_clarity"
+  | "proximity"
+  | "value"
+  | "obstruction"
+  | "atmosphere";
+
+/** The seat agent's structured grade for one section. */
+export interface SeatScore {
+  /** Weighted overall, 0–100. */
+  overall: number;
+  ring: "excellent" | "great" | "good" | "fair" | "poor";
+  dimensions: Record<SeatDimensionKey, SeatDimension>;
+  /** One-sentence buyer-facing takeaway. */
+  summary: string;
+  confidence: "high" | "medium" | "low";
+}
+
+/** One step in the seat agent's live trace (mirrors the price step timeline). */
+export interface SeatStep {
+  action: string;
+  /** Public seat-photo URL for this step, if any (relative /seat-photos/…). */
+  image?: string | null;
+  ts: number;
 }
 
 /** The buyer's own ticket, extracted from the page by Gemini vision. */
@@ -85,6 +132,10 @@ export interface PriceState {
   stats: PriceStats | null;
   analysis: PriceAnalysis | null;
   recommendations: PriceListing[];
+  /** Live seat-agent trace steps (photo match + per-section grading). */
+  seatSteps: SeatStep[];
+  /** Most recent seat photo shown in the seat viewport. */
+  seatImage: string | null;
   error: string | null;
 }
 
@@ -103,6 +154,8 @@ const INITIAL: PriceState = {
   stats: null,
   analysis: null,
   recommendations: [],
+  seatSteps: [],
+  seatImage: null,
   error: null,
 };
 
@@ -110,6 +163,7 @@ type PriceSseFrame =
   | { type: "start"; url: string; source: string }
   | { type: "frame"; step: number; action: string; image: string; ts: number }
   | { type: "analyzing"; ts: number }
+  | { type: "seat"; action: string; image?: string | null; ts: number }
   | {
       type: "done";
       median: number | null;
@@ -164,6 +218,15 @@ export function usePriceStream(
           }
           case "analyzing":
             return { ...prev, status: "analyzing" };
+          case "seat":
+            return {
+              ...prev,
+              seatSteps: [
+                ...prev.seatSteps,
+                { action: frame.action, image: frame.image, ts: frame.ts },
+              ],
+              seatImage: frame.image ?? prev.seatImage,
+            };
           case "done":
             return {
               ...prev,

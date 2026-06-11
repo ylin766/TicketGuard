@@ -231,7 +231,80 @@ async def stream_price(url: str, qty: int = 2) -> AsyncGenerator[dict, None]:
                 pass
 
         # ------------------------------------------------------------------
-        # Phase 5 — compare the buyer's ticket against the reference market.
+        # Phase 5 — seat-view photos (local glob) + seat agent grading (Gemini).
+        # Runs right after the scrape (only needs listings) so the seat unit
+        # lights up before the market analysis. Emitted as a live "seat" step
+        # stream so the frontend's seat unit shows a real agent trace. The agent
+        # grades the buyer's own section plus a price-bracketed comparison set.
+        # Best-effort: any failure degrades to photos-only and never breaks price.
+        # ------------------------------------------------------------------
+        try:
+            from ..seats import attach_seat_photos, select_scoring_order
+            from ..seats.agent import score_seat
+
+            venue = (result.get("metadata") or {}).get("venue") or ""
+            if venue:
+                yield {
+                    "type": "seat",
+                    "action": "Matching sections to seat-view library",
+                    "ts": time.time(),
+                }
+                local = await asyncio.to_thread(
+                    attach_seat_photos, venue, listings
+                )
+                matched_sections = sorted(
+                    {
+                        str(listings[i].get("section"))
+                        for i in local
+                        if listings[i].get("section") is not None
+                    }
+                )
+                yield {
+                    "type": "seat",
+                    "action": (
+                        f"Found {len(matched_sections)} sections with real "
+                        f"seat views"
+                    ),
+                    "ts": time.time(),
+                }
+
+                your_section = (user_listing or {}).get("section")
+                order = select_scoring_order(
+                    listings, local, 6, prioritize_section=your_section
+                )
+                if order:
+                    yield {
+                        "type": "seat",
+                        "action": f"Grading {len(order)} seats with the agent",
+                        "ts": time.time(),
+                    }
+                for idx in order:
+                    sec = listings[idx].get("section")
+                    urls = listings[idx].get("photo_urls") or []
+                    yield {
+                        "type": "seat",
+                        "action": f"Grading section {sec} · sightline & value",
+                        "image": urls[0] if urls else None,
+                        "ts": time.time(),
+                    }
+                    price_val = listings[idx].get("price")
+                    listings[idx]["seat_score"] = await asyncio.to_thread(
+                        score_seat,
+                        str(sec or ""),
+                        local[idx],
+                        price_val if isinstance(price_val, (int, float)) else None,
+                        listings[idx].get("view"),
+                    )
+                yield {
+                    "type": "seat",
+                    "action": "Seat grading complete",
+                    "ts": time.time(),
+                }
+        except Exception:  # noqa: BLE001 - seat photos/scores are best-effort
+            logger.exception("[price] seat photo matching failed")
+
+        # ------------------------------------------------------------------
+        # Phase 6 — compare the buyer's ticket against the reference market.
         # ------------------------------------------------------------------
         yield {"type": "analyzing", "ts": time.time()}
         analysis_out: dict = {}

@@ -2,6 +2,8 @@ import { motion } from "framer-motion";
 import { SecurityRuntime } from "../components/agent/SecurityRuntime";
 import { LiveBrowserViewport } from "../components/price/LiveBrowserViewport";
 import { PriceActivityPanel } from "../components/price/PriceActivityPanel";
+import { SeatViewport } from "../components/price/SeatViewport";
+import { SeatActivityPanel } from "../components/price/SeatActivityPanel";
 import type { PriceState } from "../components/price/usePriceStream";
 import type { ThreatScanCache } from "../components/ThreatIntelPanel";
 import type { FlowPhase } from "./useFlow";
@@ -52,6 +54,19 @@ const UNITS: UnitDef[] = [
   { key: "seat", title: "Seat & Sightline", sub: "Obstruction & view check", icon: IconSeat },
 ];
 
+function SeatRuntime({ price }: { price?: PriceState }) {
+  // Mirror the price unit exactly: a seat-photo viewport on the left and the
+  // seat agent's step timeline on the right. Both panes show their own clay
+  // skeleton / waiting line until the seat phase begins.
+  if (!price) return null;
+  return (
+    <div className="seat-runtime">
+      <SeatViewport state={price} />
+      <SeatActivityPanel state={price} />
+    </div>
+  );
+}
+
 export function ProcessUnits({
   phase,
   url,
@@ -84,10 +99,11 @@ export function ProcessUnits({
   return (
     <div className="process-units">
       {UNITS.map((u, i) => {
-        // security + price run live; seat is still a placeholder.
-        const active = u.key === "security" || u.key === "price";
+        // security + price + seat all stream live; seat mirrors price exactly.
+        const active = u.key === "security" || u.key === "price" || u.key === "seat";
         // Units that render their own header in the pipeline (the threat panel,
-        // the price viewport) suppress the unit head to avoid a duplicated row.
+        // the price + seat viewports) suppress the unit head to avoid a
+        // duplicated row.
         const showHead = !(active && isPipeline);
         return (
           <motion.div
@@ -163,9 +179,14 @@ export function ProcessUnits({
                     </div>
                   )
                 ) : (
-                  <div className="punit-soon-body">
-                    <span className="punit-soon-tag">Coming soon</span>
-                  </div>
+                  isPipeline && price ? (
+                    <SeatRuntime price={price} />
+                  ) : (
+                    <div className="punit-process">
+                      <span className="punit-process-dot" aria-hidden="true" />
+                      <span className="punit-process-label">Opening market…</span>
+                    </div>
+                  )
                 )}
               </motion.div>
             </motion.div>

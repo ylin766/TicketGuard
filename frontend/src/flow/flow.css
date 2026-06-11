@@ -307,6 +307,33 @@
   }
 }
 
+/* Seat runtime mirrors the price runtime exactly: seat-photo viewport on the
+   left, the seat agent's step timeline on the right. */
+.seat-runtime {
+  display: flex;
+  flex-direction: row;
+  gap: 14px;
+  align-items: flex-start;
+  width: 100%;
+  max-height: 46vh;
+  overflow: hidden auto;
+}
+.seat-runtime .lbv {
+  flex: 0 0 auto;
+  width: 360px;
+  max-width: 48%;
+  margin: 0;
+}
+@media (max-width: 900px) {
+  .seat-runtime {
+    flex-direction: column;
+  }
+  .seat-runtime .lbv {
+    width: 100%;
+    max-width: 460px;
+  }
+}
+
 /* Security runtime stacks the threat scan and the public-opinion agent trace. */
 .security-runtime {
   display: flex;

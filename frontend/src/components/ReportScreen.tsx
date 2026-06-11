@@ -10,6 +10,8 @@ import { AgentBrowserViewport } from "./agent/AgentBrowserViewport";
 import type { BrowserCheckState } from "./agent/useBrowserCheckStream";
 import { LiveBrowserViewport } from "./price/LiveBrowserViewport";
 import { PriceAnalysisPanel } from "./price/PriceAnalysisPanel";
+import { SeatScorePanel } from "./price/SeatScorePanel";
+import { SeatOverview } from "./price/SeatOverview";
 import type { PriceState } from "./price/usePriceStream";
 import "./ReportScreen.css";
 
@@ -165,6 +167,9 @@ export function ReportScreen({
         <p className="recommendation-text">{report.recommendation}</p>
       </div>
 
+      {/* Stadium-wide seat coverage summary for this match. */}
+      <SeatOverview state={price} venue={venue} />
+
       {/* Body: analysis reading column + intel rail. */}
       <div className="report-body">
         <div className="report-col-main">
@@ -190,6 +195,9 @@ export function ReportScreen({
           <PriceAnalysisPanel state={price} />
         </div>
       </div>
+
+      {/* Seat agent — full-width grid of graded seat views, below the price. */}
+      <SeatScorePanel state={price} />
 
       {/* Threat intelligence — full width so the per-source cards lay out in a
           compact multi-column grid instead of one tall stack in the rail. */}
