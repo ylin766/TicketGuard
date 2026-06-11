@@ -479,15 +479,13 @@ async def fetch_stubhub(url: str | None = None, qty: int = 2, on_frame=None) -> 
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
                 "--disable-infobars",
-                # New headless mode: no OS window ever appears (off-screen
-                # window-parking still flashes a window on macOS), but it renders
-                # through the full browser path — far less bot-detectable than
-                # legacy headless. Override with PRICE_BROWSER_ONSCREEN=1 to debug
-                # with a real, visible window.
+                # Headed for accuracy, but parked far off-screen so no window
+                # flashes in the user's face — they watch our clay viewport
+                # instead. Override with PRICE_BROWSER_ONSCREEN=1 to debug.
                 *(
                     []
                     if os.environ.get("PRICE_BROWSER_ONSCREEN") == "1"
-                    else ["--headless=new"]
+                    else ["--window-position=-32000,-32000"]
                 ),
             ],
         )

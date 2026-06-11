@@ -397,14 +397,12 @@ async def fetch_ticketmaster(url: str | None = None, qty: int = 2, on_frame=None
                 "--disable-blink-features=AutomationControlled",
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
-                # New headless mode: no OS window ever appears (off-screen
-                # window-parking still flashes a window on macOS), but it renders
-                # through the full browser path — far less bot-detectable than
-                # legacy headless. Override with PRICE_BROWSER_ONSCREEN=1 to debug.
+                # Headed for accuracy, parked off-screen so no window flashes;
+                # override with PRICE_BROWSER_ONSCREEN=1 to debug.
                 *(
                     []
                     if os.environ.get("PRICE_BROWSER_ONSCREEN") == "1"
-                    else ["--headless=new"]
+                    else ["--window-position=-32000,-32000"]
                 ),
             ],
         )
