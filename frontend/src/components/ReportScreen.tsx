@@ -3,9 +3,15 @@ import type { TicketReport } from "../types";
 import type { ThreatScanCache } from "./ThreatIntelPanel";
 import type { AgentState } from "./agent/useAgentStream";
 import { RiskGauge } from "./RiskGauge";
-import { ScoreCard } from "./ScoreCard";
 import { ThreatIntelPanel } from "./ThreatIntelPanel";
 import { AgentPanel } from "./agent/AgentPanel";
+import { AgentBrowserViewport } from "./agent/AgentBrowserViewport";
+import type { BrowserCheckState } from "./agent/useBrowserCheckStream";
+import { LiveBrowserViewport } from "./price/LiveBrowserViewport";
+import { PriceAnalysisPanel } from "./price/PriceAnalysisPanel";
+import { SeatScorePanel } from "./price/SeatScorePanel";
+import { SeatOverview } from "./price/SeatOverview";
+import type { PriceState } from "./price/usePriceStream";
 import "./ReportScreen.css";
 
 interface ReportScreenProps {
@@ -16,6 +22,10 @@ interface ReportScreenProps {
   threatCache?: ThreatScanCache;
   /** Cached AGENT agent trace from the pipeline phase. */
   agentCache?: AgentState;
+  /** Cached Layer-2 browser-probe findings (brand check + sensitive surfaces). */
+  browserCache?: BrowserCheckState;
+  /** Live/finished price stream state, owned by App (ran during the pipeline). */
+  price: PriceState;
 }
 
 const VERDICT_EMOJI = {
@@ -32,15 +42,39 @@ function formatUsd(value: number): string {
   });
 }
 
+function formatMoney(value: number, currency = "USD"): string {
+  try {
+    return value.toLocaleString("en-US", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 0,
+    });
+  } catch {
+    return `${value.toLocaleString("en-US", { maximumFractionDigits: 0 })} ${currency}`;
+  }
+}
+
 export function ReportScreen({
   report,
   onBack,
   threatCache,
   agentCache,
+  browserCache,
+  price,
 }: ReportScreenProps) {
-  const { dimensions } = report;
+  // Prefer the LIVE data gathered during the pipeline (vision-extracted from the
+  // buyer's own page + the live market scrape) over the mock placeholders; fall
+  // back to the report's values only when a field wasn't extracted.
+  const ul = price.userListing;
+  const match = ul?.event_name || report.match;
+  const venue = ul?.venue || report.venue;
+  const section = ul?.section || report.seat.section;
+  const row = ul?.row || report.seat.row;
+  const seat = ul?.seat || report.seat.seat;
+  const listingPrice = ul?.price_per_ticket ?? report.listingPrice;
+  const marketMedian = price.median ?? report.marketMedian;
   const markup = Math.round(
-    ((report.listingPrice - report.marketMedian) / report.marketMedian) * 100
+    ((listingPrice - marketMedian) / marketMedian) * 100
   );
 
   return (
@@ -60,92 +94,115 @@ export function ReportScreen({
         </span>
       </div>
 
-      <div className="report-grid">
-        {/* Left Column: Main Analysis */}
-        <div className="report-col-main">
-          <header className="report-hero clay">
-            <div className="report-hero-main">
-              <span className="eyebrow">Audited listing</span>
-              <p className="report-url">{report.url}</p>
-              <h2 className="report-match">{report.match}</h2>
-              <p className="report-venue muted">
-                {report.venue} · Sec {report.seat.section} · Row {report.seat.row} ·
-                Seat {report.seat.seat}
-              </p>
+      {/* Header band: listing identity (wide) paired with the trust gauge
+          (narrow) — an intentionally asymmetric headline zone. */}
+      <div className="report-headband">
+        <header className="report-hero clay">
+          <div className="report-hero-main">
+            <span className="eyebrow">Audited listing</span>
+            <p className="report-url">{report.url}</p>
+            <h2 className="report-match">{match}</h2>
+            <p className="report-venue muted">
+              {venue} · Sec {section} · Row {row} ·
+              Seat {seat}
+            </p>
 
-              <div className="report-prices">
-                <div className="price-pill neu-inset">
-                  <span className="eyebrow">Listing</span>
-                  <strong>{formatUsd(report.listingPrice)}</strong>
-                </div>
-                <div className="price-pill neu-inset">
-                  <span className="eyebrow">Market median</span>
-                  <strong>{formatUsd(report.marketMedian)}</strong>
-                </div>
-                <div className="price-pill neu-inset">
-                  <span className="eyebrow">Markup</span>
-                  <strong className={markup > 20 ? "text-danger" : "text-safe"}>
-                    {markup > 0 ? "+" : ""}
-                    {markup}%
-                  </strong>
-                </div>
+            <div className="report-prices">
+              <div className="price-pill neu-inset">
+                <span className="eyebrow">Listing</span>
+                <strong>{formatUsd(listingPrice)}</strong>
+              </div>
+              <div className="price-pill neu-inset">
+                <span className="eyebrow">Market median</span>
+                <strong>{formatMoney(marketMedian, price.currency)}</strong>
+              </div>
+              <div className="price-pill neu-inset">
+                <span className="eyebrow">Markup</span>
+                <strong className={markup > 20 ? "text-danger" : "text-safe"}>
+                  {markup > 0 ? "+" : ""}
+                  {markup}%
+                </strong>
               </div>
             </div>
-          </header>
-
-          <div className={`recommendation glass verdict-${report.verdict}`}>
-            <span className="recommendation-emoji" aria-hidden="true">
-              {VERDICT_EMOJI[report.verdict]}
-            </span>
-            <p className="recommendation-text">{report.recommendation}</p>
           </div>
+        </header>
 
-          <section className="score-grid">
-            <ScoreCard
-              icon="🌐"
-              title="Website credibility"
-              weight="40%"
-              result={dimensions.websiteCredibility}
-            />
-            <ScoreCard
-              icon="💰"
-              title="Fair price"
-              weight="25%"
-              result={dimensions.price}
-            />
-            <ScoreCard
-              icon="⚖️"
-              title="Legal compliance"
-              weight="20%"
-              result={dimensions.compliance}
-            />
-            <ScoreCard
-              icon="👁️"
-              title="Sightline"
-              weight="15%"
-              result={dimensions.sightline}
-            />
-          </section>
-
-          {agentCache && (
-            <AgentPanel state={agentCache} variant="report" />
+        <div className="report-gauge-card clay">
+          <span className="eyebrow">Trust Assessment</span>
+          <RiskGauge score={report.overallScore} verdict={report.verdict} />
+          {threatCache?.deductions && threatCache.deductions.length > 0 ? (
+            <ul className="gauge-why-list">
+              {threatCache.deductions.map((d, i) => (
+                <li key={`${d.label}-${i}`}>
+                  <span className="gauge-why-label">{d.label}</span>
+                  <span className="gauge-why-pts">−{d.points}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            report.security?.score_explanation && (
+              <p className="gauge-why">{report.security.score_explanation}</p>
+            )
+          )}
+          {report.security?.phoenix_url && (
+            <a
+              className="phoenix-link"
+              href={report.security.phoenix_url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View agent trace ↗
+            </a>
           )}
         </div>
+      </div>
 
-        {/* Right Column: Assessment & Intel */}
+      {/* Verdict — full-width divider between the headline and the detail. */}
+      <div className={`recommendation glass verdict-${report.verdict}`}>
+        <span className="recommendation-emoji" aria-hidden="true">
+          {VERDICT_EMOJI[report.verdict]}
+        </span>
+        <p className="recommendation-text">{report.recommendation}</p>
+      </div>
+
+      {/* Stadium-wide seat coverage summary for this match. */}
+      <SeatOverview state={price} venue={venue} />
+
+      {/* Security — full width so the browser probe (left) + findings (right)
+          split has room and the findings rail never wraps below. */}
+      {(agentCache || browserCache) && (
+        <section className="report-security">
+          {agentCache && <AgentPanel state={agentCache} variant="report" />}
+
+          {browserCache && (
+            <AgentBrowserViewport state={browserCache} layout="split" />
+          )}
+        </section>
+      )}
+
+      {/* Body: price analysis (wide, tall) beside the live scrape viewport
+          (narrow rail) — the tall text fills the wide column so the short
+          viewport's leftover space sits in the slim rail instead of a big gap. */}
+      <div className="report-body">
+        <div className="report-col-main">
+          <PriceAnalysisPanel state={price} />
+        </div>
+
         <div className="report-col-side">
-          <div className="report-gauge-card clay">
-            <span className="eyebrow">Trust Assessment</span>
-            <RiskGauge score={report.overallScore} verdict={report.verdict} />
-          </div>
-
-          <ThreatIntelPanel
-            url={report.url}
-            cachedSources={threatCache?.sources}
-            cachedFlagged={threatCache?.flagged}
-          />
+          <LiveBrowserViewport state={price} />
         </div>
       </div>
+
+      {/* Seat agent — full-width grid of graded seat views, below the price. */}
+      <SeatScorePanel state={price} yourSection={section} />
+
+      {/* Threat intelligence — full width so the per-source cards lay out in a
+          compact multi-column grid instead of one tall stack in the rail. */}
+      <ThreatIntelPanel
+        url={report.url}
+        cachedSources={threatCache?.sources}
+        cachedFlagged={threatCache?.flagged}
+      />
     </motion.div>
   );
 }

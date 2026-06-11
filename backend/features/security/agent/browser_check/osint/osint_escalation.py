@@ -172,13 +172,13 @@ def _fold_into_risk(result: BrowserSecurityResult, verdict: OsintVerdict) -> Non
     )
 
 
-async def escalate(result: BrowserSecurityResult) -> BrowserSecurityResult:
-    """Run OSINT on an unknown-site browser result and fold the verdict in.
+async def run_osint(domain: str) -> OsintVerdict:
+    """Run the OSINT reputation subagent on ``domain`` and return its verdict.
 
-    Never raises: any failure attaches an ``OsintVerdict`` with ``error`` set and
-    leaves the original browser verdict otherwise intact.
+    Standalone half of :func:`escalate`: it only produces the ``OsintVerdict``
+    (and never raises), so a caller can launch it concurrently with the browser
+    probe and fold the result in afterwards via :func:`fold_osint`.
     """
-    domain = result.trust_check.current_registered_domain or result.input_url
     verdict = OsintVerdict(triggered=True)
     try:
         report = await _run_osint_with_retry(domain)
@@ -189,7 +189,23 @@ async def escalate(result: BrowserSecurityResult) -> BrowserSecurityResult:
     except Exception as exc:  # noqa: BLE001 - OSINT is best-effort
         logger.warning("OSINT escalation failed for %s: %s", domain, exc)
         verdict.error = str(exc)
+    return verdict
 
+
+def fold_osint(
+    result: BrowserSecurityResult, verdict: OsintVerdict
+) -> BrowserSecurityResult:
+    """Attach ``verdict`` to ``result`` and fold its trust rating into the risk."""
     result.osint = verdict
     _fold_into_risk(result, verdict)
     return result
+
+
+async def escalate(result: BrowserSecurityResult) -> BrowserSecurityResult:
+    """Run OSINT on an unknown-site browser result and fold the verdict in.
+
+    Never raises: any failure attaches an ``OsintVerdict`` with ``error`` set and
+    leaves the original browser verdict otherwise intact.
+    """
+    domain = result.trust_check.current_registered_domain or result.input_url
+    return fold_osint(result, await run_osint(domain))

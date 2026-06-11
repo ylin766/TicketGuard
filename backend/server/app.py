@@ -26,6 +26,7 @@ from ..features.security.orchestrator import run_security_audit
 from ..features.security.pipeline import run_pipeline
 from ..features.security.pipeline.threatintel import stream_threatintel
 from ..features.security.agent.osint_stream import stream_osint
+from ..observability.telemetry import init_telemetry
 
 _env_path = Path(__file__).parent.parent / ".env"
 load_dotenv(_env_path)
@@ -33,6 +34,29 @@ load_dotenv(_env_path)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="TicketGuard API", version="0.1.0")
+
+
+@app.on_event("startup")
+def _bootstrap_telemetry() -> None:
+    """Wire Phoenix/OpenTelemetry once, for every LLM path (ADK + google.genai).
+
+    Done at startup (not per-request) so the OSINT stream, the security audit's
+    browser-check + grey-zone escalation, and direct Gemini vision calls all
+    emit traces. The Phoenix workspace URL is cached on app.state for deep-links.
+    """
+    app.state.phoenix_url = init_telemetry()
+    # Process-level safety net: sweep any off-screen Chromium our flows leak when
+    # the server is killed / Ctrl-C'd mid-audit (the per-run teardown can't run
+    # if the whole process dies).
+    try:
+        from ..features.security.agent.browser_check.browser_cleanup import (
+            install_browser_cleanup,
+        )
+
+        install_browser_cleanup()
+    except Exception:  # noqa: BLE001 - cleanup registration must never block startup
+        pass
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -60,8 +84,12 @@ async def security_audit(req: ThreatIntelRequest) -> dict:
 
     Runs the threat-intel pipeline, synthesizes the credibility score, and only
     in the grey zone escalates to the browser + OSINT agent. Returns the pipeline
-    result enriched with ``score`` / ``risk_level`` / ``grey_zone`` and, when the
-    agent ran, ``agent_audit``.
+    result enriched with ``score`` / ``risk_level`` / ``grey_zone`` / ``run_id``
+    and, when the agent ran, ``agent_audit``.
+
+    The ``run_id`` in the response is the correlation key for this audit's
+    Phoenix trace; the client echoes it back when submitting feedback so the
+    reward lands on the right trace.
 
     NOTE: this is blocking and can take a few minutes when the grey zone triggers
     the agent (real browser exploration). The client must use a long timeout, or
@@ -134,6 +162,79 @@ async def osint_stream(url: str) -> StreamingResponse:
             raise
         except Exception as exc:  # noqa: BLE001 - last-resort error frame
             logger.exception("OSINT stream error")
+            yield f"data: {json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+@app.get("/api/price/stream")
+async def price_stream(url: str, qty: int = 2) -> StreamingResponse:
+    """SSE stream of live market-price collection for ``url`` at ``qty`` tickets.
+
+    Drives a HEADED browser (resale sites degrade under headless) and streams a
+    per-step screenshot so the frontend can show a live "clay viewport" instead
+    of a raw OS window, followed by the aggregated listings + median.
+
+    Frame format (text/event-stream), see price.service.stream_price:
+        data: {"type":"start","url":...,"source":...}\n\n
+        data: {"type":"frame","step":int,"action":str,"image":"data:image/png;base64,…"}\n\n
+        data: {"type":"done","median":float|null,"count":int,"listings":[...]}\n\n
+        data: {"type":"error","message":str}\n\n
+    """
+    from ..features.price.service import stream_price
+
+    async def event_generator():
+        try:
+            async for event in stream_price(url, qty):
+                yield f"data: {json.dumps(event)}\n\n"
+        except asyncio.CancelledError:  # client disconnected
+            raise
+        except Exception as exc:  # noqa: BLE001 - last-resort error frame
+            logger.exception("Price stream error")
+            yield f"data: {json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+@app.get("/api/security/browser-stream")
+async def security_browser_stream(url: str, max_actions: int = 8) -> StreamingResponse:
+    """SSE stream of the Layer-2 browser security agent exploring ``url`` live.
+
+    Drives a HEADED browser through the ReAct agent that maps the site's
+    sensitive surfaces (login / checkout / transfer), streaming a screenshot per
+    observed page so the frontend can play the investigation in the clay
+    viewport, then a final verdict.
+
+    Frame format (text/event-stream), see agent.browser_stream.stream_browser_check:
+        data: {"type":"start","url":...,"agent":"browser_check"}\n\n
+        data: {"type":"frame","step":int,"action":str,"image":"data:image/png;base64,…"}\n\n
+        data: {"type":"done","verdict":str,"risk_level":str,"risk_score":int,"summary":str}\n\n
+        data: {"type":"error","message":str}\n\n
+    """
+    from ..features.security.agent.browser_stream import stream_browser_check
+
+    async def event_generator():
+        try:
+            async for event in stream_browser_check(url, max_actions):
+                yield f"data: {json.dumps(event)}\n\n"
+        except asyncio.CancelledError:  # client disconnected
+            raise
+        except Exception as exc:  # noqa: BLE001 - last-resort error frame
+            logger.exception("Security browser stream error")
             yield f"data: {json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
 
     return StreamingResponse(

@@ -1,0 +1,188 @@
+{
+  "metadata": {
+    "source": "gametime",
+    "event_url": "https://www.gametime.com/event/gt_wc_philly",
+    "event_name": "Germany vs Colombia - World Cup Group G",
+    "venue": "Lincoln Financial Field",
+    "city": "Philadelphia",
+    "currency": "USD",
+    "fixture": true
+  },
+  "tickets": [
+    {
+      "source": "fixture",
+      "section": "135",
+      "row": 26,
+      "price": 1277,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "GA",
+      "row": 31,
+      "price": 1063,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "135",
+      "row": null,
+      "price": 1335,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "GA",
+      "row": 24,
+      "price": 1294,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "135",
+      "row": 17,
+      "price": 1242,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "GA",
+      "row": 16,
+      "price": 1063,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "110",
+      "row": 8,
+      "price": 1834,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "215",
+      "row": null,
+      "price": 1309,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "215",
+      "row": null,
+      "price": 1106,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "215",
+      "row": null,
+      "price": 1416,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "215",
+      "row": null,
+      "price": 1007,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "110",
+      "row": 37,
+      "price": 1796,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "110",
+      "row": 31,
+      "price": 1913,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "GA",
+      "row": null,
+      "price": 1097,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "215",
+      "row": null,
+      "price": 1540,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "GA",
+      "row": 26,
+      "price": 1042,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "135",
+      "row": 8,
+      "price": 1299,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "135",
+      "row": null,
+      "price": 1411,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "135",
+      "row": 25,
+      "price": 1214,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "GA",
+      "row": null,
+      "price": 1165,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "215",
+      "row": null,
+      "price": 1406,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "GA",
+      "row": 38,
+      "price": 1274,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "135",
+      "row": 30,
+      "price": 1742,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "GA",
+      "row": null,
+      "price": 1084,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "110",
+      "row": 1,
+      "price": 1744,
+      "view": "Clear View"
+    }
+  ]
+}

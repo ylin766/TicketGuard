@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ThreatIntelPanel } from "../ThreatIntelPanel";
 import type { ThreatScanSummary, ThreatScanCache } from "../ThreatIntelPanel";
 import { AgentPanel } from "./AgentPanel";
-import { useAgentStream, type AgentState } from "./useAgentStream";
+import type { AgentState } from "./useAgentStream";
+import { AgentBrowserViewport } from "./AgentBrowserViewport";
+import type { BrowserCheckState } from "./useBrowserCheckStream";
 
 /**
  * The security unit's runtime body. The two investigations are a FRONT→BACK
@@ -21,11 +23,16 @@ import { useAgentStream, type AgentState } from "./useAgentStream";
  * `onDone` advances the cinematic flow to the report.
  */
 
-// TESTING: force the opinion agent to always run so its trace can be observed.
-const FORCE_AGENT = true;
+// Set to `true` only while debugging to force the opinion agent to always run
+// so its trace can be observed. Production gates it on the grey zone.
+const FORCE_AGENT = false;
 
 const HIGH_ALERTS = 4;
-function isGreyZone(s: ThreatScanSummary): boolean {
+/** Whether to escalate to the Layer-2 agent. Prefer the backend's authoritative
+ *  grey-zone decision (score-based, the same logic the audit uses); only fall
+ *  back to the alert-count heuristic if the backend didn't send one. */
+function shouldEscalate(s: ThreatScanSummary): boolean {
+  if (typeof s.greyZone === "boolean") return s.greyZone;
   return s.alerts >= 1 && s.alerts < HIGH_ALERTS;
 }
 
@@ -34,35 +41,30 @@ type Stage = "scan" | "opinion";
 
 export function SecurityRuntime({
   url,
-  onDone,
+  agentState,
+  browserState,
   onScanComplete,
-  onAgentComplete,
 }: {
   url: string;
-  onDone: () => void;
+  /** OSINT agent stream state, owned by App (single instance across phases). */
+  agentState: AgentState;
+  /** Layer-2 browser probe stream state, owned by App. */
+  browserState: BrowserCheckState;
   onScanComplete?: (cache: ThreatScanCache) => void;
-  onAgentComplete?: (state: AgentState) => void;
 }) {
   const [stage, setStage] = useState<Stage>("scan");
-  const agent = useAgentStream(url, stage === "opinion");
 
-  useEffect(() => {
-    if (agent.status === "done" || agent.status === "error") {
-      onAgentComplete?.(agent);
-      onDone();
-    }
-  }, [agent.status, agent, onAgentComplete, onDone]);
-
+  // Drive only the VISUAL hand-off here. The agent + browser streams are owned
+  // by App (gated on the grey-zone decision), so this component never starts or
+  // stops them — it just reveals their live state once the scan escalates.
   const handleScanDone = (_s: ThreatScanSummary) => {
-    if (FORCE_AGENT || isGreyZone(_s)) {
+    if (FORCE_AGENT || shouldEscalate(_s)) {
       setStage("opinion");
-    } else {
-      onDone();
     }
   };
 
-  const handleScanComplete = (sources: import("../../types").ThreatSource[], flagged: boolean) => {
-    onScanComplete?.({ sources, flagged });
+  const handleScanComplete = (cache: ThreatScanCache) => {
+    onScanComplete?.(cache);
   };
 
   return (
@@ -109,7 +111,10 @@ export function SecurityRuntime({
                 transition: { type: "spring", stiffness: 110, damping: 16, mass: 1, delay: 0.08 },
               }}
             >
-              <AgentPanel state={agent} variant="runtime" />
+              <div className="sec-opinion-stack">
+                <AgentBrowserViewport state={browserState} />
+                <AgentPanel state={agentState} variant="runtime" />
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

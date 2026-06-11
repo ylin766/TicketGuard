@@ -27,7 +27,7 @@ import logging
 import os
 import tempfile
 import uuid
-from typing import Optional
+from typing import Callable, Optional
 
 from .rules.domain_rules import evaluate_trust_and_score, is_trusted_domain, registered_domain
 from .llm.gemini_client import classify_claim, classify_sensitive_action
@@ -87,12 +87,51 @@ _LOAD_STATE_TIMEOUT_MS = 6000   # cap on waiting for domcontentloaded
 _NETWORKIDLE_TIMEOUT_MS = 3000
 _MAX_SNAPSHOT_CHARS = 12000
 
+# When run on-screen (PRICE_BROWSER_ONSCREEN=1) keep browser-use's default
+# top-left window position; off-screen mode runs headless (no window at all).
+_DEFAULT_WINDOW_POSITION = {"width": 0, "height": 0}
+
 
 async def _maybe_await(value):
     """Await ``value`` if it is awaitable, else return it as-is."""
     if inspect.isawaitable(value):
         return await value
     return value
+
+
+def _playwright_chromium_path() -> Optional[str]:
+    """Resolve Playwright's bundled Chromium executable (same as the scrapers).
+
+    browser-use's own browser discovery globs for ``chromium-*/chrome-win/`` but
+    current Playwright ships Chromium under ``chrome-win64/``, so that lookup
+    misses and browser-use silently falls back to system Edge. Pointing
+    ``executable_path`` straight at Playwright's Chromium keeps the probe on the
+    exact same browser the price scrapers use. Returns None if it can't resolve.
+
+    Resolved by globbing the ms-playwright cache directly (not via the Playwright
+    API, which has a sync/async variant mismatch and would launch a driver) so it
+    is safe to call from inside the running event loop.
+    """
+    import glob
+
+    base = os.environ.get("PLAYWRIGHT_BROWSERS_PATH") or os.path.join(
+        os.environ.get("LOCALAPPDATA", os.path.expanduser("~")), "ms-playwright"
+    )
+    # Newer Playwright uses chrome-win64; older used chrome-win — match both.
+    patterns = [
+        os.path.join(base, "chromium-*", "chrome-win64", "chrome.exe"),
+        os.path.join(base, "chromium-*", "chrome-win", "chrome.exe"),
+        os.path.join(base, "chromium-*", "chrome-linux*", "chrome"),
+        os.path.join(base, "chromium-*", "chrome-mac*", "Chromium.app",
+                     "Contents", "MacOS", "Chromium"),
+    ]
+    for pat in patterns:
+        matches = sorted(glob.glob(pat))
+        if matches:
+            return matches[-1]  # highest version
+    logger.warning("[browser_check] could not resolve Playwright Chromium path")
+    return None
+
 
 
 def _is_unsafe_label(label: Optional[str]) -> bool:
@@ -122,11 +161,21 @@ def _is_necessary_button(label: Optional[str]) -> bool:
 class BrowserCheckRunner:
     """Guard-railed, agent-driven browser probe for one ticket URL."""
 
-    def __init__(self, max_actions: int = 8, headless: bool = True):
+    def __init__(self, max_actions: int = 8, headless: bool = True,
+                 on_frame: Optional[Callable[[int, bytes, str], None]] = None,
+                 react_instruction: Optional[str] = None):
         self.max_actions = max(1, min(max_actions, _HARD_ACTION_CAP))
         self.headless = headless
         self.workdir = tempfile.mkdtemp(prefix="ticket_browser_check_")
         self._session = None
+        # Optional ReAct exploration prompt override (GEPA training injects the
+        # candidate prompt here; production leaves it None to use the default).
+        self._react_instruction = react_instruction
+        # Optional live-frame sink: called as on_frame(step, png_bytes, action)
+        # after each page observation so a UI can play the agent's exploration.
+        # Must never raise.
+        self._on_frame = on_frame
+        self._frame_seq = 0
 
     # ----------------------------------------------------------------- #
     # Public entry points                                               #
@@ -159,13 +208,43 @@ class BrowserCheckRunner:
         try:
             from browser_use import BrowserSession  # lazy: heavy + needs Chromium
 
+            # Off-screen window parking proved unreliable on Windows (the window
+            # still flashed in front of the user), so off-screen mode now runs a
+            # real HEADLESS browser: no OS window is ever created, which is the
+            # only way to *guarantee* nothing appears on-screen. Screenshots still
+            # work headless and feed the clay viewport via on_frame, so the UX is
+            # unchanged. Set PRICE_BROWSER_ONSCREEN=1 to debug with a visible,
+            # headed window.
+            offscreen = os.environ.get("PRICE_BROWSER_ONSCREEN") != "1"
+            # Headless when off-screen (no window at all); headed only when the
+            # developer explicitly asks to see it.
+            headless = True if offscreen else self.headless
+            # window_position / off-screen launch args only matter for a real
+            # (headed) window; in headless mode there is no window to place.
+            window_position = _DEFAULT_WINDOW_POSITION if not headless else None
+            launch_args: list[str] = []
+            # Force Playwright's bundled Chromium (identical to the scrapers).
+            # Without this, browser-use's discovery misses Chromium on Windows
+            # and falls back to system Edge.
+            chromium_path = _playwright_chromium_path()
             # highlight_elements=False keeps screenshots clean; we draw our own
             # marker around only the element the agent is about to click.
-            self._session = BrowserSession(
-                headless=self.headless, highlight_elements=False
+            # enable_default_extensions=False skips downloading/loading uBlock,
+            # cookie-consent and ClearURLs add-ons — they add nothing to a
+            # read-only fraud probe but make the (headed, Windows) Chromium cold
+            # start blow past browser-use's 30s launch timeout.
+            session_kwargs = dict(
+                headless=headless,
+                highlight_elements=False,
+                enable_default_extensions=False,
+                window_position=window_position,
+                args=launch_args,
             )
+            if chromium_path:
+                session_kwargs["executable_path"] = chromium_path
+            self._session = BrowserSession(**session_kwargs)
             await self._session.start()
-            await self._session.navigate(url)
+            await self._session.navigate_to(url)
             await self._settle()
 
             if not await self._observe_into_state():
@@ -248,7 +327,31 @@ class BrowserCheckRunner:
                 self._surfaces, snapshot, claim, sensitive, reached=at_decision_point
             )
         self._cur = (snapshot, claim, sensitive, restricted)
+        self._emit_frame(snapshot, claim, sensitive)
         return True
+
+    def _emit_frame(self, snapshot, claim, sensitive) -> None:
+        """Push the just-observed page to the live-frame sink, if any.
+
+        Best-effort: a missing screenshot or a raising sink never breaks the run.
+        """
+        if self._on_frame is None:
+            return
+        b64 = getattr(self, "_last_screenshot_b64", None)
+        if not b64:
+            return
+        # A short, human-readable label of what the agent is looking at.
+        state = getattr(claim, "page_state", "") or "page"
+        if getattr(sensitive, "is_sensitive_action_page", False):
+            action = f"Inspecting sensitive page: {state}"
+        else:
+            action = f"Observing {state}"
+        try:
+            png = base64.b64decode(b64)
+            self._on_frame(self._frame_seq, png, action)
+            self._frame_seq += 1
+        except Exception as exc:  # noqa: BLE001 - the sink must never break the probe
+            logger.debug("on_frame sink failed: %s", exc)
 
     def _observe_text(self) -> str:
         """Render the current page for the agent: state + safe click candidates."""
@@ -284,14 +387,14 @@ class BrowserCheckRunner:
         from google.adk.runners import InMemoryRunner
         from google.genai import types as genai_types
 
-        from .....core.config import GEMINI_MODEL
+        from .....core.config import build_gemini_model
         from .llm.prompts import BROWSE_REACT_INSTRUCTION
 
         agent = LlmAgent(
             name="ticket_browse_explorer",
-            model=GEMINI_MODEL,
+            model=build_gemini_model(),
             description="Observe-only ticket-page explorer.",
-            instruction=BROWSE_REACT_INSTRUCTION,
+            instruction=self._react_instruction or BROWSE_REACT_INSTRUCTION,
             tools=self._build_tools(),
         )
         app = "ticket_browse"
@@ -427,7 +530,7 @@ class BrowserCheckRunner:
             step=self._action_count, before_url=snapshot.url, clicked_text="<go_back>",
             after_url=prev, page_state_before=claim.page_state, reason=reason,
         ))
-        await self._safe(self._session.navigate(prev))
+        await self._safe(self._session.navigate_to(prev))
         await self._settle()
         if not await self._observe_into_state():
             return "Went back, but the page could not be inspected. Call finish(summary)."
@@ -597,14 +700,19 @@ class BrowserCheckRunner:
 
     async def _capture_snapshot(self, step: int) -> BrowserSnapshot:
         """Observe the current page into a ``BrowserSnapshot``."""
-        state = await self._session.get_browser_state_with_recovery(
-            cache_clickable_elements_hashes=True, include_screenshot=True
+        state = await self._session.get_browser_state_summary(
+            include_screenshot=True
         )
         url = getattr(state, "url", "") or ""
         title = getattr(state, "title", "") or ""
 
-        screenshot_path = self._save_screenshot(step, getattr(state, "screenshot", None))
-        clickables = self._build_clickables(getattr(state, "selector_map", {}) or {})
+        screenshot_b64 = getattr(state, "screenshot", None)
+        self._last_screenshot_b64 = screenshot_b64  # for the live-frame sink
+        screenshot_path = self._save_screenshot(step, screenshot_b64)
+        # browser-use 0.13: the selector map moved under ``dom_state``.
+        dom_state = getattr(state, "dom_state", None)
+        selector_map = getattr(dom_state, "selector_map", None) or {}
+        clickables = self._build_clickables(selector_map)
         body_text = await self._body_text()
 
         return BrowserSnapshot(
@@ -661,12 +769,21 @@ class BrowserCheckRunner:
             return ""
 
     async def _click_index(self, index: int) -> bool:
-        """Click the element at ``index`` via its DOM node; True on success."""
+        """Click the element at ``index`` via its DOM node; True on success.
+
+        browser-use 0.13 replaced the direct ``_click_element_node`` helper with
+        an event on the session's bus, so we dispatch a ``ClickElementEvent`` and
+        await its result.
+        """
         try:
             node = await self._session.get_dom_element_by_index(index)
             if node is None:
                 return False
-            await self._session._click_element_node(node)
+            from browser_use.browser.events import ClickElementEvent
+
+            event = self._session.event_bus.dispatch(ClickElementEvent(node=node))
+            await event
+            await event.event_result(raise_if_any=True, raise_if_none=False)
             return True
         except Exception as exc:  # noqa: BLE001
             logger.debug("click failed at index %s: %s", index, exc)
@@ -717,18 +834,29 @@ class BrowserCheckRunner:
             return None
 
     async def _close_session(self) -> None:
-        """Tear down the browser session, tolerating any failure."""
+        """Tear down the browser session, tolerating any failure.
+
+        Try the most forceful teardown first (``kill``) and only fall back to a
+        gentler one if it raises — never stop after the first method merely
+        *exists*, or a failed kill would leave the off-screen Chromium orphaned.
+
+        We deliberately do NOT broadly sweep descendant browsers here: price and
+        this browser-check can run concurrently, so killing all descendant
+        Chromium would take out the price flow's live browser. The process-level
+        net (browser_cleanup) handles the "process killed" case at exit.
+        """
         if self._session is None:
             return
-        for method_name in ("kill", "close", "stop"):
+        for method_name in ("kill", "stop", "close"):
             method = getattr(self._session, method_name, None)
             if method is None:
                 continue
             try:
                 await _maybe_await(method())
-            except Exception as exc:  # noqa: BLE001 - cleanup must never raise
+                break
+            except Exception as exc:  # noqa: BLE001 - try the next teardown method
                 logger.debug("session.%s() failed: %s", method_name, exc)
-            return
+        self._session = None
 
     # ----------------------------------------------------------------- #
     # Early gate: not a ticket site                                     #

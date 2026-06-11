@@ -1,0 +1,36 @@
+.ssp {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ssp-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 18px;
+  border-radius: var(--radius-lg, 22px);
+}
+
+.ssp-head .eyebrow {
+  color: var(--accent, #6c5ce7);
+}
+
+.ssp-title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--ink, #2b2f38);
+}
+
+.ssp-sub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-soft, #7a7f8c);
+}
+
+.ssp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+}

@@ -260,8 +260,11 @@ def test_breakdown_shape_and_content():
 
     assert set(breakdown) == {
         "score", "risk_level", "threat_penalty", "context_penalty",
-        "threat_sources_triggered", "context_flags", "explanation",
+        "threat_sources_triggered", "context_flags", "deductions", "explanation",
     }
+    # Every deduction carries a label + positive point cost.
+    assert breakdown["deductions"]
+    assert all(d["points"] > 0 and d["label"] for d in breakdown["deductions"])
     assert breakdown["score"] == compute_security_score(result)
     assert breakdown["risk_level"] == classify_risk(breakdown["score"])
     assert breakdown["threat_sources_triggered"] == ["VirusTotal", "SafeBrowsing"]

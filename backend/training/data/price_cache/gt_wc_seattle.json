@@ -1,0 +1,181 @@
+{
+  "metadata": {
+    "source": "gametime",
+    "event_url": "https://www.gametime.com/event/gt_wc_seattle",
+    "event_name": "England vs Netherlands - World Cup R16",
+    "venue": "Lumen Field",
+    "city": "Seattle",
+    "currency": "USD",
+    "fixture": true
+  },
+  "tickets": [
+    {
+      "source": "fixture",
+      "section": "GA",
+      "row": 6,
+      "price": 1041,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "100",
+      "row": null,
+      "price": 1956,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "100",
+      "row": 20,
+      "price": 1492,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "GA",
+      "row": 10,
+      "price": 1371,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "100",
+      "row": 9,
+      "price": 1444,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "120",
+      "row": null,
+      "price": 1490,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "GA",
+      "row": 31,
+      "price": 1065,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "120",
+      "row": null,
+      "price": 1558,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "120",
+      "row": 14,
+      "price": 1571,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "100",
+      "row": 31,
+      "price": 1814,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "120",
+      "row": 34,
+      "price": 1487,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "300",
+      "row": null,
+      "price": 1211,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "300",
+      "row": null,
+      "price": 1627,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "100",
+      "row": null,
+      "price": 1703,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "GA",
+      "row": null,
+      "price": 1347,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "100",
+      "row": null,
+      "price": 1738,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "300",
+      "row": 35,
+      "price": 1608,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "100",
+      "row": 33,
+      "price": 1322,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "300",
+      "row": 21,
+      "price": 1389,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "300",
+      "row": 37,
+      "price": 1284,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "100",
+      "row": 17,
+      "price": 1772,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "GA",
+      "row": null,
+      "price": 1251,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "100",
+      "row": 27,
+      "price": 1797,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "300",
+      "row": 24,
+      "price": 1322,
+      "view": "Clear View"
+    }
+  ]
+}

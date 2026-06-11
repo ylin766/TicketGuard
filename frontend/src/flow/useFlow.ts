@@ -86,8 +86,11 @@ export function useFlow(): FlowState {
     (nextUrl: string) => {
       setUrl(nextUrl);
       setStarted(true);
-      // Reduced motion: skip the cinematics, go straight to the report.
-      setPhase(reducedMotion ? "report" : "dispatch");
+      // Reduced motion skips the purely decorative beats (dispatch / split) but
+      // still enters the pipeline: that's where the real audit work runs (the
+      // threat scan + opinion agent), and the report is assembled from its
+      // results — so we can't skip past it without losing the data.
+      setPhase(reducedMotion ? "pipeline" : "dispatch");
     },
     [reducedMotion],
   );
@@ -105,10 +108,12 @@ export function useFlow(): FlowState {
     setPhase("input");
   }, []);
 
-  // If the user's motion preference flips to reduced mid-flight, settle on report.
+  // If the user's motion preference flips to reduced mid-flight, collapse the
+  // decorative beats (dispatch / split) into the pipeline — but never skip the
+  // pipeline itself (the audit data is gathered there).
   useEffect(() => {
-    if (reducedMotion && started && phase !== "input" && phase !== "report") {
-      setPhase("report");
+    if (reducedMotion && started && (phase === "dispatch" || phase === "split")) {
+      setPhase("pipeline");
     }
   }, [reducedMotion, started, phase]);
 

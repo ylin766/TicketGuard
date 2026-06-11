@@ -1,0 +1,174 @@
+{
+  "metadata": {
+    "source": "ticketmaster",
+    "event_url": "https://www.ticketmaster.com/event/tm_wc_final",
+    "event_name": "FIFA World Cup 2026 Final",
+    "venue": "MetLife Stadium",
+    "city": "New Jersey",
+    "currency": "USD",
+    "fixture": true
+  },
+  "tickets": [
+    {
+      "source": "fixture",
+      "section": "Suite",
+      "row": 11,
+      "price": 3368,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Lower 110",
+      "row": null,
+      "price": 5099,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Suite",
+      "row": 22,
+      "price": 3584,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Suite",
+      "row": null,
+      "price": 3057,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Suite",
+      "row": 35,
+      "price": 3505,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Lower 110",
+      "row": null,
+      "price": 5415,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Suite",
+      "row": 16,
+      "price": 3016,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Suite",
+      "row": 19,
+      "price": 2768,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Lower 110",
+      "row": 25,
+      "price": 4167,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Lower 110",
+      "row": null,
+      "price": 4165,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Lower 110",
+      "row": 29,
+      "price": 5757,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Lower 110",
+      "row": null,
+      "price": 4215,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Upper 330",
+      "row": 1,
+      "price": 3193,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Upper 330",
+      "row": null,
+      "price": 3491,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Suite",
+      "row": 4,
+      "price": 2994,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Upper 330",
+      "row": null,
+      "price": 3589,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Lower 110",
+      "row": 1,
+      "price": 5439,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Club 220",
+      "row": 24,
+      "price": 4552,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Club 220",
+      "row": null,
+      "price": 4814,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Upper 330",
+      "row": 21,
+      "price": 4653,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Club 220",
+      "row": 25,
+      "price": 3450,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Suite",
+      "row": 5,
+      "price": 3278,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Club 220",
+      "row": 1,
+      "price": 3962,
+      "view": "Obstructed"
+    }
+  ]
+}

@@ -2,6 +2,7 @@ import { type ReactNode } from "react";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { DataFlow } from "./DataFlow";
 import type { ThreatScanCache } from "../components/ThreatIntelPanel";
+import type { PriceState } from "../components/price/usePriceStream";
 import type { FlowPhase, FlowState } from "./useFlow";
 
 /**
@@ -21,13 +22,19 @@ export function CameraStage({
   input,
   report,
   onScanComplete,
-  onAgentComplete,
+  agentState,
+  browserState,
+  price,
+  reportReady,
 }: {
   flow: FlowState;
   input: ReactNode;
   report: ReactNode;
   onScanComplete?: (cache: ThreatScanCache) => void;
-  onAgentComplete?: (state: import("../components/agent/useAgentStream").AgentState) => void;
+  agentState: import("../components/agent/useAgentStream").AgentState;
+  browserState: import("../components/agent/useBrowserCheckStream").BrowserCheckState;
+  price?: PriceState;
+  reportReady?: boolean;
 }) {
   const { phase, url } = flow;
   const inMiddle = MIDDLE.includes(phase);
@@ -55,7 +62,9 @@ export function CameraStage({
           {inMiddle && (
             <motion.div
               key="dataflow"
-              className="flow-scene flow-scene--flow"
+              className={`flow-scene flow-scene--flow${
+                phase === "pipeline" ? " flow-scene--pipeline" : ""
+              }`}
               /* The carrier itself is the shared-layout element; don't fade the
                  wrapper or it would hide the morph. */
               initial={false}
@@ -66,7 +75,10 @@ export function CameraStage({
                 flow={flow}
                 url={url ?? ""}
                 onScanComplete={onScanComplete}
-                onAgentComplete={onAgentComplete}
+                agentState={agentState}
+                browserState={browserState}
+                price={price}
+                reportReady={reportReady}
               />
             </motion.div>
           )}

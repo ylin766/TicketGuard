@@ -1,0 +1,188 @@
+{
+  "metadata": {
+    "source": "stubhub",
+    "event_url": "https://www.stubhub.com/event/sh_wc_match31",
+    "event_name": "Brazil vs Germany - World Cup R16",
+    "venue": "Arrowhead Stadium",
+    "city": "Kansas City",
+    "currency": "USD",
+    "fixture": true
+  },
+  "tickets": [
+    {
+      "source": "fixture",
+      "section": "127",
+      "row": null,
+      "price": 1156,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "127",
+      "row": null,
+      "price": 1433,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "232",
+      "row": 27,
+      "price": 954,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "127",
+      "row": null,
+      "price": 1439,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "232",
+      "row": 3,
+      "price": 972,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "105",
+      "row": 21,
+      "price": 1177,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "127",
+      "row": null,
+      "price": 1055,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "105",
+      "row": null,
+      "price": 1517,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "340",
+      "row": 18,
+      "price": 924,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "105",
+      "row": null,
+      "price": 1077,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "232",
+      "row": 7,
+      "price": 1059,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "232",
+      "row": null,
+      "price": 1191,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "127",
+      "row": 3,
+      "price": 1301,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "232",
+      "row": 32,
+      "price": 1313,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "127",
+      "row": 11,
+      "price": 1344,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "105",
+      "row": 28,
+      "price": 1158,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "340",
+      "row": 30,
+      "price": 1102,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "340",
+      "row": 20,
+      "price": 765,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "232",
+      "row": null,
+      "price": 1242,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "232",
+      "row": 38,
+      "price": 1292,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "105",
+      "row": 34,
+      "price": 1323,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "127",
+      "row": 11,
+      "price": 1272,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "232",
+      "row": 39,
+      "price": 1037,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "340",
+      "row": 30,
+      "price": 952,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "340",
+      "row": 26,
+      "price": 831,
+      "view": "Obstructed"
+    }
+  ]
+}

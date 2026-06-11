@@ -1,0 +1,188 @@
+{
+  "metadata": {
+    "source": "vividseats",
+    "event_url": "https://www.vividseats.com/event/vs_wc_semi",
+    "event_name": "World Cup Semi-Final",
+    "venue": "AT&T Stadium",
+    "city": "Dallas",
+    "currency": "USD",
+    "fixture": true
+  },
+  "tickets": [
+    {
+      "source": "fixture",
+      "section": "U345",
+      "row": 36,
+      "price": 2059,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "C101",
+      "row": 25,
+      "price": 2815,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "U345",
+      "row": null,
+      "price": 1878,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "U345",
+      "row": 15,
+      "price": 2030,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "U345",
+      "row": 24,
+      "price": 1866,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "M210",
+      "row": null,
+      "price": 2252,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "M210",
+      "row": null,
+      "price": 1710,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "C101",
+      "row": null,
+      "price": 2827,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "M210",
+      "row": 17,
+      "price": 1907,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "M210",
+      "row": null,
+      "price": 2402,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "C101",
+      "row": null,
+      "price": 3107,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "U345",
+      "row": null,
+      "price": 1791,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "U345",
+      "row": 16,
+      "price": 1520,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "U345",
+      "row": null,
+      "price": 1713,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "M210",
+      "row": null,
+      "price": 2373,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "C134",
+      "row": null,
+      "price": 2682,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "C134",
+      "row": 24,
+      "price": 2131,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "C134",
+      "row": 17,
+      "price": 2286,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "C134",
+      "row": 23,
+      "price": 2912,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "C134",
+      "row": 1,
+      "price": 2572,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "C101",
+      "row": 12,
+      "price": 2303,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "C134",
+      "row": 11,
+      "price": 2266,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "U345",
+      "row": 18,
+      "price": 1943,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "C101",
+      "row": 16,
+      "price": 2454,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "U345",
+      "row": 6,
+      "price": 2319,
+      "view": "Clear View"
+    }
+  ]
+}

@@ -1,0 +1,237 @@
+{
+  "metadata": {
+    "source": "seatgeek",
+    "event_url": "https://www.seatgeek.com/event/sg_wc_boston",
+    "event_name": "Netherlands vs Senegal - World Cup Group F",
+    "venue": "Gillette Stadium",
+    "city": "Foxborough",
+    "currency": "USD",
+    "fixture": true
+  },
+  "tickets": [
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": 31,
+      "price": 1158,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": null,
+      "price": 1387,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "133",
+      "row": 9,
+      "price": 1070,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "133",
+      "row": null,
+      "price": 1497,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "320",
+      "row": 36,
+      "price": 832,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "320",
+      "row": null,
+      "price": 851,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "320",
+      "row": null,
+      "price": 1130,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": null,
+      "price": 1721,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "133",
+      "row": null,
+      "price": 1111,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "133",
+      "row": null,
+      "price": 1158,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "320",
+      "row": 38,
+      "price": 1091,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "320",
+      "row": null,
+      "price": 917,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "320",
+      "row": null,
+      "price": 916,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "211",
+      "row": 17,
+      "price": 1102,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": 17,
+      "price": 1593,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "211",
+      "row": 20,
+      "price": 1185,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "320",
+      "row": 34,
+      "price": 987,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "320",
+      "row": 36,
+      "price": 1264,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "211",
+      "row": 39,
+      "price": 1271,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "133",
+      "row": null,
+      "price": 1115,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "211",
+      "row": 16,
+      "price": 1354,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": null,
+      "price": 1660,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "211",
+      "row": null,
+      "price": 1273,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "211",
+      "row": 32,
+      "price": 1146,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "211",
+      "row": 26,
+      "price": 1236,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": 26,
+      "price": 1401,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": null,
+      "price": 1274,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "211",
+      "row": null,
+      "price": 1085,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "133",
+      "row": null,
+      "price": 1143,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "320",
+      "row": null,
+      "price": 1122,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "133",
+      "row": 25,
+      "price": 1155,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": null,
+      "price": 1411,
+      "view": "Obstructed"
+    }
+  ]
+}

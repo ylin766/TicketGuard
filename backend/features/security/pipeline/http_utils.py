@@ -7,11 +7,14 @@ import requests
 
 logger = logging.getLogger(__name__)
 
-# TESTING: timeouts lowered for fast iteration (was [3, 5] / [4, 7]).
-# Fast APIs: single short try.
-DEFAULT_TIMEOUT_LEVELS = [2, 3]
-# Slow/flaky APIs (e.g., crt.sh, RDAP): single slightly longer try.
-SLOW_TIMEOUT_LEVELS = [3, 4]
+# Timeout strategy (seconds) tuned from measured source response times.
+# Fast APIs: two short tries.
+DEFAULT_TIMEOUT_LEVELS = [4, 6]
+# Slow/flaky APIs (e.g., crt.sh, RDAP): longer read budget — these can wait.
+SLOW_TIMEOUT_LEVELS = [8, 12]
+# CheckPhish never completes inside the pipeline budget; give it a short
+# fast-fail timeout so it drops out quickly instead of stalling the scan.
+CHECKPHISH_TIMEOUT_LEVELS = [2, 3]
 
 
 def fetch_with_retry(

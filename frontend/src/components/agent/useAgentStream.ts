@@ -4,9 +4,10 @@ import type {
   AgentStep,
   AgentTokenTotals,
   AgentStatus,
+  AgentSourceRef,
 } from "./types";
 
-const AGENT_ENDPOINT = "http://localhost:8001/api/agent/stream";
+const AGENT_ENDPOINT = "http://localhost:8001/api/osint/stream";
 
 export interface AgentState {
   status: AgentStatus;
@@ -15,8 +16,16 @@ export interface AgentState {
   /** Tool calls (merged with their results) in order. */
   steps: AgentStep[];
   tokens: AgentTokenTotals;
-  /** Final parsed report (score + tier + text), or null until done. */
-  report: { score: number | null; tier: string | null; text: string } | null;
+  /** Final parsed report — structured breakdown + the full text fallback. */
+  report: {
+    score: number | null;
+    tier: string | null;
+    text: string;
+    fraudPoints: string[];
+    crediblePoints: string[];
+    sources: AgentSourceRef[];
+    judgment: string;
+  } | null;
   /** Aggregate stats from the done frame. */
   stats: {
     steps: number;
@@ -57,25 +66,12 @@ export function useAgentStream(
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
   const doneFiredRef = useRef(false);
-  // Guard: once the stream completes for a given url, don't restart it
-  // even if `enabled` toggles (e.g. React StrictMode double-invoke, or
-  // parent re-render that briefly flips the stage back).
-  const hasCompletedRef = useRef(false);
   // The token frame for a model turn arrives just BEFORE the tool_call it
   // produced; stash it so we can attribute that turn's cost to the step.
   const pendingTokensRef = useRef(0);
 
-  // Reset the completion guard whenever the target url changes.
-  const prevUrlRef = useRef(url);
-  if (prevUrlRef.current !== url) {
-    prevUrlRef.current = url;
-    hasCompletedRef.current = false;
-  }
-
   useEffect(() => {
     if (!enabled || !url) return;
-    // If this stream already finished (for this url), reuse the result.
-    if (hasCompletedRef.current) return;
 
     setState({ ...INITIAL, status: "streaming" });
     doneFiredRef.current = false;
@@ -85,7 +81,6 @@ export function useAgentStream(
     const fireDone = () => {
       if (doneFiredRef.current) return;
       doneFiredRef.current = true;
-      hasCompletedRef.current = true;
       onDoneRef.current?.();
     };
 
@@ -145,7 +140,15 @@ export function useAgentStream(
           case "report":
             return {
               ...prev,
-              report: { score: frame.score, tier: frame.tier, text: frame.text },
+              report: {
+                score: frame.score,
+                tier: frame.tier,
+                text: frame.text,
+                fraudPoints: frame.fraud_points ?? [],
+                crediblePoints: frame.credible_points ?? [],
+                sources: frame.sources ?? [],
+                judgment: frame.judgment ?? "",
+              },
             };
           case "done":
             return {

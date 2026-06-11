@@ -26,9 +26,14 @@ tokens       {"type":"tokens","step":int,"prompt":int,"completion":int,
               "total":int}
                 Token usage for one model turn (cumulative-safe: each frame is
                 that turn's own counts).
-report       {"type":"report","score":int|null,"tier":str|null,"text":str}
+report       {"type":"report","score":int|null,"tier":str|null,"text":str,
+              "fraud_points":[str],"credible_points":[str],
+              "sources":[{"url":str,"platform":str}],"judgment":str}
                 The final structured investigation report. ``score`` (0-100)
-                and ``tier`` are parsed from the rubric when present.
+                and ``tier`` are parsed from the rubric when present; the lists
+                + ``judgment`` are parsed from the 3-section report so the UI can
+                render components instead of one text wall (``text`` is kept for
+                the collapsible full report).
 done         {"type":"done","stats":{"steps":int,"tool_calls":int,
               "prompt_tokens":int,"completion_tokens":int,"total_tokens":int,
               "duration_ms":int},"phoenix_url":str|null}
@@ -65,6 +70,96 @@ TOOL_LABELS: dict[str, dict[str, str]] = {
 
 _PREVIEW_CHARS = 600
 _SCORE_RE = re.compile(r"(?:Score|Trust Rating|Rating)\D{0,12}(\d{1,3})", re.IGNORECASE)
+# Explicit "Score: NN" line in the rating section — the authoritative value
+# (avoids matching incidental numbers like a "2.6/5" star rating in prose).
+_EXPLICIT_SCORE_RE = re.compile(r"Score\D{0,4}(\d{1,3})", re.IGNORECASE)
+
+# --- Structured report parsing -------------------------------------------------
+# The agent emits a 3-section markdown report (see OSINT_AGENT_PROMPT
+# <output_format>). We parse it into a small, stable contract the frontend can
+# render with components instead of dumping one dense wall of text.
+_URL_RE = re.compile(r"https?://[^\s`)\]>]+")
+_BOLD_LEAD_RE = re.compile(r"\*\*\s*([^*]+?)\s*:?\s*\*\*")
+_PLATFORM_RULES: list[tuple[re.Pattern, str]] = [
+    (re.compile(r"trustpilot", re.I), "Trustpilot"),
+    (re.compile(r"sitejabber", re.I), "SiteJabber"),
+    (re.compile(r"reddit", re.I), "Reddit"),
+    (re.compile(r"(?:twitter|x)\.com", re.I), "Twitter / X"),
+]
+# Bold lead-ins that are section headers / scaffolding, not real content points.
+_SKIP_POINT_RE = re.compile(
+    r"Key Points|Source Assessment|Trust Rating|Original Post|Judgment|Score|Assessment",
+    re.I,
+)
+
+
+def _platform_for(url: str) -> str:
+    for rx, name in _PLATFORM_RULES:
+        if rx.search(url):
+            return name
+    m = re.search(r"https?://(?:www\.)?([^/]+)", url)
+    return m.group(1) if m else "Web"
+
+
+def _split_sections(text: str) -> dict[str, str]:
+    """Slice the report into its fraud / credibility / rating sections by the
+    known section markers, tolerating bold/numbered/bracketed header variants."""
+    markers = [
+        ("fraud", re.compile(r"Key Points", re.I)),
+        ("credible", re.compile(r"Source Assessment|Legitimate/Credible|Credible Information", re.I)),
+        ("rating", re.compile(r"Trust Rating|Judgment Basis", re.I)),
+    ]
+    found: list[tuple[int, str]] = []
+    for key, rx in markers:
+        m = rx.search(text)
+        if m:
+            found.append((m.start(), key))
+    found.sort()
+    out: dict[str, str] = {}
+    for i, (pos, key) in enumerate(found):
+        end = found[i + 1][0] if i + 1 < len(found) else len(text)
+        out[key] = text[pos:end]
+    return out
+
+
+def _extract_points(section: str, limit: int = 6) -> list[str]:
+    """Pull the bold lead-in pattern names from a section (the concise headline
+    of each bullet), skipping scaffolding labels."""
+    points: list[str] = []
+    for m in _BOLD_LEAD_RE.finditer(section):
+        t = m.group(1).strip().strip(":").strip()
+        if not t or _SKIP_POINT_RE.search(t):
+            continue
+        if t not in points:
+            points.append(t)
+    return points[:limit]
+
+
+def _extract_sources(text: str, limit: int = 8) -> list[dict]:
+    """Collect unique evidence URLs with their platform label."""
+    seen: set[str] = set()
+    out: list[dict] = []
+    for m in _URL_RE.finditer(text):
+        url = m.group(0).rstrip(".,);")
+        if url in seen:
+            continue
+        seen.add(url)
+        out.append({"url": url, "platform": _platform_for(url)})
+        if len(out) >= limit:
+            break
+    return out
+
+
+def _extract_judgment(rating_section: str) -> str:
+    """The 'Judgment Basis' prose — the report's bottom-line takeaway."""
+    m = re.search(r"Judgment Basis(.+)", rating_section, re.I | re.S)
+    if not m:
+        return ""
+    body = re.sub(r"\s+", " ", m.group(1)).strip()
+    # Strip leading markdown / punctuation scaffolding left after the label
+    # (e.g. "**Judgment Basis:**" leaves ":**").
+    body = body.lstrip("*:) ").strip()
+    return body[:700]
 
 
 def _tier_for(score: int) -> str:
@@ -81,56 +176,42 @@ def _tier_for(score: int) -> str:
 
 
 def _parse_report(text: str) -> dict:
-    """Extract the trust score + tier from the agent's final report text."""
+    """Extract the trust score + tier and a structured breakdown from the
+    agent's final report text, so the frontend can render components instead of
+    one dense text wall. ``text`` is kept for the collapsible full report."""
     score: int | None = None
-    m = _SCORE_RE.search(text)
-    if m:
-        val = int(m.group(1))
-        if 0 <= val <= 100:
-            score = val
+    sections = _split_sections(text)
+    # Prefer the explicit "Score: NN" in the rating section over a loose global
+    # match (prose like a "2.6/5" star rating must not be mistaken for a score).
+    rating_section = sections.get("rating", "")
+    for candidate, rx in ((rating_section, _EXPLICIT_SCORE_RE), (text, _SCORE_RE)):
+        m = rx.search(candidate) if candidate else None
+        if m:
+            val = int(m.group(1))
+            if 0 <= val <= 100:
+                score = val
+                break
     tier = _tier_for(score) if score is not None else None
-    return {"type": "report", "score": score, "tier": tier, "text": text}
+    return {
+        "type": "report",
+        "score": score,
+        "tier": tier,
+        "text": text,
+        "fraud_points": _extract_points(sections.get("fraud", "")),
+        "credible_points": _extract_points(sections.get("credible", "")),
+        "sources": _extract_sources(text),
+        "judgment": _extract_judgment(sections.get("rating", "")),
+    }
 
 
 def _maybe_setup_phoenix() -> str | None:
-    """Enable Arize Phoenix tracing if credentials are present. Returns the
-    Phoenix workspace URL (for the frontend to deep-link to) or None.
+    """Backwards-compatible shim: telemetry is now bootstrapped centrally at
+    server startup (see ``backend.observability.telemetry``). This just returns
+    the Phoenix workspace URL (initializing on first use if startup hasn't run,
+    e.g. in a standalone test harness)."""
+    from ....observability.telemetry import init_telemetry
 
-    Safe to call once per process; OpenInference instrumentation is idempotent
-    enough for our purposes and failures are swallowed (tracing is optional).
-    """
-    api_key = os.environ.get("PHOENIX_API_KEY")
-    endpoint = os.environ.get(
-        "PHOENIX_COLLECTOR_ENDPOINT",
-        "https://app.phoenix.arize.com/s/linyushuhong/v1/traces",
-    )
-    if not api_key:
-        return None
-    try:
-        from opentelemetry import trace as _trace
-        from opentelemetry.sdk.trace import TracerProvider
-        from opentelemetry.sdk.trace.export import BatchSpanProcessor
-        from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
-            OTLPSpanExporter,
-        )
-        from openinference.instrumentation.google_adk import GoogleADKInstrumentor
-
-        if not getattr(_maybe_setup_phoenix, "_done", False):
-            exporter = OTLPSpanExporter(
-                endpoint=endpoint,
-                headers={"Authorization": f"Bearer {api_key}"},
-            )
-            provider = TracerProvider()
-            provider.add_span_processor(BatchSpanProcessor(exporter))
-            _trace.set_tracer_provider(provider)
-            GoogleADKInstrumentor().instrument(tracer_provider=provider)
-            _maybe_setup_phoenix._done = True  # type: ignore[attr-defined]
-            logger.info("[OSINT] Phoenix tracing enabled → %s", endpoint)
-        # Derive the human UI URL from the collector endpoint.
-        return endpoint.replace("/v1/traces", "")
-    except Exception as exc:  # noqa: BLE001 - tracing must never break the stream
-        logger.warning("[OSINT] Phoenix tracing unavailable: %s", exc)
-        return None
+    return init_telemetry()
 
 
 async def stream_osint(url: str) -> AsyncGenerator[dict, None]:

@@ -1,0 +1,10 @@
+# Labelled-URL dataset template — teammates: copy this to labeled_urls.jsonl
+# and fill with real URLs. One JSON object per line. Fields:
+#   url   (required): full URL
+#   label (required): "safe" or "risky"
+#   note  (optional): human comment, ignored by training
+# Lines starting with # and blank lines are ignored.
+{"url": "https://www.ticketmaster.com", "label": "safe", "note": "official primary ticketing"}
+{"url": "https://www.stubhub.com", "label": "safe", "note": "well-known resale marketplace"}
+{"url": "https://eventticketscenter.com", "label": "risky", "note": "complaints of non-delivery / hidden fees"}
+{"url": "https://www.boxofficeticketsales.com", "label": "risky", "note": "reseller posing as official, refund issues"}

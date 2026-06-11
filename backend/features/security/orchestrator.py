@@ -27,6 +27,7 @@ session state, and the HTTP layer can call the same function directly.
 
 import asyncio
 import logging
+import time
 from typing import AsyncGenerator
 
 from google.adk.agents import BaseAgent
@@ -46,7 +47,7 @@ logger = logging.getLogger(__name__)
 #   at/above SAFE_MIN → conclusively safe, the agent would add nothing;
 #   in between        → uncertain, escalate to the agent.
 GREY_ZONE_DANGER_MAX = 20
-GREY_ZONE_SAFE_MIN = 80
+GREY_ZONE_SAFE_MIN = 95
 
 
 def is_grey_zone(pipeline_result: dict, score: int) -> bool:
@@ -81,28 +82,82 @@ async def _run_agent_audit(url: str) -> dict:
         return {"status": "error", "error": str(exc)}
 
 
-async def run_security_audit(url: str) -> dict:
+def _agent_token_total(agent_audit: dict | None) -> int | None:
+    """Best-effort extraction of the agent stage's token spend, for the cost
+    attribute on the trace. Tolerates the field being absent or differently
+    shaped — returns ``None`` when nothing usable is found."""
+    if not isinstance(agent_audit, dict):
+        return None
+    stats = agent_audit.get("stats")
+    if isinstance(stats, dict) and stats.get("total_tokens") is not None:
+        return stats.get("total_tokens")
+    if agent_audit.get("total_tokens") is not None:
+        return agent_audit.get("total_tokens")
+    return None
+
+
+async def run_security_audit(url: str, run_id: str | None = None) -> dict:
     """Full security audit for ``url`` — the single reusable entry point.
 
     Runs the deterministic pipeline, synthesizes the score, and (only in the grey
     zone) escalates to the browser+OSINT agent. Returns the pipeline result
     enriched with ``score`` / ``risk_level`` / ``score_explanation`` /
-    ``grey_zone`` and, when the agent ran, ``agent_audit``.
+    ``grey_zone`` / ``run_id`` and, when the agent ran, ``agent_audit``.
+
+    ``run_id`` is the correlation key that ties this audit's Phoenix trace to any
+    reward later attached to it; one is generated when the caller doesn't supply
+    one. The whole audit runs inside a root span so every instrumented child
+    span (pipeline, ADK agent, genai) nests under a single, queryable trace.
     """
-    pipeline_result = await asyncio.to_thread(run_pipeline, url)
+    from ...observability.trace_utils import (
+        audit_span,
+        new_run_id,
+        set_audit_result,
+    )
 
-    breakdown = generate_score_breakdown(pipeline_result)
-    pipeline_result["score"] = breakdown["score"]
-    pipeline_result["risk_level"] = breakdown["risk_level"]
-    pipeline_result["score_explanation"] = breakdown["explanation"]
+    run_id = run_id or new_run_id()
+    started = time.monotonic()
 
-    grey = is_grey_zone(pipeline_result, breakdown["score"])
-    pipeline_result["grey_zone"] = grey
-    logger.info("score=%s flagged=%s grey_zone=%s",
-                breakdown["score"], pipeline_result.get("flagged"), grey)
+    with audit_span(url, run_id) as span:
+        pipeline_result = await asyncio.to_thread(run_pipeline, url)
 
-    if grey and url:
-        pipeline_result["agent_audit"] = await _run_agent_audit(url)
+        breakdown = generate_score_breakdown(pipeline_result)
+        pipeline_result["score"] = breakdown["score"]
+        pipeline_result["risk_level"] = breakdown["risk_level"]
+        pipeline_result["score_explanation"] = breakdown["explanation"]
+
+        grey = is_grey_zone(pipeline_result, breakdown["score"])
+        pipeline_result["grey_zone"] = grey
+        pipeline_result["run_id"] = run_id
+        logger.info("run_id=%s score=%s flagged=%s grey_zone=%s",
+                    run_id, breakdown["score"], pipeline_result.get("flagged"), grey)
+
+        agent_ran = bool(grey and url)
+        if agent_ran:
+            pipeline_result["agent_audit"] = await _run_agent_audit(url)
+
+        # Deep-link to the Phoenix trace for this audit's agent activity, if
+        # tracing is enabled (telemetry is bootstrapped centrally at startup).
+        try:
+            from ...observability.telemetry import phoenix_url
+
+            pipeline_result["phoenix_url"] = phoenix_url()
+        except Exception:  # noqa: BLE001 - never let telemetry lookup break the audit
+            pipeline_result["phoenix_url"] = None
+
+        # Record the decision + cost attributes on the root span: this is the
+        # (state, action, cost) record a reward signal later binds to.
+        set_audit_result(
+            span,
+            score=breakdown["score"],
+            risk_level=breakdown["risk_level"],
+            grey_zone=grey,
+            agent_ran=agent_ran,
+            flagged=pipeline_result.get("flagged"),
+            status=pipeline_result.get("status"),
+            latency_ms=int((time.monotonic() - started) * 1000),
+            agent_tokens=_agent_token_total(pipeline_result.get("agent_audit")),
+        )
 
     return pipeline_result
 

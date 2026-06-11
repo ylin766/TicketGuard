@@ -34,3 +34,10 @@ Thumbs.db
 # Kiro internal state (keep specs and skills, exclude runtime state)
 .kiro
 
+# Training run artifacts (logs, generated png plots) — keep curated HTML reports
+backend/training/data/runs/
+backend/training/data/plots/*.png
+
+# Throwaway root-level chart copy (the canonical one lives under training/data/plots)
+/gepa-model-comparison.html
+

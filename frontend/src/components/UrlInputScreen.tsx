@@ -3,8 +3,8 @@ import { motion } from "framer-motion";
 import "./UrlInputScreen.css";
 
 interface UrlInputScreenProps {
-  /** Called with the submitted URL when the user starts an audit. */
-  onAudit: (url: string) => void;
+  /** Called with the submitted URL + ticket quantity when the user starts an audit. */
+  onAudit: (url: string, qty: number) => void;
   /** Whether an audit is currently running. */
   loading: boolean;
   /** Optional error message from a previous attempt. */
@@ -19,8 +19,20 @@ function looksLikeUrl(value: string): boolean {
   return /^(https?:\/\/)?[\w-]+(\.[\w-]+)+/.test(trimmed);
 }
 
+/**
+ * Seat-precise demo URL prefilled in the input. Points at a specific World Cup
+ * 2026 match (Spain vs. Cape Verde, Mercedes-Benz Stadium, Atlanta) on a smaller
+ * resale marketplace whose domain reputation lands in the security grey zone
+ * (verified score ≈87 < SAFE_MIN), so the audit escalates to the Layer-2
+ * browser agent — while the page still exposes real seat-level prices that the
+ * price flow compares against the StubHub/Ticketmaster reference market.
+ */
+const DEFAULT_URL =
+  "https://www.boxofficeticketsales.com/6259536/fifa-world-cup-26-group-h-spain-vs-cape-verde-match-14-tickets-mon-6-15-2026-mercedes-benz-stadium";
+
 export function UrlInputScreen({ onAudit, loading, error }: UrlInputScreenProps) {
-  const [url, setUrl] = useState("");
+  const [url, setUrl] = useState(DEFAULT_URL);
+  const [qty, setQty] = useState(2);
   const [touched, setTouched] = useState(false);
 
   const valid = looksLikeUrl(url);
@@ -29,7 +41,7 @@ export function UrlInputScreen({ onAudit, loading, error }: UrlInputScreenProps)
     e.preventDefault();
     setTouched(true);
     if (!valid || loading) return;
-    onAudit(url.trim());
+    onAudit(url.trim(), qty);
   };
 
   const handlePaste = async () => {
@@ -110,6 +122,24 @@ export function UrlInputScreen({ onAudit, loading, error }: UrlInputScreenProps)
           )}
         </div>
 
+        <div className="qty-row">
+          <span className="qty-label">How many tickets?</span>
+          <div className="qty-options" role="group" aria-label="Ticket quantity">
+            {[1, 2, 3, 4].map((n) => (
+              <button
+                key={n}
+                type="button"
+                className={`qty-chip neu-raised${qty === n ? " is-active" : ""}`}
+                onClick={() => setQty(n)}
+                disabled={loading}
+                aria-pressed={qty === n}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {touched && !valid ? (
           <p className="field-hint danger">That doesn’t look like a valid link.</p>
         ) : error ? (
@@ -138,7 +168,7 @@ export function UrlInputScreen({ onAudit, loading, error }: UrlInputScreenProps)
             className="example-chip"
             disabled={loading}
             onClick={() => {
-              setUrl("stubhub.com/listing/98234");
+              setUrl(DEFAULT_URL);
               setTouched(false);
             }}
           >

@@ -1,0 +1,237 @@
+{
+  "metadata": {
+    "source": "ticketmaster",
+    "event_url": "https://www.ticketmaster.com/event/tm_wc_toronto",
+    "event_name": "Canada vs Belgium - World Cup Group B",
+    "venue": "BMO Field",
+    "city": "Toronto",
+    "currency": "CAD",
+    "fixture": true
+  },
+  "tickets": [
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": null,
+      "price": 882,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "118",
+      "row": null,
+      "price": 792,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": 34,
+      "price": 959,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "210",
+      "row": null,
+      "price": 698,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "GA North",
+      "row": 33,
+      "price": 784,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "GA North",
+      "row": null,
+      "price": 631,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "210",
+      "row": null,
+      "price": 740,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "118",
+      "row": null,
+      "price": 700,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "118",
+      "row": 19,
+      "price": 827,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": null,
+      "price": 1092,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": 3,
+      "price": 796,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "118",
+      "row": 36,
+      "price": 975,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": 22,
+      "price": 976,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "GA North",
+      "row": null,
+      "price": 516,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "210",
+      "row": null,
+      "price": 856,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "118",
+      "row": 1,
+      "price": 785,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "210",
+      "row": null,
+      "price": 874,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "118",
+      "row": null,
+      "price": 1004,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "210",
+      "row": 19,
+      "price": 606,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "210",
+      "row": 5,
+      "price": 645,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "GA North",
+      "row": 18,
+      "price": 730,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": null,
+      "price": 899,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "210",
+      "row": null,
+      "price": 748,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "101",
+      "row": null,
+      "price": 1141,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "118",
+      "row": 23,
+      "price": 823,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "118",
+      "row": 18,
+      "price": 876,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "GA North",
+      "row": 31,
+      "price": 631,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "GA North",
+      "row": null,
+      "price": 551,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "210",
+      "row": 21,
+      "price": 839,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "118",
+      "row": 33,
+      "price": 1024,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "210",
+      "row": null,
+      "price": 682,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "GA North",
+      "row": 1,
+      "price": 572,
+      "view": "Obstructed"
+    }
+  ]
+}

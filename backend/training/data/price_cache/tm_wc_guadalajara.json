@@ -1,0 +1,181 @@
+{
+  "metadata": {
+    "source": "ticketmaster",
+    "event_url": "https://www.ticketmaster.com/event/tm_wc_guadalajara",
+    "event_name": "Uruguay vs South Korea - World Cup Group H",
+    "venue": "Estadio Akron",
+    "city": "Guadalajara",
+    "currency": "MXN",
+    "fixture": true
+  },
+  "tickets": [
+    {
+      "source": "fixture",
+      "section": "Platea Alta",
+      "row": null,
+      "price": 12758,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Cabecera",
+      "row": 40,
+      "price": 10649,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea Baja",
+      "row": null,
+      "price": 14272,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea Baja",
+      "row": null,
+      "price": 13874,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea Alta",
+      "row": 39,
+      "price": 9529,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea Baja",
+      "row": null,
+      "price": 10486,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea Alta",
+      "row": 21,
+      "price": 11010,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea Baja",
+      "row": null,
+      "price": 12214,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Cabecera",
+      "row": null,
+      "price": 10061,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea Alta",
+      "row": null,
+      "price": 12138,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Cabecera",
+      "row": null,
+      "price": 9533,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea Baja",
+      "row": 13,
+      "price": 10453,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea Alta",
+      "row": null,
+      "price": 10727,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea Alta",
+      "row": null,
+      "price": 12266,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Cabecera",
+      "row": 29,
+      "price": 10644,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea Baja",
+      "row": 37,
+      "price": 15232,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea Alta",
+      "row": null,
+      "price": 8977,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea Alta",
+      "row": null,
+      "price": 9455,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea Alta",
+      "row": null,
+      "price": 12267,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea Baja",
+      "row": 40,
+      "price": 10294,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea Baja",
+      "row": null,
+      "price": 10800,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Cabecera",
+      "row": 18,
+      "price": 9534,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Cabecera",
+      "row": 10,
+      "price": 7544,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Platea Baja",
+      "row": null,
+      "price": 15097,
+      "view": "Clear View"
+    }
+  ]
+}

@@ -12,14 +12,14 @@ import time
 
 import requests
 
-from ..http_utils import DEFAULT_TIMEOUT_LEVELS, fetch_with_retry
+from ..http_utils import CHECKPHISH_TIMEOUT_LEVELS, fetch_with_retry
 
 from ..constants import (
     CHECKPHISH_API_KEY_ENV,
     CHECKPHISH_SCAN_URL,
     CHECKPHISH_STATUS_URL,
-    DETECTOR_POLL_INTERVAL_SECONDS,
-    THREATINTEL_MAX_WAIT_SECONDS,
+    CHECKPHISH_MAX_WAIT_SECONDS,
+    CHECKPHISH_POLL_INTERVAL_SECONDS,
 )
 
 logger = logging.getLogger(__name__)
@@ -33,22 +33,22 @@ def _scan_and_wait(api_key: str, url: str) -> str:
         "POST",
         CHECKPHISH_SCAN_URL,
         json={"apiKey": api_key, "urlInfo": {"url": url}, "scanType": "quick"},
-        timeout_levels=DEFAULT_TIMEOUT_LEVELS,
+        timeout_levels=CHECKPHISH_TIMEOUT_LEVELS,
     )
     submit.raise_for_status()
     job_id = submit.json()["jobID"]
 
-    deadline = time.monotonic() + THREATINTEL_MAX_WAIT_SECONDS
+    deadline = time.monotonic() + CHECKPHISH_MAX_WAIT_SECONDS
     while time.monotonic() < deadline:
         report = fetch_with_retry(
         "POST",
             CHECKPHISH_STATUS_URL,
             json={"apiKey": api_key, "jobID": job_id, "insights": False},
-            timeout_levels=DEFAULT_TIMEOUT_LEVELS,
+            timeout_levels=CHECKPHISH_TIMEOUT_LEVELS,
         ).json()
         if report.get("status") == "DONE":
             return report.get("disposition", "unknown")
-        time.sleep(DETECTOR_POLL_INTERVAL_SECONDS)
+        time.sleep(CHECKPHISH_POLL_INTERVAL_SECONDS)
     raise TimeoutError("CheckPhish scan did not complete in time.")
 
 

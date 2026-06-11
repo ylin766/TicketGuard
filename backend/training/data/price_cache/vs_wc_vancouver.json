@@ -1,0 +1,139 @@
+{
+  "metadata": {
+    "source": "vividseats",
+    "event_url": "https://www.vividseats.com/event/vs_wc_vancouver",
+    "event_name": "Croatia vs Morocco - World Cup Group F",
+    "venue": "BC Place",
+    "city": "Vancouver",
+    "currency": "CAD",
+    "fixture": true
+  },
+  "tickets": [
+    {
+      "source": "fixture",
+      "section": "Upper 410",
+      "row": null,
+      "price": 597,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Lower 213",
+      "row": 36,
+      "price": 946,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Lower 213",
+      "row": 37,
+      "price": 688,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Club 240",
+      "row": 3,
+      "price": 710,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Upper 410",
+      "row": 34,
+      "price": 475,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Upper 410",
+      "row": null,
+      "price": 566,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Lower 213",
+      "row": null,
+      "price": 775,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Upper 410",
+      "row": 21,
+      "price": 633,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Upper 410",
+      "row": 10,
+      "price": 472,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Club 240",
+      "row": 13,
+      "price": 617,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Lower 213",
+      "row": null,
+      "price": 904,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Upper 410",
+      "row": null,
+      "price": 566,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Club 240",
+      "row": 25,
+      "price": 812,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Club 240",
+      "row": null,
+      "price": 556,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Lower 213",
+      "row": null,
+      "price": 778,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Club 240",
+      "row": 19,
+      "price": 826,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Lower 213",
+      "row": 39,
+      "price": 769,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Upper 410",
+      "row": null,
+      "price": 565,
+      "view": "Side View"
+    }
+  ]
+}

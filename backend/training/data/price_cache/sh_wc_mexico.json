@@ -1,0 +1,209 @@
+{
+  "metadata": {
+    "source": "stubhub",
+    "event_url": "https://www.stubhub.com/event/sh_wc_mexico",
+    "event_name": "Mexico vs Poland - World Cup Group A",
+    "venue": "Estadio Azteca",
+    "city": "Mexico City",
+    "currency": "MXN",
+    "fixture": true
+  },
+  "tickets": [
+    {
+      "source": "fixture",
+      "section": "Cabecera Sur",
+      "row": 19,
+      "price": 20790,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Cabecera Sur",
+      "row": 5,
+      "price": 19959,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Cabecera Sur",
+      "row": 38,
+      "price": 15422,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "General Sol",
+      "row": null,
+      "price": 13999,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Palco",
+      "row": 19,
+      "price": 15510,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Preferente",
+      "row": null,
+      "price": 15339,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Palco",
+      "row": null,
+      "price": 16371,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Palco",
+      "row": 26,
+      "price": 13235,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Preferente",
+      "row": null,
+      "price": 15225,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Palco",
+      "row": null,
+      "price": 11839,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Palco",
+      "row": 17,
+      "price": 11862,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "General Sol",
+      "row": 5,
+      "price": 14152,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "General Sol",
+      "row": 15,
+      "price": 10523,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "General Sol",
+      "row": null,
+      "price": 10591,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Cabecera Sur",
+      "row": 37,
+      "price": 21112,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Cabecera Sur",
+      "row": null,
+      "price": 20262,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Preferente",
+      "row": 16,
+      "price": 15800,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Cabecera Sur",
+      "row": null,
+      "price": 19265,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Cabecera Sur",
+      "row": 25,
+      "price": 15311,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Palco",
+      "row": 33,
+      "price": 16190,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Preferente",
+      "row": 29,
+      "price": 18016,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Palco",
+      "row": null,
+      "price": 10929,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Palco",
+      "row": 17,
+      "price": 12646,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Preferente",
+      "row": 23,
+      "price": 15235,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Cabecera Sur",
+      "row": 9,
+      "price": 16408,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "General Sol",
+      "row": null,
+      "price": 11710,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Cabecera Sur",
+      "row": null,
+      "price": 20284,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Preferente",
+      "row": null,
+      "price": 14551,
+      "view": "Side View"
+    }
+  ]
+}

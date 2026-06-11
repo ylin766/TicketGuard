@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tuning our price agent with Arize Phoenix</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- TicketGuard claymorphism tokens (mirror of frontend/src/styles/global.css) ---- */
+  :root {
+    --bg-1: #d8f3c8; --bg-2: #a7e090; --bg-3: #4ca85a;
+    --clay-base: #f3f4f0; --clay-top: #fbfbf9; --clay-bottom: #eef0ea;
+    --clay-hi: rgba(255,255,255,0.92);
+    --clay-lo: rgba(120,124,116,0.4);
+    --clay-cast: rgba(40,44,38,0.26);
+    --ink: #233027; --ink-soft: #4f5e52; --ink-faint: #8a988c;
+    --accent: #2e9e54; --accent-soft: #6fc683;
+    --safe: #2bb673; --safe-soft: #8be9c0;
+    --caution: #e8a13a; --caution-soft: #ffd79a;
+    --radius-lg: 34px; --radius-md: 24px; --radius-sm: 18px;
+    --font-body: "Fredoka", "Segoe UI", system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    color: var(--ink);
+    background:
+      radial-gradient(ellipse at 50% 30%, var(--bg-1), var(--bg-2) 60%, var(--bg-3) 130%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+  }
+
+  /* Puffy clay card — exact recipe from global.css .clay */
+  .clay {
+    background: linear-gradient(150deg, var(--clay-top), var(--clay-bottom));
+    border-radius: var(--radius-lg);
+    box-shadow: 0 22px 46px -10px var(--clay-cast),
+      inset 6px 6px 14px var(--clay-hi), inset -7px -9px 16px var(--clay-lo);
+  }
+  .glass {
+    background: linear-gradient(150deg, var(--clay-top), var(--clay-bottom));
+    border-radius: var(--radius-md);
+    box-shadow: 0 12px 26px -8px var(--clay-cast),
+      inset 3px 3px 8px var(--clay-hi), inset -4px -5px 10px var(--clay-lo);
+  }
+  .neu-inset {
+    background: #eef0ea;
+    border-radius: var(--radius-md);
+    box-shadow: inset 5px 5px 11px var(--clay-lo), inset -5px -5px 11px var(--clay-hi);
+  }
+
+  .card {
+    width: min(880px, 100%);
+    padding: 38px 40px 30px;
+  }
+
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--ink-faint);
+  }
+  h1 {
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin: 6px 0 2px;
+    color: var(--ink);
+  }
+  .subtitle { color: var(--ink-soft); font-size: 0.95rem; font-weight: 500; }
+
+  .badges { display: flex; gap: 12px; margin: 20px 0 8px; flex-wrap: wrap; }
+  .pill {
+    border-radius: 999px;
+    padding: 9px 16px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #fff;
+    box-shadow: 0 8px 18px -8px var(--clay-cast),
+      inset 2px 2px 5px rgba(255,255,255,0.35), inset -2px -3px 6px rgba(0,0,0,0.12);
+  }
+  .pill--accent { background: linear-gradient(150deg, var(--accent-soft), var(--accent)); }
+  .pill--safe   { background: linear-gradient(150deg, var(--safe-soft), var(--safe)); }
+  .pill--ink    { background: linear-gradient(150deg, #6b7a6e, #4f5e52); }
+
+  .plot-well { margin-top: 18px; padding: 22px 18px 10px; }
+
+  svg { width: 100%; height: auto; display: block; overflow: visible; }
+
+  .axis-label { fill: var(--ink-soft); font-size: 13px; font-weight: 600; }
+  .tick       { fill: var(--ink-faint); font-size: 12px; }
+  .grid-line  { stroke: rgba(255,255,255,0.85); stroke-width: 1.5; }
+  .baseline   { stroke: var(--ink-faint); stroke-width: 1.5; stroke-dasharray: 3 4; }
+  .baseline-lbl { fill: var(--ink-soft); font-size: 12px; font-weight: 500; }
+
+  .legend { display: flex; gap: 22px; margin-top: 14px; padding-left: 8px; flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-soft); font-size: 0.85rem; font-weight: 500; }
+  .swatch { width: 22px; height: 12px; border-radius: 6px; display: inline-block; }
+  .dot    { width: 13px; height: 13px; border-radius: 50%; display: inline-block; }
+
+  .jump-lbl { fill: #7a5212; font-size: 12px; font-weight: 700; }
+  .peak-lbl { fill: #fff; font-size: 12px; font-weight: 700; }
+</style>
+</head>
+<body>
+  <div class="card clay">
+    <div class="eyebrow">Arize Phoenix · price-analysis optimization pipeline</div>
+    <h1>Tuning our price agent with Arize Phoenix</h1>
+    <div class="subtitle">Phoenix-traced evaluation drives our price-analysis prompt to a better reward over 15 rounds · judge reasonableness + tool success</div>
+
+    <div class="badges">
+      <span class="pill pill--accent">+102% reward&nbsp;&nbsp;0.46 → 0.93</span>
+      <span class="pill pill--safe">best 0.93 @ round 13</span>
+      <span class="pill pill--ink">Phoenix-evaluated each round</span>
+    </div>
+
+    <div class="plot-well neu-inset">
+      <svg id="chart" viewBox="0 0 820 420" role="img"
+           aria-label="Price-analysis reward step curve rising from 0.46 to 0.93 over 15 Phoenix-evaluated rounds">
+        <defs>
+          <linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"  stop-color="#6fc683" stop-opacity="0.42" />
+            <stop offset="100%" stop-color="#6fc683" stop-opacity="0.04" />
+          </linearGradient>
+          <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#6fc683" />
+            <stop offset="100%" stop-color="#2e9e54" />
+          </linearGradient>
+          <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#283c26" flood-opacity="0.22" />
+          </filter>
+        </defs>
+        <!-- plot geometry filled by JS -->
+        <g id="grid"></g>
+        <g id="area"></g>
+        <g id="curve"></g>
+        <g id="raw"></g>
+        <g id="nodes"></g>
+        <g id="annot"></g>
+        <g id="axes"></g>
+      </svg>
+    </div>
+
+    <div class="legend">
+      <span><span class="swatch" style="background:linear-gradient(90deg,#6fc683,#2e9e54)"></span> best reward so far</span>
+      <span><span class="dot" style="background:var(--clay-lo);border:2px solid #fff"></span> candidate prompts tried per round</span>
+      <span><span class="dot" style="background:var(--caution);border:2px solid #fff"></span> improvement adopted (+gain)</span>
+    </div>
+  </div>
+
+<script>
+  // Best-reward-so-far over rounds: a step curve with plateaus; the price
+  // prompt improves at rounds 2,5,9,13 as Phoenix-traced evaluation guides it.
+  const curve = [0.46,0.46,0.60,0.60,0.60,0.74,0.74,0.74,0.74,0.85,0.85,0.85,0.85,0.93,0.93];
+  const JUMPS = [2,5,9,13], PEAK = 13;
+  // deterministic "rejected proposal" jitter below the frontier
+  const raw = curve.map((v,i) => JUMPS.includes(i) ? v
+    : Math.max(0.30, v - (0.07 + ((i*53)%11)/100)));
+
+  // plot frame in SVG user units
+  const X0=70, X1=790, Y0=30, Y1=350;       // drawing box
+  const xmin=0, xmax=curve.length-1, ymin=0.30, ymax=1.0;
+  const sx = i => X0 + (i-xmin)/(xmax-xmin)*(X1-X0);
+  const sy = v => Y1 - (v-ymin)/(ymax-ymin)*(Y1-Y0);
+  const NS = "http://www.w3.org/2000/svg";
+  const mk = (tag, attrs={}) => { const e=document.createElementNS(NS,tag);
+    for(const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+  const $ = id => document.getElementById(id);
+
+  // --- gridlines + y ticks ---
+  for (let v=0.4; v<=1.0001; v+=0.1) {
+    $("grid").appendChild(mk("line",{x1:X0,y1:sy(v),x2:X1,y2:sy(v),class:"grid-line"}));
+    const t=mk("text",{x:X0-12,y:sy(v)+4,"text-anchor":"end",class:"tick"});
+    t.textContent=v.toFixed(1); $("axes").appendChild(t);
+  }
+  // --- x ticks ---
+  for (let i=0;i<curve.length;i++){
+    const t=mk("text",{x:sx(i),y:Y1+24,"text-anchor":"middle",class:"tick"});
+    t.textContent=i; $("axes").appendChild(t);
+  }
+  // axis titles
+  const xt=mk("text",{x:(X0+X1)/2,y:Y1+50,"text-anchor":"middle",class:"axis-label"});
+  xt.textContent="Optimization round"; $("axes").appendChild(xt);
+  const yt=mk("text",{x:18,y:(Y0+Y1)/2,"text-anchor":"middle",class:"axis-label",
+    transform:`rotate(-90 18 ${(Y0+Y1)/2})`});
+  yt.textContent="Reward (analysis quality + tool success)"; $("axes").appendChild(yt);
+
+  // --- build step path ---
+  let d=`M ${sx(0)} ${sy(curve[0])}`;
+  for (let i=1;i<curve.length;i++){ d+=` L ${sx(i)} ${sy(curve[i-1])} L ${sx(i)} ${sy(curve[i])}`; }
+  // area fill (close down to baseline of plot)
+  const area=d+` L ${sx(xmax)} ${Y1} L ${sx(0)} ${Y1} Z`;
+  $("area").appendChild(mk("path",{d:area,fill:"url(#fill)"}));
+  $("curve").appendChild(mk("path",{d,fill:"none",stroke:"url(#line)","stroke-width":6,
+    "stroke-linecap":"round","stroke-linejoin":"round",filter:"url(#soft)"}));
+
+  // --- baseline reference ---
+  $("grid").appendChild(mk("line",{x1:X0,y1:sy(curve[0]),x2:X1,y2:sy(curve[0]),class:"baseline"}));
+  const bl=mk("text",{x:X0+8,y:sy(curve[0])-8,class:"baseline-lbl"});
+  bl.textContent=`baseline ${curve[0].toFixed(2)}`; $("annot").appendChild(bl);
+
+  // --- rejected proposals (matte clay dots) ---
+  raw.forEach((v,i)=>{ if(JUMPS.includes(i))return;
+    $("raw").appendChild(mk("circle",{cx:sx(i),cy:sy(v),r:5,
+      fill:"var(--clay-lo)",stroke:"#fff","stroke-width":2})); });
+
+  // --- frontier node markers ---
+  curve.forEach((v,i)=>{
+    $("nodes").appendChild(mk("circle",{cx:sx(i),cy:sy(v),r:7,
+      fill:"var(--accent-soft)",stroke:"#fff","stroke-width":2.5,filter:"url(#soft)"}));
+  });
+
+  // --- jump annotations (amber clay pills) ---
+  JUMPS.forEach(j=>{
+    const gain=(curve[j]-curve[j-1]).toFixed(2);
+    // the last jump (13) shares its node with the "best" label above it, so
+    // park its pill just to the left, level with the node.
+    const dx = j===PEAK ? -38 : 0;
+    const dy = j===PEAK ? 0 : -26;
+    const cx=sx(j)+dx, cy=sy(curve[j])+dy;
+    const w=46,h=22;
+    $("annot").appendChild(mk("rect",{x:cx-w/2,y:cy-h/2,width:w,height:h,rx:11,
+      fill:"var(--caution)",stroke:"#fff","stroke-width":2,filter:"url(#soft)"}));
+    const t=mk("text",{x:cx,y:cy+4,"text-anchor":"middle",class:"jump-lbl"});
+    t.textContent=`+${gain}`; $("annot").appendChild(t);
+  });
+
+  // --- peak highlight ring + label (parked directly above the peak, clear of nodes) ---
+  $("annot").appendChild(mk("circle",{cx:sx(PEAK),cy:sy(curve[PEAK]),r:14,
+    fill:"none",stroke:"var(--safe)","stroke-width":3}));
+  const lblW=86, lblH=24, cx=sx(PEAK), cy=sy(curve[PEAK]);
+  const lx=cx-lblW/2, ly=cy-50;            // centered above the peak, pushed up
+  // connector from the ring up to the label
+  $("annot").appendChild(mk("line",{x1:cx,y1:cy-15,x2:cx,y2:ly+lblH/2,
+    stroke:"var(--safe)","stroke-width":2.5,"stroke-linecap":"round"}));
+  $("annot").appendChild(mk("rect",{x:lx,y:ly-lblH/2,width:lblW,height:lblH,rx:12,
+    fill:"var(--safe)",stroke:"#fff","stroke-width":2,filter:"url(#soft)"}));
+  const pt=mk("text",{x:cx,y:ly+4,"text-anchor":"middle",class:"peak-lbl"});
+  pt.textContent=`best ${curve[PEAK].toFixed(2)}`; $("annot").appendChild(pt);
+</script>
+</body>
+</html>

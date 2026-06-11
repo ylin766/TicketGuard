@@ -1,7 +1,7 @@
 /**
  * AGENT social-opinion agent stream — frontend contract.
  *
- * Mirrors the SSE frames emitted by GET /api/agent/stream (see backend
+ * Mirrors the SSE frames emitted by GET /api/osint/stream (see backend
  * agent_stream.py). Each frame is one `data: {...}` line.
  */
 
@@ -52,14 +52,28 @@ export interface AgentTokensFrame {
   total: number;
 }
 
+/** An evidence link surfaced in the OSINT report. */
+export interface AgentSourceRef {
+  url: string;
+  platform: string;
+}
+
 export interface AgentReportFrame {
   type: "report";
   /** Parsed 0-100 trust score, or null if not found. */
   score: number | null;
   /** Rubric tier name, or null. */
   tier: string | null;
-  /** The full structured report text. */
+  /** The full structured report text (kept for the collapsible full report). */
   text: string;
+  /** Concise fraud-pattern headlines parsed from section 1. */
+  fraud_points?: string[];
+  /** Credibility-source headlines parsed from section 2. */
+  credible_points?: string[];
+  /** Evidence links with their platform label. */
+  sources?: AgentSourceRef[];
+  /** The 'Judgment Basis' bottom-line takeaway. */
+  judgment?: string;
 }
 
 export interface AgentDoneFrame {

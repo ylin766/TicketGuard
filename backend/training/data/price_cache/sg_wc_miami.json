@@ -1,0 +1,265 @@
+{
+  "metadata": {
+    "source": "seatgeek",
+    "event_url": "https://www.seatgeek.com/event/sg_wc_miami",
+    "event_name": "Spain vs Japan - World Cup Group E",
+    "venue": "Hard Rock Stadium",
+    "city": "Miami",
+    "currency": "USD",
+    "fixture": true
+  },
+  "tickets": [
+    {
+      "source": "fixture",
+      "section": "144",
+      "row": 18,
+      "price": 2133,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "120",
+      "row": null,
+      "price": 1998,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "340",
+      "row": 18,
+      "price": 1540,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "144",
+      "row": null,
+      "price": 1753,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "340",
+      "row": 10,
+      "price": 1164,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "240",
+      "row": 9,
+      "price": 1877,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "340",
+      "row": null,
+      "price": 1311,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "120",
+      "row": 30,
+      "price": 1736,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "120",
+      "row": 40,
+      "price": 1764,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "120",
+      "row": 23,
+      "price": 2193,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "144",
+      "row": 39,
+      "price": 1687,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Club",
+      "row": null,
+      "price": 1563,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "340",
+      "row": null,
+      "price": 1445,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "240",
+      "row": null,
+      "price": 1424,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "340",
+      "row": 4,
+      "price": 1138,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "120",
+      "row": 24,
+      "price": 1964,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "144",
+      "row": 3,
+      "price": 1535,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Club",
+      "row": 30,
+      "price": 1173,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Club",
+      "row": 15,
+      "price": 1258,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "120",
+      "row": 19,
+      "price": 1960,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Club",
+      "row": null,
+      "price": 1156,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "240",
+      "row": null,
+      "price": 1383,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "240",
+      "row": null,
+      "price": 1348,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "144",
+      "row": 16,
+      "price": 1775,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "120",
+      "row": null,
+      "price": 1869,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Club",
+      "row": 12,
+      "price": 1492,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "120",
+      "row": null,
+      "price": 1910,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "240",
+      "row": 1,
+      "price": 1892,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Club",
+      "row": null,
+      "price": 1131,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "340",
+      "row": 35,
+      "price": 1556,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "340",
+      "row": null,
+      "price": 1664,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Club",
+      "row": null,
+      "price": 1466,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "240",
+      "row": null,
+      "price": 1359,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "144",
+      "row": null,
+      "price": 1468,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Club",
+      "row": 25,
+      "price": 1263,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Club",
+      "row": null,
+      "price": 1377,
+      "view": "Clear View"
+    }
+  ]
+}

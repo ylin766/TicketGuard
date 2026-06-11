@@ -1,14 +1,19 @@
 import { motion } from "framer-motion";
 import { SecurityRuntime } from "../components/agent/SecurityRuntime";
+import { LiveBrowserViewport } from "../components/price/LiveBrowserViewport";
+import { PriceActivityPanel } from "../components/price/PriceActivityPanel";
+import { SeatViewport } from "../components/price/SeatViewport";
+import { SeatActivityPanel } from "../components/price/SeatActivityPanel";
+import type { PriceState } from "../components/price/usePriceStream";
 import type { ThreatScanCache } from "../components/ThreatIntelPanel";
 import type { FlowPhase } from "./useFlow";
 
 /**
- * The three processing units the data is split into. Only `security` is wired
- * up (its process card morphs into the ThreatIntelPanel); `price` and `seat`
- * are placeholders ("coming soon") that hold their column. Strictly three equal
- * columns (16:9 friendly); each unit is responsive and never needs its own
- * scrollbar — content adapts to the column.
+ * The three processing units the data is split into. `security` and `price` run
+ * live during the pipeline (security streams threat-intel; price plays the
+ * headed browser's screenshots in a clay viewport). `seat` is still a
+ * placeholder. Strictly three equal columns (16:9 friendly); each unit is
+ * responsive and never needs its own scrollbar — content adapts to the column.
  */
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -49,18 +54,33 @@ const UNITS: UnitDef[] = [
   { key: "seat", title: "Seat & Sightline", sub: "Obstruction & view check", icon: IconSeat },
 ];
 
+function SeatRuntime({ price }: { price?: PriceState }) {
+  // Mirror the price unit exactly: a seat-photo viewport on the left and the
+  // seat agent's step timeline on the right. Both panes show their own clay
+  // skeleton / waiting line until the seat phase begins.
+  if (!price) return null;
+  return (
+    <div className="seat-runtime">
+      <SeatViewport state={price} />
+      <SeatActivityPanel state={price} />
+    </div>
+  );
+}
+
 export function ProcessUnits({
   phase,
   url,
-  onSecurityDone,
   onScanComplete,
-  onAgentComplete,
+  agentState,
+  browserState,
+  price,
 }: {
   phase: FlowPhase;
   url: string;
-  onSecurityDone: () => void;
   onScanComplete?: (cache: ThreatScanCache) => void;
-  onAgentComplete?: (state: import("../components/agent/useAgentStream").AgentState) => void;
+  agentState: import("../components/agent/useAgentStream").AgentState;
+  browserState: import("../components/agent/useBrowserCheckStream").BrowserCheckState;
+  price?: PriceState;
 }) {
   const isPipeline = phase === "pipeline";
   // The clay is poured into each unit once the stream reaches it.
@@ -79,9 +99,11 @@ export function ProcessUnits({
   return (
     <div className="process-units">
       {UNITS.map((u, i) => {
-        const active = u.key === "security";
-        // The security unit in the pipeline shows the panel's own header, so
-        // suppress the unit head to avoid a duplicated title row.
+        // security + price + seat all stream live; seat mirrors price exactly.
+        const active = u.key === "security" || u.key === "price" || u.key === "seat";
+        // Units that render their own header in the pipeline (the threat panel,
+        // the price + seat viewports) suppress the unit head to avoid a
+        // duplicated row.
         const showHead = !(active && isPipeline);
         return (
           <motion.div
@@ -129,14 +151,19 @@ export function ProcessUnits({
                 </div>
               )}
 
-              <motion.div className="punit-body" layout>
-                {active ? (
+              {/* No `layout` here: inside the shared LayoutGroup it animated
+                  this body's box against its SIBLINGS, so when one unit (e.g.
+                  the security probe) changed height the whole 3-part column slid
+                  /jittered together. The runtime children animate their own
+                  entry, so the body doesn't need layout projection. */}
+              <div className="punit-body">
+                {u.key === "security" ? (
                   isPipeline ? (
                     <SecurityRuntime
                       url={url}
-                      onDone={onSecurityDone}
+                      agentState={agentState}
+                      browserState={browserState}
                       onScanComplete={onScanComplete}
-                      onAgentComplete={onAgentComplete}
                     />
                   ) : (
                     <div className="punit-process">
@@ -144,12 +171,29 @@ export function ProcessUnits({
                       <span className="punit-process-label">Initialising scan…</span>
                     </div>
                   )
+                ) : u.key === "price" ? (
+                  isPipeline && price ? (
+                    <div className="price-runtime">
+                      <LiveBrowserViewport state={price} />
+                      <PriceActivityPanel state={price} />
+                    </div>
+                  ) : (
+                    <div className="punit-process">
+                      <span className="punit-process-dot" aria-hidden="true" />
+                      <span className="punit-process-label">Opening market…</span>
+                    </div>
+                  )
                 ) : (
-                  <div className="punit-soon-body">
-                    <span className="punit-soon-tag">Coming soon</span>
-                  </div>
+                  isPipeline && price ? (
+                    <SeatRuntime price={price} />
+                  ) : (
+                    <div className="punit-process">
+                      <span className="punit-process-dot" aria-hidden="true" />
+                      <span className="punit-process-label">Opening market…</span>
+                    </div>
+                  )
                 )}
-              </motion.div>
+              </div>
             </motion.div>
           </motion.div>
         );

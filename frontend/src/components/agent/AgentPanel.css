@@ -10,6 +10,11 @@
 .sec-stage {
   position: relative;
   display: grid;
+  /* Pin the single shared cell to the container width (minmax(0,1fr)); an
+     implicit `auto` column sizes to its widest child's INTRINSIC width, which
+     let the opinion stage (browser viewport + agent trace) blow the column —
+     and the whole row — past the right edge. */
+  grid-template-columns: minmax(0, 1fr);
   /* The conveyor window: clip the stages sliding in/out from the sides. The
      negative margin + padding keeps the clay drop-shadows from being clipped
      at top/bottom while still hiding the horizontal overflow. */
@@ -18,9 +23,11 @@
   padding: 14px;
 }
 /* Both stages occupy the same grid cell so they overlap while one slides out
-   and the other slides in; the visible one drives the height. */
+   and the other slides in; the visible one drives the height. min-width:0 lets
+   the layer shrink to the cell instead of forcing its content's intrinsic width. */
 .sec-stage-layer {
   grid-area: 1 / 1;
+  min-width: 0;
   transform-origin: center;
   will-change: transform;
 }
@@ -28,6 +35,41 @@
    agent settles from its left edge — so the deformation reads as a conveyor. */
 .sec-stage-layer:first-child {
   transform-origin: left center;
+}
+
+/* Grey-zone (Layer 2) shows the live browser probe beside the OSINT opinion
+   trace, laid out as a horizontal row (browser left, agent trace right) so the
+   column doesn't grow too tall. Collapses to a stack on narrow screens. */
+.sec-opinion-stack {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  /* stretch: keep the browser probe (left) and opinion panel (right) the same
+     height. No max-height / overflow here — the block must EXPAND DOWNWARD with
+     its content; the page scrolls (the pipeline scene is top-aligned). Capping
+     it added an inner scrollbar that hid the tail of the investigation. */
+  align-items: stretch;
+  width: 100%;
+  min-height: 0;
+}
+.sec-opinion-stack > .lbv {
+  flex: 0 0 auto;
+  width: 360px;
+  max-width: 48%;
+  margin: 0;
+}
+.sec-opinion-stack > .agent-panel {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+@media (max-width: 900px) {
+  .sec-opinion-stack {
+    flex-direction: column;
+  }
+  .sec-opinion-stack > .lbv {
+    width: 100%;
+    max-width: 460px;
+  }
 }
 
 /* The carried-over scan verdict, pinned above the agent stage as continuity. */
@@ -532,6 +574,117 @@
 .agent-meter-fill--caution { background: linear-gradient(90deg, #e3b15f, var(--agent-caution)); }
 .agent-meter-fill--safe { background: linear-gradient(90deg, var(--accent-soft), var(--agent-safe)); }
 
+/* OSINT agent's full written summary — the synthesised public-opinion verdict
+   (Part-1 react-agent trace conclusion) surfaced in the report. */
+.agent-verdict-text {
+  margin-top: 12px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-soft, #555a52);
+  white-space: pre-wrap;
+}
+
+/* ---- Structured findings: red flags + sources weighed ---- */
+.agent-findings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 18px;
+  margin-top: 16px;
+}
+@media (max-width: 560px) {
+  .agent-findings { grid-template-columns: 1fr; }
+}
+.agent-finding-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.agent-finding-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint, #8a8f87);
+}
+.agent-finding-label--risk {
+  color: var(--agent-danger, #d2483c);
+}
+.agent-finding-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.agent-finding-item {
+  position: relative;
+  padding-left: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--ink, #2c2f36);
+}
+.agent-finding-item::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 7px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink-faint, #8a8f87);
+}
+.agent-finding-item--risk::before {
+  background: var(--agent-danger, #d2483c);
+}
+
+/* ---- Evidence link chips ---- */
+.agent-source-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 16px;
+}
+.agent-source-chip {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-soft, #555a52);
+  text-decoration: none;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: inset 1px 1px 3px rgba(120, 124, 116, 0.28),
+    inset -1px -1px 3px rgba(255, 255, 255, 0.85);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+.agent-source-chip:hover {
+  transform: translateY(-1px);
+  color: var(--ink, #2c2f36);
+}
+
+/* ---- Collapsible full report ---- */
+.agent-fullreport {
+  margin-top: 16px;
+}
+.agent-fullreport-toggle {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent, #4a7c59);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-bottom: 1px dashed currentColor;
+}
+.agent-fullreport-text {
+  overflow: hidden;
+  max-height: 360px;
+  overflow-y: auto;
+  margin-top: 10px;
+  font-size: 12.5px;
+}
+
 .agent-phoenix {
   font-size: 12px;
   font-weight: 800;
@@ -558,6 +711,12 @@
   padding: 16px 0;
   gap: 16px;
   position: relative;
+  /* Fill the stretched panel so the centre point is FIXED. The chips (top) and
+     status (bottom) are taken out of flow (absolute) below, so the blob stays
+     pinned at the centre and never jumps when streaming content changes
+     height. */
+  flex: 1 1 auto;
+  min-height: 280px;
 }
 
 /* Theme configurations */
@@ -651,10 +810,16 @@
 .agent-blob-icon svg { width: 100%; height: 100%; }
 
 .agent-floating-args {
+  /* Out of flow, pinned to the top of the stage: chips appearing/disappearing
+     must NOT push the centered blob up or down. */
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 8px;
   z-index: 10;
   pointer-events: none;
@@ -698,6 +863,13 @@
 }
 
 .agent-anim-status {
+  /* Out of flow, pinned to the bottom of the stage: the streaming thinking text
+     changes length constantly; floating it keeps it from re-centering (and
+     jumping) the blob above it. */
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 12px;

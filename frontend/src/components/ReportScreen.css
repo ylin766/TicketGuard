@@ -1,17 +1,36 @@
 .report-screen {
   width: 100%;
-  max-width: 1080px;
+  max-width: 1120px;
   display: flex;
   flex-direction: column;
   gap: 24px;
   margin: 0 auto;
 }
 
-.report-grid {
+/* ---------- Header band: hero (wide) + gauge (narrow), asymmetric ---------- */
+.report-headband {
   display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 32px;
+  grid-template-columns: 1.55fr 1fr;
+  gap: 28px;
+  align-items: stretch;
+}
+
+/* ---------- Body: analysis reading column + intel rail ---------- */
+.report-body {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 28px;
   align-items: start;
+}
+
+/* Security probe + opinion agent: a full-width band (it is a report-screen
+   direct child, so it spans the whole 1120px column) so the browser-probe /
+   findings split has the room to sit side by side instead of wrapping. */
+.report-security {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
 }
 
 .report-col-main {
@@ -129,6 +148,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 24px;
   text-align: center;
   border-radius: var(--radius-lg);
@@ -137,6 +157,62 @@
 .report-gauge-card .eyebrow {
   font-size: 15px;
 }
+
+/* Small "why this score" line tucked just under the gauge number. */
+.gauge-why {
+  margin: -12px 0 0;
+  max-width: 28ch;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--text-muted, #7a7f8c);
+}
+
+/* Itemised point deductions: one row per "what cost points" + its −N cost. */
+.gauge-why-list {
+  margin: -12px 0 0;
+  padding: 0;
+  list-style: none;
+  width: 100%;
+  max-width: 30ch;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gauge-why-list li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--text-muted, #7a7f8c);
+}
+
+.gauge-why-label {
+  text-align: left;
+}
+
+.gauge-why-pts {
+  flex: 0 0 auto;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--danger, #e5484d);
+}
+
+.phoenix-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted, #7a7f8c);
+  text-decoration: none;
+  border-bottom: 1px dashed currentColor;
+  transition: color 0.2s ease;
+}
+
+.phoenix-link:hover {
+  color: var(--text, #2c2f36);
+}
+
 
 /* ---------- Recommendation banner ---------- */
 .recommendation {
@@ -187,6 +263,12 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
+}
+
+/* Only the real (website-credibility) dimension remains — render it as one
+   prominent full-width card rather than a lone cell in a 2-column grid. */
+.score-grid--single {
+  grid-template-columns: 1fr;
 }
 
 .score-card {
@@ -327,7 +409,10 @@
 }
 
 @media (max-width: 960px) {
-  .report-grid {
+  .report-headband {
+    grid-template-columns: 1fr;
+  }
+  .report-body {
     grid-template-columns: 1fr;
   }
   .report-col-side {

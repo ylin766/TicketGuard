@@ -14,12 +14,36 @@ export interface ThreatScanSummary {
   alerts: number;
   /** Number of sources that returned any verdict (true/false). */
   reported: number;
+  /** Authoritative score (0-100) computed by the backend, when available. */
+  score?: number | null;
+  /** Backend's grey-zone decision — the single source of truth for whether the
+   *  Layer-2 agent should run. The frontend no longer re-derives this. */
+  greyZone?: boolean;
 }
 
-/** Full scan result cache — sources + flagged — passed from pipeline to report. */
+/** Full scan result cache passed from the pipeline phase to the report. Carries
+ *  everything the report needs so it can be assembled WITHOUT re-running the
+ *  backend: the streamed sources plus the authoritative score / grey-zone /
+ *  explanation from the stream's `done` frame. */
+/** One point deduction that pulled the credibility score below 100. */
+export interface ScoreDeduction {
+  label: string;
+  points: number;
+}
+
 export interface ThreatScanCache {
   sources: import("../types").ThreatSource[];
   flagged: boolean;
+  /** Authoritative credibility score (0-100), or null when unavailable. */
+  score: number | null;
+  /** Backend risk band, e.g. "high" | "medium" | "low" (may be empty). */
+  riskLevel: string;
+  /** Human-readable score rationale (may be empty). */
+  scoreExplanation: string;
+  /** Itemised point deductions (threat sources + context flags). */
+  deductions: ScoreDeduction[];
+  /** Backend grey-zone decision — whether the Layer-2 agent ran. */
+  greyZone: boolean;
 }
 
 interface ThreatIntelPanelProps {
@@ -41,9 +65,10 @@ interface ThreatIntelPanelProps {
    */
   cachedSources?: ThreatSource[];
   cachedFlagged?: boolean;
-  /** Called when the stream completes, passing all received sources + flagged.
-   *  Use this in the pipeline stage to build the cache for the report page. */
-  onComplete?: (sources: ThreatSource[], flagged: boolean) => void;
+  /** Called when the stream completes, passing the full scan cache (sources +
+   *  authoritative score/grey-zone/explanation). Use this in the pipeline stage
+   *  to build the cache the report page renders from — no re-fetch on report. */
+  onComplete?: (cache: ThreatScanCache) => void;
 }
 
 const STREAM_ENDPOINT = "http://localhost:8001/api/threat-intel/stream";
@@ -166,6 +191,12 @@ export function ThreatIntelPanel({
   const alertsRef = useRef(0);
   const reportedRef = useRef(0);
   const flaggedRef = useRef(false);
+  // Authoritative score + grey-zone decision from the backend done frame.
+  const scoreRef = useRef<number | null>(null);
+  const greyZoneRef = useRef(false);
+  const riskLevelRef = useRef("");
+  const scoreExplanationRef = useRef("");
+  const deductionsRef = useRef<ScoreDeduction[]>([]);
   // Accumulates all received sources so onComplete gets the full list.
   const sourcesRef = useRef<ThreatSource[]>([]);
 
@@ -182,6 +213,11 @@ export function ThreatIntelPanel({
     alertsRef.current = 0;
     reportedRef.current = 0;
     flaggedRef.current = false;
+    scoreRef.current = null;
+    greyZoneRef.current = false;
+    riskLevelRef.current = "";
+    scoreExplanationRef.current = "";
+    deductionsRef.current = [];
 
     const controller = new AbortController();
     controllerRef.current = controller;
@@ -189,11 +225,21 @@ export function ThreatIntelPanel({
     const fireDone = () => {
       if (doneFiredRef.current) return;
       doneFiredRef.current = true;
-      onCompleteRef.current?.(sourcesRef.current, flaggedRef.current);
+      onCompleteRef.current?.({
+        sources: sourcesRef.current,
+        flagged: flaggedRef.current,
+        score: scoreRef.current,
+        riskLevel: riskLevelRef.current,
+        scoreExplanation: scoreExplanationRef.current,
+        deductions: deductionsRef.current,
+        greyZone: greyZoneRef.current,
+      });
       onDoneRef.current?.({
         flagged: flaggedRef.current,
         alerts: alertsRef.current,
         reported: reportedRef.current,
+        score: scoreRef.current,
+        greyZone: greyZoneRef.current,
       });
     };
 
@@ -226,6 +272,11 @@ export function ThreatIntelPanel({
               data?: ThreatSource;
               status?: string;
               flagged?: boolean;
+              score?: number | null;
+              risk_level?: string | null;
+              score_explanation?: string;
+              deductions?: ScoreDeduction[];
+              grey_zone?: boolean;
             };
 
             if (event.type === "source" && event.data) {
@@ -239,6 +290,11 @@ export function ThreatIntelPanel({
               }
             } else if (event.type === "done") {
               flaggedRef.current = event.flagged ?? false;
+              scoreRef.current = event.score ?? null;
+              greyZoneRef.current = event.grey_zone ?? false;
+              riskLevelRef.current = event.risk_level ?? "";
+              scoreExplanationRef.current = event.score_explanation ?? "";
+              deductionsRef.current = event.deductions ?? [];
               setFlagged(event.flagged ?? false);
               setStreamStatus(event.status === "unavailable" ? "unavailable" : "done");
               fireDone();

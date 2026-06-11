@@ -1,0 +1,202 @@
+{
+  "metadata": {
+    "source": "stubhub",
+    "event_url": "https://www.stubhub.com/event/sh_wc_houston",
+    "event_name": "France vs Portugal - World Cup Quarter-Final",
+    "venue": "NRG Stadium",
+    "city": "Houston",
+    "currency": "USD",
+    "fixture": true
+  },
+  "tickets": [
+    {
+      "source": "fixture",
+      "section": "Suite",
+      "row": null,
+      "price": 2104,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "108",
+      "row": 20,
+      "price": 3593,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "134",
+      "row": null,
+      "price": 2325,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Suite",
+      "row": 16,
+      "price": 2071,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Suite",
+      "row": 20,
+      "price": 2124,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "108",
+      "row": null,
+      "price": 2757,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "330",
+      "row": 39,
+      "price": 2427,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "330",
+      "row": 33,
+      "price": 2395,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "330",
+      "row": 9,
+      "price": 2159,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Suite",
+      "row": 21,
+      "price": 1856,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "134",
+      "row": 16,
+      "price": 2703,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "108",
+      "row": 18,
+      "price": 3559,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "134",
+      "row": 25,
+      "price": 2828,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "134",
+      "row": null,
+      "price": 3015,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "108",
+      "row": null,
+      "price": 2941,
+      "view": "Obstructed"
+    },
+    {
+      "source": "fixture",
+      "section": "Suite",
+      "row": null,
+      "price": 2057,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "134",
+      "row": null,
+      "price": 2838,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "108",
+      "row": 40,
+      "price": 2633,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "330",
+      "row": null,
+      "price": 2780,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "134",
+      "row": 27,
+      "price": 3454,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "Suite",
+      "row": null,
+      "price": 2176,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "108",
+      "row": 12,
+      "price": 2719,
+      "view": "Clear View"
+    },
+    {
+      "source": "fixture",
+      "section": "108",
+      "row": null,
+      "price": 2779,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "134",
+      "row": 6,
+      "price": 2845,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "Suite",
+      "row": null,
+      "price": 2136,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "134",
+      "row": null,
+      "price": 2781,
+      "view": "Side View"
+    },
+    {
+      "source": "fixture",
+      "section": "134",
+      "row": null,
+      "price": 3074,
+      "view": "Side View"
+    }
+  ]
+}

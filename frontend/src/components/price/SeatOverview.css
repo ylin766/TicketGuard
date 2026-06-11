@@ -1,0 +1,44 @@
+.sov {
+  padding: 18px 20px;
+  border-radius: var(--radius-lg, 22px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sov-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sov-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.sov-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.sov-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: 14px;
+}
+
+.sov-stat strong {
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.sov-stat span {
+  font-size: 12px;
+  color: var(--ink-soft, #7a7f8c);
+}

@@ -1,44 +1,65 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PitchScene } from "./components/PitchScene";
 import { UrlInputScreen } from "./components/UrlInputScreen";
 import { ReportScreen } from "./components/ReportScreen";
 import { CameraStage } from "./flow/CameraStage";
 import { useFlow } from "./flow/useFlow";
-import { auditUrl } from "./api";
+import { buildReportFromCache } from "./api";
 import type { TicketReport } from "./types";
 import type { ThreatScanCache } from "./components/ThreatIntelPanel";
-import type { AgentState } from "./components/agent/useAgentStream";
+import { useAgentStream } from "./components/agent/useAgentStream";
+import { useBrowserCheckStream } from "./components/agent/useBrowserCheckStream";
+import { usePriceStream } from "./components/price/usePriceStream";
 import "./flow/flow.css";
 
 export default function App() {
   const flow = useFlow();
   const [report, setReport] = useState<TicketReport | null>(null);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [threatCache, setThreatCache] = useState<ThreatScanCache | null>(null);
-  const [agentCache, setAgentCache] = useState<AgentState | null>(null);
+  const [qty, setQty] = useState(2);
 
-  const handleAudit = async (url: string) => {
+  // ALL live streams are owned here, at the App top level, so each one is a
+  // SINGLE instance that survives the pipeline → report phase transition. The
+  // runtime phase RUNS them (their live frames feed the pipeline units); the
+  // report phase only DISPLAYS the very same state. Because the hooks never
+  // unmount and their deps (url / enabled) don't change across the transition,
+  // nothing re-fires on the report page — no "completion guard" patch needed.
+  //
+  // Price runs for every audit; the grey-zone agent + Layer-2 browser probe run
+  // only when the threat scan lands in the grey zone (escalation), gated on the
+  // scan's authoritative decision carried in the cache.
+  const greyZone = threatCache?.greyZone === true;
+  const price = usePriceStream(
+    flow.url ?? "",
+    qty,
+    flow.started && !!flow.url,
+  );
+  const agent = useAgentStream(flow.url ?? "", flow.started && greyZone);
+  const browser = useBrowserCheckStream(flow.url ?? "", flow.started && greyZone);
+
+  const handleAudit = (url: string, ticketQty: number) => {
     setError(null);
-    setLoading(true);
-    // Start the cinematic flow immediately; fetch the report in the background
-    // so its data is ready by the time the camera reaches the report scene.
+    setQty(ticketQty);
+    setReport(null);
+    setThreatCache(null);
+    // Start the cinematic flow. Every backend source runs ONCE during the
+    // pipeline phase (threat scan + opinion agent + price); the report is then
+    // assembled from those caches — it never calls the backend itself.
     flow.start(url);
-    try {
-      const result = await auditUrl(url);
-      setReport(result);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Audit failed. Try again.");
-      flow.reset();
-    } finally {
-      setLoading(false);
-    }
   };
+
+  // Assemble the report from the live stream state — no backend call. Ready once
+  // the threat scan has finished and, in the grey zone, the opinion agent too.
+  useEffect(() => {
+    if (report || !flow.url || !threatCache) return;
+    if (greyZone && agent.status !== "done" && agent.status !== "error") return;
+    setReport(buildReportFromCache(flow.url, threatCache, greyZone ? agent : null));
+  }, [report, flow.url, threatCache, greyZone, agent]);
 
   const handleBack = () => {
     setReport(null);
     setThreatCache(null);
-    setAgentCache(null);
     flow.reset();
   };
 
@@ -53,11 +74,14 @@ export default function App() {
         <CameraStage
           flow={flow}
           onScanComplete={setThreatCache}
-          onAgentComplete={setAgentCache}
+          agentState={agent}
+          browserState={browser}
+          price={price}
+          reportReady={report !== null}
           input={
             <UrlInputScreen
               onAudit={handleAudit}
-              loading={loading}
+              loading={false}
               error={error}
             />
           }
@@ -67,7 +91,9 @@ export default function App() {
                 report={report}
                 onBack={handleBack}
                 threatCache={threatCache ?? undefined}
-                agentCache={agentCache ?? undefined}
+                agentCache={greyZone ? agent : undefined}
+                browserCache={greyZone ? browser : undefined}
+                price={price}
               />
             ) : (
               <div className="flow-placeholder">

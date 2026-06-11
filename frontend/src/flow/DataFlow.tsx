@@ -208,18 +208,40 @@ export function DataFlow({
   flow,
   url,
   onScanComplete,
-  onAgentComplete,
+  agentState,
+  browserState,
+  price,
+  reportReady,
 }: {
   flow: FlowState;
   url: string;
   onScanComplete?: (cache: ThreatScanCache) => void;
-  onAgentComplete?: (state: import("../components/agent/useAgentStream").AgentState) => void;
+  agentState: import("../components/agent/useAgentStream").AgentState;
+  browserState: import("../components/agent/useBrowserCheckStream").BrowserCheckState;
+  price?: import("../components/price/usePriceStream").PriceState;
+  reportReady?: boolean;
 }) {
   const { phase, advance } = flow;
   const host = shortHost(url);
 
   const splitting = phase === "dispatch" || phase === "split";
   const gooActive = phase === "split";
+
+  // Leave the pipeline only when EVERY part's full flow has finished — never on
+  // a fast sub-stream alone, or the user would be stranded on a "Finalising…"
+  // placeholder while the slow parts (the minutes-long security audit, the live
+  // price scrape) are still running. Completion signals:
+  //   • security  → the full audit data has arrived (reportReady)
+  //   • price     → the price stream reached "done" (or errored / was disabled)
+  const priceDone =
+    !price || price.status === "done" || price.status === "error";
+  const securityDone = !!reportReady;
+  const allPartsDone = securityDone && priceDone;
+  useEffect(() => {
+    if (phase === "pipeline" && allPartsDone) {
+      advance("pipeline");
+    }
+  }, [phase, allPartsDone, advance]);
 
   // Timed beats auto-advance; pipeline waits for the threat-intel stream.
   useEffect(() => {
@@ -325,9 +347,10 @@ export function DataFlow({
         <ProcessUnits
           phase={phase}
           url={url}
-          onSecurityDone={() => advance("pipeline")}
           onScanComplete={onScanComplete}
-          onAgentComplete={onAgentComplete}
+          agentState={agentState}
+          browserState={browserState}
+          price={price}
         />
       </motion.div>
     </div>

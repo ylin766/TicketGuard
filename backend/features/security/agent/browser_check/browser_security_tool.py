@@ -11,7 +11,7 @@ transfer codes, or payment details, and NEVER confirms a purchase or transfer.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 from .browser_runner import BrowserCheckRunner
 from .osint.osint_escalation import escalate, should_escalate
@@ -25,6 +25,8 @@ async def browser_security_check(
     max_actions: int = 8,
     enable_osint: bool = True,
     headless: bool = True,
+    on_frame: Optional[Callable[[int, bytes, str], None]] = None,
+    react_instruction: Optional[str] = None,
 ) -> dict[str, Any]:
     """Browser-based ticket-scam security check.
 
@@ -53,7 +55,10 @@ async def browser_security_check(
     Returns:
         A ``BrowserSecurityResult`` as a JSON-serializable dict.
     """
-    runner = BrowserCheckRunner(max_actions=max_actions, headless=headless)
+    runner = BrowserCheckRunner(
+        max_actions=max_actions, headless=headless, on_frame=on_frame,
+        react_instruction=react_instruction,
+    )
     result = await runner.run(
         url=url,
         expected_event=expected_event,
