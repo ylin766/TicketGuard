@@ -107,6 +107,7 @@ def stream_threatintel(url: str) -> Generator[dict, None, None]:
             "score": breakdown["score"],
             "risk_level": breakdown["risk_level"],
             "score_explanation": breakdown["explanation"],
+            "deductions": breakdown["deductions"],
             "grey_zone": grey,
         }
     except Exception as exc:  # noqa: BLE001 - never break the stream on scoring

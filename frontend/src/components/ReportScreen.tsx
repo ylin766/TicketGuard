@@ -130,8 +130,19 @@ export function ReportScreen({
         <div className="report-gauge-card clay">
           <span className="eyebrow">Trust Assessment</span>
           <RiskGauge score={report.overallScore} verdict={report.verdict} />
-          {report.security?.score_explanation && (
-            <p className="gauge-why">{report.security.score_explanation}</p>
+          {threatCache?.deductions && threatCache.deductions.length > 0 ? (
+            <ul className="gauge-why-list">
+              {threatCache.deductions.map((d, i) => (
+                <li key={`${d.label}-${i}`}>
+                  <span className="gauge-why-label">{d.label}</span>
+                  <span className="gauge-why-pts">−{d.points}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            report.security?.score_explanation && (
+              <p className="gauge-why">{report.security.score_explanation}</p>
+            )
           )}
           {report.security?.phoenix_url && (
             <a
