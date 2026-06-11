@@ -130,6 +130,9 @@ export function ReportScreen({
         <div className="report-gauge-card clay">
           <span className="eyebrow">Trust Assessment</span>
           <RiskGauge score={report.overallScore} verdict={report.verdict} />
+          {report.security?.score_explanation && (
+            <p className="gauge-why">{report.security.score_explanation}</p>
+          )}
           {report.security?.phoenix_url && (
             <a
               className="phoenix-link"
