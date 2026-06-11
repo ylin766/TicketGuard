@@ -23,6 +23,16 @@
   align-items: start;
 }
 
+/* Security probe + opinion agent: a full-width band (it is a report-screen
+   direct child, so it spans the whole 1120px column) so the browser-probe /
+   findings split has the room to sit side by side instead of wrapping. */
+.report-security {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
 .report-col-main {
   display: flex;
   flex-direction: column;

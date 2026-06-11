@@ -44,11 +44,13 @@
   display: flex;
   flex-direction: row;
   gap: 12px;
-  align-items: flex-start;
+  /* stretch: keep the browser probe (left) and opinion panel (right) the same
+     height. No max-height / overflow here — the block must EXPAND DOWNWARD with
+     its content; the page scrolls (the pipeline scene is top-aligned). Capping
+     it added an inner scrollbar that hid the tail of the investigation. */
+  align-items: stretch;
   width: 100%;
   min-height: 0;
-  max-height: 46vh;
-  overflow: hidden auto;
 }
 .sec-opinion-stack > .lbv {
   flex: 0 0 auto;
@@ -709,6 +711,12 @@
   padding: 16px 0;
   gap: 16px;
   position: relative;
+  /* Fill the stretched panel so the centre point is FIXED. The chips (top) and
+     status (bottom) are taken out of flow (absolute) below, so the blob stays
+     pinned at the centre and never jumps when streaming content changes
+     height. */
+  flex: 1 1 auto;
+  min-height: 280px;
 }
 
 /* Theme configurations */
@@ -802,10 +810,16 @@
 .agent-blob-icon svg { width: 100%; height: 100%; }
 
 .agent-floating-args {
+  /* Out of flow, pinned to the top of the stage: chips appearing/disappearing
+     must NOT push the centered blob up or down. */
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 8px;
   z-index: 10;
   pointer-events: none;
@@ -849,6 +863,13 @@
 }
 
 .agent-anim-status {
+  /* Out of flow, pinned to the bottom of the stage: the streaming thinking text
+     changes length constantly; floating it keeps it from re-centering (and
+     jumping) the blob above it. */
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 12px;

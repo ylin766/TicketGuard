@@ -3,7 +3,6 @@ import type { TicketReport } from "../types";
 import type { ThreatScanCache } from "./ThreatIntelPanel";
 import type { AgentState } from "./agent/useAgentStream";
 import { RiskGauge } from "./RiskGauge";
-import { ScoreCard } from "./ScoreCard";
 import { ThreatIntelPanel } from "./ThreatIntelPanel";
 import { AgentPanel } from "./agent/AgentPanel";
 import { AgentBrowserViewport } from "./agent/AgentBrowserViewport";
@@ -63,7 +62,6 @@ export function ReportScreen({
   browserCache,
   price,
 }: ReportScreenProps) {
-  const { dimensions } = report;
   // Prefer the LIVE data gathered during the pipeline (vision-extracted from the
   // buyer's own page + the live market scrape) over the mock placeholders; fall
   // back to the report's values only when a field wasn't extracted.
@@ -170,34 +168,33 @@ export function ReportScreen({
       {/* Stadium-wide seat coverage summary for this match. */}
       <SeatOverview state={price} venue={venue} />
 
-      {/* Body: analysis reading column + intel rail. */}
-      <div className="report-body">
-        <div className="report-col-main">
-          <section className="score-grid score-grid--single">
-            <ScoreCard
-              icon="🌐"
-              title="Website credibility"
-              weight="Primary signal"
-              result={dimensions.websiteCredibility}
-            />
-          </section>
-
+      {/* Security — full width so the browser probe (left) + findings (right)
+          split has room and the findings rail never wraps below. */}
+      {(agentCache || browserCache) && (
+        <section className="report-security">
           {agentCache && <AgentPanel state={agentCache} variant="report" />}
 
           {browserCache && (
             <AgentBrowserViewport state={browserCache} layout="split" />
           )}
+        </section>
+      )}
+
+      {/* Body: price analysis (wide, tall) beside the live scrape viewport
+          (narrow rail) — the tall text fills the wide column so the short
+          viewport's leftover space sits in the slim rail instead of a big gap. */}
+      <div className="report-body">
+        <div className="report-col-main">
+          <PriceAnalysisPanel state={price} />
         </div>
 
         <div className="report-col-side">
           <LiveBrowserViewport state={price} />
-
-          <PriceAnalysisPanel state={price} />
         </div>
       </div>
 
       {/* Seat agent — full-width grid of graded seat views, below the price. */}
-      <SeatScorePanel state={price} />
+      <SeatScorePanel state={price} yourSection={section} />
 
       {/* Threat intelligence — full width so the per-source cards lay out in a
           compact multi-column grid instead of one tall stack in the rail. */}

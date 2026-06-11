@@ -10,11 +10,20 @@ const EASE = [0.22, 1, 0.36, 1] as const;
  * analysis in the report. Renders nothing until the price stream is done and at
  * least one listing was graded.
  */
-export function SeatScorePanel({ state }: { state: PriceState }) {
+export function SeatScorePanel({
+  state,
+  yourSection: yourSectionRaw,
+}: {
+  state: PriceState;
+  /** Buyer's section from the report hero (preferred over userListing). */
+  yourSection?: string | null;
+}) {
   if (state.status !== "done") return null;
 
-  // The buyer's own section (vision-extracted from the audited URL), if any.
-  const yourSection = normSection(state.userListing?.section);
+  // The buyer's own section: prefer the explicit prop (report hero, which has a
+  // fallback), else the vision-extracted userListing.
+  const yourSection =
+    normSection(yourSectionRaw) ?? normSection(state.userListing?.section);
 
   const isYours = (l: PriceState["listings"][number]) =>
     yourSection != null && normSection(String(l.section ?? "")) === yourSection;
@@ -31,6 +40,8 @@ export function SeatScorePanel({ state }: { state: PriceState }) {
 
   if (gradedSeats.length === 0) return null;
 
+  const yoursGraded = gradedSeats.some(isYours);
+
   return (
     <motion.section
       className="ssp"
@@ -43,7 +54,11 @@ export function SeatScorePanel({ state }: { state: PriceState }) {
         <h3 className="ssp-title">Seat views, graded</h3>
         <p className="ssp-sub">
           Real fan photos scored across five sightline dimensions.
-          {yourSection != null && " Your section is highlighted first."}
+          {yoursGraded
+            ? " Your section is highlighted first."
+            : yourSection != null
+              ? ` We don't have a seat-view photo for your section (${yourSection}); comparable seats are shown below.`
+              : ""}
         </p>
       </div>
 

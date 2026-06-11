@@ -144,9 +144,13 @@
   display: contents;
 }
 
-/* "split" (report): head spans the top; screenshot LEFT, result/findings RIGHT. */
+/* "split" (report): head spans the top; screenshot LEFT, result/findings RIGHT.
+   Full-width in the report (its own `.report-security` band), so it stretches
+   to fill the row instead of capping at 760px — that cap was what forced the
+   findings column to wrap below the screenshot in a narrow parent. */
 .lbv--split {
-  max-width: 760px;
+  width: 100%;
+  max-width: none;
 }
 .lbv--split .lbv-body {
   display: flex;
