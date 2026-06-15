@@ -6,23 +6,12 @@ requires-python = ">=3.11"
 dependencies = [
     "google-adk>=1.0.0",
     "requests>=2.32.0",
-    # Layer 2 (browser-based security check) is REQUIRED, not optional: the
-    # grey-zone escalation drives a real browser via browser-use and reads pages
-    # with Gemini vision. After installing, run `playwright install chromium` to
-    # download the browser binary. Pinned: browser-use makes breaking API changes
-    # between minor versions (navigate→navigate_to, state/click APIs); the
-    # browser_check runner is written against 0.13.x.
-    "browser-use>=0.13,<0.14",
     "google-genai>=1.0.0",
     "tldextract>=5.0.0",
     "Pillow>=10.0.0",
-    # Observability (Arize Phoenix): telemetry is bootstrapped at server startup
-    # for every LLM path, so the instrumentation packages are core, not optional.
-    # The OTLP exporter ships the spans; the two OpenInference instrumentors
-    # cover ADK agents and direct google.genai calls respectively.
-    "opentelemetry-exporter-otlp-proto-http>=1.36,<=1.41.1",
-    "openinference-instrumentation-google-adk>=0.1.0",
-    "openinference-instrumentation-google-genai>=0.1.0",
+    "python-dotenv>=1.0.0",
+    "fastapi>=0.115.0",
+    "pydantic>=2.0.0",
 ]
 
 [project.optional-dependencies]
@@ -30,6 +19,14 @@ dependencies = [
 browser = ["selenium>=4.20.0"]
 # Security detectors use only `requests` (already a core dependency).
 security = []
+# Heavy deps that require a full server environment (not Vercel serverless).
+# browser-use pulls in Playwright + Chromium (~500MB).
+local = [
+    "browser-use>=0.13,<0.14",
+    "opentelemetry-exporter-otlp-proto-http>=1.36,<=1.41.1",
+    "openinference-instrumentation-google-adk>=0.1.0",
+    "openinference-instrumentation-google-genai>=0.1.0",
+]
 
 [tool.setuptools.packages.find]
 where = ["."]
