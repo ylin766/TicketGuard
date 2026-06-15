@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-const PRICE_ENDPOINT = "http://localhost:8001/api/price/stream";
+const PRICE_ENDPOINT = `${import.meta.env.VITE_API_URL || "http://localhost:8001"}/api/price/stream`;
 
 export interface PriceFrame {
   step: number;

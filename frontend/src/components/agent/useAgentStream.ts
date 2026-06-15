@@ -7,7 +7,7 @@ import type {
   AgentSourceRef,
 } from "./types";
 
-const AGENT_ENDPOINT = "http://localhost:8001/api/osint/stream";
+const AGENT_ENDPOINT = `${import.meta.env.VITE_API_URL || "http://localhost:8001"}/api/osint/stream`;
 
 export interface AgentState {
   status: AgentStatus;

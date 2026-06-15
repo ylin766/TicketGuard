@@ -71,7 +71,7 @@ interface ThreatIntelPanelProps {
   onComplete?: (cache: ThreatScanCache) => void;
 }
 
-const STREAM_ENDPOINT = "http://localhost:8001/api/threat-intel/stream";
+const STREAM_ENDPOINT = `${import.meta.env.VITE_API_URL || "http://localhost:8001"}/api/threat-intel/stream`;
 
 /** Known source manifest (matches the backend ALL_SOURCES order) so skeleton
  *  placeholders render immediately and are swapped in place as results stream,
