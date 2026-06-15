@@ -33,3 +33,6 @@ security = []
 
 [tool.setuptools.packages.find]
 where = ["."]
+
+[tool.vercel]
+entrypoint = "server.app:app"
