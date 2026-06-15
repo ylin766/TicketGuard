@@ -61,7 +61,8 @@ def _bootstrap_telemetry() -> None:
 app.add_middleware(
     CORSMiddleware,
     # Vite picks the next free port (5173/5174/5175…) so allow the local range.
-    allow_origin_regex=r"http://(localhost|127\.0\.0\.1):51(7[3-9]|8[0-9])",
+    # Also allow the Vercel production / preview domains.
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1):51(7[3-9]|8[0-9])|https://.*\.vercel\.app",
     allow_methods=["POST", "GET", "OPTIONS"],
     allow_headers=["Content-Type"],
 )
