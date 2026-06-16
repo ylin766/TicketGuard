@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
+import { apiBaseUrl } from "../../apiBase";
 import type { SeatScore, SeatDimensionKey } from "./usePriceStream";
 import "./SeatScoreCard.css";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-const API_ORIGIN = "http://localhost:8001";
+const API_ORIGIN = apiBaseUrl();
 
 /** Human labels for each rubric dimension, in display order. */
 const DIMENSION_LABELS: Record<SeatDimensionKey, string> = {

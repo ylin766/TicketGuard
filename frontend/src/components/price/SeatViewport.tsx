@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { apiBaseUrl } from "../../apiBase";
 import type { PriceState } from "./usePriceStream";
 import "./LiveBrowserViewport.css";
 
@@ -10,7 +11,7 @@ import "./LiveBrowserViewport.css";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-const API_ORIGIN = "http://localhost:8001";
+const API_ORIGIN = apiBaseUrl();
 
 function resolvePhoto(url: string): string {
   return url.startsWith("http") ? url : `${API_ORIGIN}${url}`;

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { ThreatSource } from "../types";
+import { apiBaseUrl } from "../apiBase";
 import { SourcePanel, SourcePanelSkeleton, SourcePanelTimeout } from "./threatintel/SourcePanel";
 import { GlyphShield, GlyphChevron } from "./threatintel/icons";
 import "./ThreatIntelPanel.css";
@@ -71,7 +72,7 @@ interface ThreatIntelPanelProps {
   onComplete?: (cache: ThreatScanCache) => void;
 }
 
-const STREAM_ENDPOINT = `${import.meta.env.VITE_API_URL || "http://localhost:8001"}/api/threat-intel/stream`;
+const STREAM_ENDPOINT = `${apiBaseUrl()}/api/threat-intel/stream`;
 
 /** Known source manifest (matches the backend ALL_SOURCES order) so skeleton
  *  placeholders render immediately and are swapped in place as results stream,

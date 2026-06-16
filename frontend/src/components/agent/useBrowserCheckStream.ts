@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { apiBaseUrl } from "../../apiBase";
 
-const BROWSER_ENDPOINT = `${import.meta.env.VITE_API_URL || "http://localhost:8001"}/api/security/browser-stream`;
+const BROWSER_ENDPOINT = `${apiBaseUrl()}/api/security/browser-stream`;
 
 export interface BrowserFrame {
   step: number;
