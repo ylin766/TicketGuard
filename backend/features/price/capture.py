@@ -23,7 +23,7 @@ async def capture_screenshot(
     """Open ``url`` headed/off-screen, return one screenshot's PNG bytes."""
     from playwright.async_api import async_playwright
 
-    from .browser_visibility import offscreen_launch_args
+    from .browser_visibility import offscreen_launch_args, should_use_headless
 
     args = [
         "--disable-blink-features=AutomationControlled",
@@ -35,7 +35,7 @@ async def capture_screenshot(
     ]
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=False, args=args)
+        browser = await p.chromium.launch(headless=should_use_headless(), args=args)
         try:
             context = await browser.new_context(
                 viewport={"width": 1400, "height": 900},

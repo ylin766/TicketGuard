@@ -31,10 +31,30 @@ def offscreen_launch_args() -> list[str]:
     real window). Otherwise routes by platform:
 
     * Windows -> ``["--headless=new"]`` (no OS window is ever created)
-    * everything else -> ``["--window-position=-32000,-32000"]`` (parked off-screen)
+    * Linux/container (no DISPLAY) -> ``["--headless=new"]``
+    * macOS / Linux with display -> ``["--window-position=-32000,-32000"]`` (parked off-screen)
     """
     if os.environ.get("PRICE_BROWSER_ONSCREEN") == "1":
         return []
+    # In containers / CI there is no X server; always use new headless there.
+    if not sys.platform.startswith("win") and not os.environ.get("DISPLAY"):
+        return ["--headless=new"]
     if sys.platform.startswith("win"):
         return ["--headless=new"]
     return ["--window-position=-32000,-32000"]
+
+
+def should_use_headless() -> bool:
+    """Whether Playwright's ``headless`` param should be True.
+
+    When ``--headless=new`` is in the launch args, Playwright's own
+    ``headless`` parameter must also be True, otherwise the flag is ignored.
+    In containers without a DISPLAY, headless is the only option.
+    """
+    if os.environ.get("PRICE_BROWSER_ONSCREEN") == "1":
+        return False
+    if not sys.platform.startswith("win") and not os.environ.get("DISPLAY"):
+        return True
+    if sys.platform.startswith("win"):
+        return True
+    return False

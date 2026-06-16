@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TicketGuard · System Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',system-ui,sans-serif;background:#f5f5f5;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:12px;}
+  .canvas{width:1280px;height:720px;background:#fff;border-radius:6px;box-shadow:0 2px 12px rgba(0,0,0,.08);}
+  svg{width:100%;height:100%;}
+  svg text{font-family:'Inter',system-ui,sans-serif;}
+</style>
+</head>
+<body>
+<div class="canvas">
+<svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="a" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="7" markerHeight="5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#555"/></marker>
+  <marker id="ap" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="7" markerHeight="5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#7c5cbf"/></marker>
+  <filter id="s" x="-3%" y="-3%" width="106%" height="110%"><feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000" flood-opacity=".08"/></filter>
+</defs>
+
+<!-- ═══ TITLE ═══ -->
+<text x="640" y="28" text-anchor="middle" font-size="16" font-weight="700" fill="#1a1a1a">TicketGuard: Multi-Agent Ticket Fraud Detection with RL-like Prompt Evolution</text>
+<text x="640" y="44" text-anchor="middle" font-size="9.5" fill="#999">Gemini 3.5 Flash (Vertex AI)  ·  Google ADK  ·  Browser-Use + Chromium  ·  Arize Phoenix</text>
+
+<!-- ═══ LEFT: INPUT ═══ -->
+<rect x="28" y="240" width="82" height="40" rx="6" fill="#fafafa" stroke="#ddd" stroke-width="1" filter="url(#s)"/>
+<text x="69" y="258" text-anchor="middle" font-size="15">👤</text>
+<text x="69" y="272" text-anchor="middle" font-size="7.5" font-weight="600" fill="#444">Ticket URL</text>
+
+<line x1="69" y1="280" x2="69" y2="302" stroke="#888" stroke-width="1" marker-end="url(#a)"/>
+
+<rect x="28" y="304" width="82" height="36" rx="6" fill="#e8f0fe" stroke="#a8c7fa" stroke-width="1" filter="url(#s)"/>
+<text x="69" y="320" text-anchor="middle" font-size="8" font-weight="700" fill="#1a73e8">Frontend</text>
+<text x="69" y="332" text-anchor="middle" font-size="6.5" fill="#666">React · Vite · Vercel</text>
+
+<line x1="69" y1="340" x2="69" y2="362" stroke="#888" stroke-width="1" marker-end="url(#a)"/>
+<text x="83" y="355" font-size="6" fill="#999">SSE ×3</text>
+
+<rect x="28" y="364" width="82" height="36" rx="6" fill="#e6f4ea" stroke="#a8dab5" stroke-width="1" filter="url(#s)"/>
+<text x="69" y="380" text-anchor="middle" font-size="8" font-weight="700" fill="#137333">Backend</text>
+<text x="69" y="392" text-anchor="middle" font-size="6.5" fill="#666">FastAPI · Cloud Run</text>
+
+<line x1="110" y1="382" x2="152" y2="382" stroke="#888" stroke-width="1" marker-end="url(#a)"/>
+<text x="131" y="376" text-anchor="middle" font-size="6" fill="#999">dispatch</text>
+
+<!-- ═══ 3 PARALLEL FEATURES ═══ -->
+<rect x="155" y="58" width="836" height="478" rx="8" fill="none" stroke="#ccc" stroke-width="1" stroke-dasharray="5,3"/>
+<text x="573" y="74" text-anchor="middle" font-size="8.5" font-weight="600" fill="#aaa" letter-spacing="1">THREE PARALLEL FEATURE AGENTS</text>
+
+<!-- ── COL 1: SECURITY ── -->
+<rect x="165" y="84" width="260" height="440" rx="7" fill="#fef7f7" stroke="#f5c6cb" stroke-width="1" filter="url(#s)"/>
+<text x="295" y="102" text-anchor="middle" font-size="10.5" font-weight="700" fill="#c0392b">🛡️ Security Audit</text>
+
+<!-- ① Pipeline -->
+<rect x="178" y="112" width="234" height="76" rx="5" fill="#fff" stroke="#f5c6cb" stroke-width=".8"/>
+<text x="190" y="125" font-size="7.5" font-weight="700" fill="#c0392b">① Threat Intel Pipeline</text>
+<text x="405" y="125" font-size="5.5" fill="#7c5cbf" font-weight="600">◉</text>
+<!-- 12 sources -->
+<g font-size="5.5" font-weight="600" text-anchor="middle">
+  <rect x="182" y="130" width="54" height="12" rx="2.5" fill="#eef"/><text x="209" y="139" fill="#5b6bd0">VirusTotal</text>
+  <rect x="239" y="130" width="54" height="12" rx="2.5" fill="#e8f4fd"/><text x="266" y="139" fill="#3d92cf">SafeBrowse</text>
+  <rect x="296" y="130" width="48" height="12" rx="2.5" fill="#fdeee8"/><text x="320" y="139" fill="#d4694e">URLhaus</text>
+  <rect x="347" y="130" width="54" height="12" rx="2.5" fill="#e8f5f0"/><text x="374" y="139" fill="#23938e">CheckPhish</text>
+  <rect x="182" y="145" width="58" height="12" rx="2.5" fill="#f3eef8"/><text x="211" y="154" fill="#8059bd">MetaDefender</text>
+  <rect x="243" y="145" width="38" height="12" rx="2.5" fill="#fdf5e6"/><text x="262" y="154" fill="#c4892a">Sucuri</text>
+  <rect x="284" y="145" width="48" height="12" rx="2.5" fill="#fdeef2"/><text x="308" y="154" fill="#cf5d86">OpenPhish</text>
+  <rect x="335" y="145" width="52" height="12" rx="2.5" fill="#e8f6f8"/><text x="361" y="154" fill="#2a9bb0">PhishStats</text>
+  <rect x="182" y="160" width="40" height="12" rx="2.5" fill="#fdf5e6"/><text x="202" y="169" fill="#c79023">Tranco</text>
+  <rect x="225" y="160" width="48" height="12" rx="2.5" fill="#f5eef8"/><text x="249" y="169" fill="#9b5fb0">Wayback</text>
+  <rect x="276" y="160" width="36" height="12" rx="2.5" fill="#eef"/><text x="294" y="169" fill="#5a73c0">RDAP</text>
+  <rect x="315" y="160" width="36" height="12" rx="2.5" fill="#e8f5f0"/><text x="333" y="169" fill="#2fa98a">IPGeo</text>
+</g>
+<rect x="182" y="176" width="224" height="5" rx="2.5" fill="#d4edda"/>
+<rect x="182" y="176" width="40" height="5" rx="2.5" fill="#e74c3c"/>
+
+<line x1="295" y1="188" x2="295" y2="204" stroke="#888" stroke-width=".8" marker-end="url(#a)"/>
+
+<!-- Score -->
+<rect x="228" y="206" width="134" height="24" rx="5" fill="#fff" stroke="#f0ad4e" stroke-width="1" stroke-dasharray="4,2"/>
+<text x="295" y="218" text-anchor="middle" font-size="7" font-weight="700" fill="#d35400">Score 0–100</text>
+<text x="295" y="226" text-anchor="middle" font-size="5.5" fill="#999">&lt;20 danger · 20–95 grey · ≥95 safe</text>
+
+<line x1="295" y1="230" x2="295" y2="244" stroke="#888" stroke-width=".8" marker-end="url(#a)"/>
+
+<!-- Diamond -->
+<polygon points="295,246 316,264 295,282 274,264" fill="#fff8e1" stroke="#f0ad4e" stroke-width="1"/>
+<text x="295" y="267" text-anchor="middle" font-size="6.5" font-weight="700" fill="#d35400">20–95</text>
+
+<!-- skip bypass — right edge of security col, no overlap -->
+<path d="M 316,264 L 418,264 L 418,432" fill="none" stroke="#bbb" stroke-width=".7" stroke-dasharray="3,2" marker-end="url(#a)"/>
+<text x="420" y="350" font-size="5" fill="#bbb" writing-mode="tb">skip (safe/danger)</text>
+
+<line x1="295" y1="282" x2="295" y2="296" stroke="#888" stroke-width=".8" marker-end="url(#a)"/>
+<text x="310" y="292" font-size="5" fill="#999">escalate</text>
+
+<!-- Two parallel agents -->
+<rect x="178" y="298" width="108" height="46" rx="5" fill="#fff" stroke="#f5c6cb" stroke-width=".8"/>
+<text x="232" y="314" text-anchor="middle" font-size="7.5" font-weight="700" fill="#c0392b">Browser-Use</text>
+<text x="232" y="326" text-anchor="middle" font-size="6" fill="#666">Chromium + Gemini Vision</text>
+<text x="280" y="304" font-size="5" fill="#7c5cbf" font-weight="600">◉</text>
+
+<rect x="294" y="298" width="108" height="46" rx="5" fill="#fff" stroke="#f5c6cb" stroke-width=".8"/>
+<text x="348" y="314" text-anchor="middle" font-size="7.5" font-weight="700" fill="#c0392b">OSINT Agent</text>
+<text x="348" y="326" text-anchor="middle" font-size="6" fill="#666">Serper + Tavily</text>
+<text x="396" y="304" font-size="5" fill="#7c5cbf" font-weight="600">◉</text>
+
+<text x="293" y="295" text-anchor="end" font-size="5" fill="#999">‖ parallel</text>
+
+<line x1="232" y1="344" x2="232" y2="354" stroke="#888" stroke-width=".8"/>
+<line x1="348" y1="344" x2="348" y2="354" stroke="#888" stroke-width=".8"/>
+<line x1="232" y1="354" x2="348" y2="354" stroke="#888" stroke-width=".8"/>
+<line x1="295" y1="354" x2="295" y2="368" stroke="#888" stroke-width=".8" marker-end="url(#a)"/>
+
+<rect x="218" y="370" width="154" height="22" rx="5" fill="#f8d7da" stroke="#f5c6cb" stroke-width=".8"/>
+<text x="295" y="384" text-anchor="middle" font-size="7" font-weight="600" fill="#c0392b">Weighted Merge → Score</text>
+
+<!-- audit_span boundary -->
+<rect x="172" y="108" width="246" height="290" rx="5" fill="none" stroke="#7c5cbf" stroke-width=".7" stroke-dasharray="3,2" opacity=".35"/>
+<text x="178" y="404" font-size="5.5" fill="#7c5cbf" font-weight="500" opacity=".65">audit_span(state, action, cost)</text>
+
+<!-- ── COL 2: PRICE ── -->
+<rect x="440" y="84" width="260" height="440" rx="7" fill="#f0f7ff" stroke="#a8c7fa" stroke-width="1" filter="url(#s)"/>
+<text x="570" y="102" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1a73e8">💰 Price Analysis</text>
+
+<rect x="453" y="116" width="234" height="40" rx="5" fill="#fff" stroke="#a8c7fa" stroke-width=".8"/>
+<text x="465" y="132" font-size="7.5" font-weight="700" fill="#1a73e8">① Gemini Vision Extracts</text>
+<text x="682" y="132" font-size="5" fill="#7c5cbf" font-weight="600">◉</text>
+<text x="465" y="144" font-size="6" fill="#666">Screenshot → event, venue, section, price</text>
+
+<line x1="570" y1="156" x2="570" y2="172" stroke="#888" stroke-width=".8" marker-end="url(#a)"/>
+
+<rect x="453" y="174" width="234" height="50" rx="5" fill="#fff" stroke="#a8c7fa" stroke-width=".8"/>
+<text x="465" y="190" font-size="7.5" font-weight="700" fill="#1a73e8">② Browser Scrapes Market</text>
+<text x="682" y="190" font-size="5" fill="#7c5cbf" font-weight="600">◉</text>
+<text x="465" y="202" font-size="6" fill="#666">Headed Chromium → StubHub / TM</text>
+<rect x="460" y="210" width="220" height="8" rx="3" fill="#e8f0fe"/>
+<text x="570" y="217" text-anchor="middle" font-size="5" fill="#1a73e8" font-weight="600">📷 screenshots → frontend SSE</text>
+
+<line x1="570" y1="224" x2="570" y2="240" stroke="#888" stroke-width=".8" marker-end="url(#a)"/>
+
+<rect x="453" y="242" width="234" height="52" rx="5" fill="#fff" stroke="#a8c7fa" stroke-width=".8"/>
+<text x="465" y="258" font-size="7.5" font-weight="700" fill="#1a73e8">③ Gemini Analyses Result</text>
+<text x="682" y="258" font-size="5" fill="#7c5cbf" font-weight="600">◉</text>
+<text x="465" y="270" font-size="6" fill="#666">Median, markup %, legal caps</text>
+<rect x="460" y="278" width="220" height="5" rx="2.5" fill="#d4edda"/>
+<rect x="460" y="278" width="136" height="5" rx="2.5" fill="#e74c3c"/>
+<text x="465" y="292" font-size="5" fill="#999">$1,450 median</text>
+<text x="676" y="292" font-size="5" fill="#e74c3c" text-anchor="end" font-weight="600">$3,200 (+120%)</text>
+
+<line x1="570" y1="294" x2="570" y2="310" stroke="#888" stroke-width=".8" marker-end="url(#a)"/>
+
+<rect x="493" y="312" width="154" height="22" rx="5" fill="#cfe2ff" stroke="#a8c7fa" stroke-width=".8"/>
+<text x="570" y="326" text-anchor="middle" font-size="7" font-weight="600" fill="#1a73e8">Price + Compliance Score</text>
+
+<rect x="453" y="342" width="234" height="28" rx="5" fill="#fff" stroke="#a8c7fa" stroke-width=".8"/>
+<text x="465" y="356" font-size="7" font-weight="600" fill="#1a73e8">⚖️ Legal Compliance (US · CA · MX)</text>
+
+<!-- price.collect span -->
+<rect x="447" y="112" width="246" height="262" rx="5" fill="none" stroke="#7c5cbf" stroke-width=".7" stroke-dasharray="3,2" opacity=".35"/>
+<text x="453" y="382" font-size="5.5" fill="#7c5cbf" font-weight="500" opacity=".65">price.collect span</text>
+
+<!-- ── COL 3: SEAT ── -->
+<rect x="715" y="84" width="260" height="440" rx="7" fill="#f0faf0" stroke="#a8dab5" stroke-width="1" filter="url(#s)"/>
+<text x="845" y="102" text-anchor="middle" font-size="10.5" font-weight="700" fill="#137333">👁️ Sightline Audit</text>
+
+<rect x="728" y="116" width="234" height="34" rx="5" fill="#fff" stroke="#a8dab5" stroke-width=".8"/>
+<text x="740" y="132" font-size="7.5" font-weight="700" fill="#137333">① Gemini Extracts Seat Info</text>
+<text x="956" y="132" font-size="5" fill="#7c5cbf" font-weight="600">◉</text>
+<text x="740" y="142" font-size="6" fill="#666">Venue, section, row, seat</text>
+
+<line x1="845" y1="150" x2="845" y2="166" stroke="#888" stroke-width=".8" marker-end="url(#a)"/>
+
+<rect x="728" y="168" width="234" height="44" rx="5" fill="#fff" stroke="#a8dab5" stroke-width=".8"/>
+<text x="740" y="184" font-size="7.5" font-weight="700" fill="#137333">② Crawl Fan Photos</text>
+<text x="740" y="196" font-size="6" fill="#666">A View From My Seat → real photos</text>
+<rect x="735" y="202" width="66" height="4" rx="2" fill="#a8dab5"/>
+<rect x="805" y="202" width="66" height="4" rx="2" fill="#d4edda"/>
+<rect x="875" y="202" width="66" height="4" rx="2" fill="#a8dab5"/>
+
+<line x1="845" y1="212" x2="845" y2="228" stroke="#888" stroke-width=".8" marker-end="url(#a)"/>
+
+<rect x="728" y="230" width="234" height="62" rx="5" fill="#fff" stroke="#a8dab5" stroke-width=".8"/>
+<text x="740" y="246" font-size="7.5" font-weight="700" fill="#137333">③ Gemini Grades View</text>
+<text x="956" y="246" font-size="5" fill="#7c5cbf" font-weight="600">◉</text>
+<text x="740" y="258" font-size="6" fill="#666">5-dimension rubric (0–100):</text>
+<g font-size="5.5" fill="#666">
+  <rect x="740" y="264" width="80" height="4" rx="2" fill="#a8dab5"/><text x="826" y="268">clarity 30%</text>
+  <rect x="740" y="271" width="70" height="4" rx="2" fill="#a8dab5"/><text x="816" y="275">proximity 25%</text>
+  <rect x="740" y="278" width="50" height="4" rx="2" fill="#ffd54f"/><text x="796" y="282">value 20%</text>
+  <rect x="740" y="285" width="60" height="4" rx="2" fill="#a8dab5"/><text x="806" y="289">obstruction 15%</text>
+</g>
+
+<line x1="845" y1="292" x2="845" y2="308" stroke="#888" stroke-width=".8" marker-end="url(#a)"/>
+
+<rect x="768" y="310" width="154" height="22" rx="5" fill="#d4edda" stroke="#a8dab5" stroke-width=".8"/>
+<text x="845" y="324" text-anchor="middle" font-size="7" font-weight="600" fill="#137333">Sightline Score</text>
+
+<!-- GenAI span -->
+<rect x="722" y="112" width="246" height="224" rx="5" fill="none" stroke="#7c5cbf" stroke-width=".7" stroke-dasharray="3,2" opacity=".35"/>
+<text x="728" y="344" font-size="5.5" fill="#7c5cbf" font-weight="500" opacity=".65">GenAIInstrumentor (auto)</text>
+
+<!-- ═══ RIGHT: SCORE FUSION ═══ -->
+<!-- Merge line runs below all 3 features, no overlap -->
+<line x1="295" y1="440" x2="295" y2="460" stroke="#888" stroke-width=".7"/>
+<line x1="570" y1="440" x2="570" y2="460" stroke="#888" stroke-width=".7"/>
+<line x1="845" y1="440" x2="845" y2="460" stroke="#888" stroke-width=".7"/>
+<line x1="295" y1="460" x2="845" y2="460" stroke="#888" stroke-width=".8"/>
+<line x1="570" y1="460" x2="570" y2="472" stroke="#888" stroke-width=".8" marker-end="url(#a)"/>
+<!-- label -->
+<text x="570" y="455" text-anchor="middle" font-size="5.5" fill="#999">merge scores</text>
+
+<!-- horizontal to scorecard -->
+<line x1="570" y1="475" x2="1058" y2="475" stroke="#888" stroke-width=".8" marker-end="url(#a)"/>
+
+<!-- Scorecard -->
+<rect x="1062" y="440" width="148" height="78" rx="8" fill="#fffde7" stroke="#f0ad4e" stroke-width="1.2" filter="url(#s)"/>
+<text x="1136" y="458" text-anchor="middle" font-size="9" font-weight="700" fill="#d35400">📊 Risk Scorecard</text>
+<g font-size="6.5" fill="#666">
+  <text x="1078" y="472">🛡️ Security</text><text x="1192" y="472" font-weight="700" fill="#d35400">40%</text>
+  <text x="1078" y="483">💰 Price</text><text x="1192" y="483" font-weight="700" fill="#d35400">25%</text>
+  <text x="1078" y="494">⚖️ Compliance</text><text x="1192" y="494" font-weight="700" fill="#d35400">20%</text>
+  <text x="1078" y="505">👁️ Sightline</text><text x="1192" y="505" font-weight="700" fill="#d35400">15%</text>
+</g>
+
+<line x1="1136" y1="518" x2="1136" y2="536" stroke="#888" stroke-width="1" marker-end="url(#a)"/>
+
+<rect x="1076" y="538" width="120" height="34" rx="7" fill="#fdeded" stroke="#e74c3c" stroke-width="1.2" filter="url(#s)"/>
+<text x="1136" y="554" text-anchor="middle" font-size="9.5" font-weight="700" fill="#c0392b">🚫 Don't Buy</text>
+<text x="1136" y="565" text-anchor="middle" font-size="6" fill="#999">or ✅ Buy · ⚠️ Caution</text>
+
+<!-- ═══ TECH STACK (top right) ═══ -->
+<rect x="1040" y="76" width="190" height="40" rx="6" fill="#f3e8fd" stroke="#d1b3f5" stroke-width="1" filter="url(#s)"/>
+<text x="1135" y="94" text-anchor="middle" font-size="9" font-weight="700" fill="#6a1b9a">🤖 Gemini 3.5 Flash · Vertex AI</text>
+<text x="1135" y="108" text-anchor="middle" font-size="6.5" fill="#666">multimodal vision + reasoning for all 3 features</text>
+
+<rect x="1040" y="124" width="92" height="28" rx="5" fill="#e8f0fe" stroke="#a8c7fa" stroke-width=".8" filter="url(#s)"/>
+<text x="1086" y="140" text-anchor="middle" font-size="7.5" font-weight="700" fill="#1a73e8">🕹️ Google ADK</text>
+<text x="1086" y="148" text-anchor="middle" font-size="5.5" fill="#666">orchestration</text>
+
+<rect x="1140" y="124" width="90" height="28" rx="5" fill="#fef7f7" stroke="#f5c6cb" stroke-width=".8" filter="url(#s)"/>
+<text x="1185" y="140" text-anchor="middle" font-size="7.5" font-weight="700" fill="#c0392b">🌐 Browser-Use</text>
+<text x="1185" y="148" text-anchor="middle" font-size="5.5" fill="#666">Chromium</text>
+
+<!-- Trace legend -->
+<text x="1048" y="172" font-size="7" fill="#7c5cbf" font-weight="600">◉ = Phoenix trace point</text>
+<text x="1048" y="183" font-size="6" fill="#999">purple dashed = span boundary</text>
+
+<!-- ═══ BOTTOM: RL FEEDBACK LOOP ═══ -->
+<!-- Trace flow lines going straight down from span labels, outside feature boxes -->
+<line x1="178" y1="414" x2="178" y2="600" stroke="#7c5cbf" stroke-width=".6" stroke-dasharray="3,2" opacity=".3"/>
+<line x1="453" y1="392" x2="453" y2="600" stroke="#7c5cbf" stroke-width=".6" stroke-dasharray="3,2" opacity=".3"/>
+<line x1="728" y1="354" x2="728" y2="600" stroke="#7c5cbf" stroke-width=".6" stroke-dasharray="3,2" opacity=".3"/>
+<text x="453" y="596" text-anchor="middle" font-size="5.5" fill="#7c5cbf" font-weight="500" opacity=".6">all spans → OTLP → Phoenix Cloud</text>
+
+<rect x="130" y="606" width="900" height="76" rx="8" fill="#faf7ff" stroke="#d1b3f5" stroke-width="1" stroke-dasharray="5,3"/>
+<text x="155" y="622" font-size="8.5" font-weight="700" fill="#6a1b9a">🔄 RL-like Feedback Loop · Arize Phoenix</text>
+
+<rect x="155" y="632" width="128" height="38" rx="5" fill="#ede7f6" stroke="#d1b3f5" stroke-width=".8"/>
+<text x="219" y="648" text-anchor="middle" font-size="7.5" font-weight="700" fill="#4a148c">📡 Trace</text>
+<text x="219" y="660" text-anchor="middle" font-size="5.5" fill="#666">(state, action, cost) per audit</text>
+
+<line x1="283" y1="651" x2="307" y2="651" stroke="#7c5cbf" stroke-width="1" marker-end="url(#ap)"/>
+
+<rect x="309" y="632" width="148" height="38" rx="5" fill="#ede7f6" stroke="#d1b3f5" stroke-width=".8"/>
+<text x="383" y="648" text-anchor="middle" font-size="7.5" font-weight="700" fill="#4a148c">⚖️ LLM-as-Judge</text>
+<text x="383" y="660" text-anchor="middle" font-size="5.5" fill="#666">grounding 50% · consistency 30% · routing 20%</text>
+
+<line x1="457" y1="651" x2="481" y2="651" stroke="#7c5cbf" stroke-width="1" marker-end="url(#ap)"/>
+
+<rect x="483" y="636" width="68" height="26" rx="5" fill="#ede7f6" stroke="#d1b3f5" stroke-width=".8"/>
+<text x="517" y="653" text-anchor="middle" font-size="7" font-weight="700" fill="#4a148c">reward</text>
+<text x="517" y="660" text-anchor="middle" font-size="5" fill="#666">∈ [0,1]</text>
+
+<line x1="551" y1="651" x2="575" y2="651" stroke="#7c5cbf" stroke-width="1" marker-end="url(#ap)"/>
+
+<rect x="577" y="632" width="170" height="38" rx="5" fill="#e6f4ea" stroke="#66bb6a" stroke-width="1.2"/>
+<text x="662" y="648" text-anchor="middle" font-size="7.5" font-weight="700" fill="#137333">🔄 GEPA Optimizer</text>
+<text x="662" y="660" text-anchor="middle" font-size="5.5" fill="#666">Generate → Evaluate → Propose → Accept</text>
+
+<line x1="747" y1="651" x2="771" y2="651" stroke="#7c5cbf" stroke-width="1" marker-end="url(#ap)"/>
+
+<rect x="773" y="636" width="104" height="26" rx="5" fill="#e6f4ea" stroke="#66bb6a" stroke-width="1.2"/>
+<text x="825" y="652" text-anchor="middle" font-size="7" font-weight="700" fill="#137333">Evolved Prompt</text>
+
+<!-- feedback arrow: right edge → up → back into features (stays at x=950, outside feature boxes) -->
+<path d="M 877,649 L 950,649 L 950,544 L 573,544" fill="none" stroke="#7c5cbf" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#ap)"/>
+<text x="762" y="540" font-size="6" fill="#7c5cbf" font-weight="600">optimized prompt → back to agents</text>
+
+</svg>
+</div>
+</body>
+</html>

@@ -5,7 +5,7 @@ from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 from playwright.async_api import async_playwright, Page
 
-from .browser_visibility import offscreen_launch_args
+from .browser_visibility import offscreen_launch_args, should_use_headless
 
 
 DEFAULT_URL = "https://www.stubhub.com/world-cup-atlanta-tickets-6-15-2026/event/153022393/"
@@ -474,7 +474,7 @@ async def fetch_stubhub(url: str | None = None, qty: int = 2, on_frame=None) -> 
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(
-            headless=False,  # resale sites degrade / block under headless
+            headless=should_use_headless(),
             args=[
                 "--disable-blink-features=AutomationControlled",
                 "--no-sandbox",

@@ -58,15 +58,14 @@ async def stream_browser_check(url: str, max_actions: int = 8) -> AsyncGenerator
 
     async def _run() -> dict:
         from .browser_check.browser_security_tool import browser_security_check
+        from ...price.browser_visibility import should_use_headless
 
-        # Headed: resale sites degrade under headless and the whole point is to
-        # show the live browser. enable_osint is OFF here — the OSINT reputation
-        # subagent runs on its own dedicated stream (osint-stream), so leaving it
-        # on would re-run the whole reputation pass and waste ~40-60s per audit.
+        # In containers (no DISPLAY), must use headless; locally, headed mode
+        # lets the user watch the live browser in the clay viewport.
         return await browser_security_check(
             url,
             max_actions=max_actions,
-            headless=False,
+            headless=should_use_headless(),
             on_frame=on_frame,
             enable_osint=False,
         )
