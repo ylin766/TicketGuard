@@ -2,6 +2,10 @@
 
 > **Your real-time gatekeeper before you click "Buy"** — a multi-step AI Agent that audits any ticket listing URL for fraud, obstructed views, price manipulation, and legal violations before you spend thousands on a FIFA 2026 World Cup ticket.
 
+🌐 **Live Demo**: [ticketguard.vercel.app](https://ticket-guard-git-main-paxton-lins-projects.vercel.app)
+🔗 **Backend API**: [ticketguard-production.up.railway.app](https://ticketguard-production.up.railway.app)
+🎬 **Demo Video**: [Watch on YouTube](https://www.youtube.com/watch?v=AKHTeVINLSM)
+
 📖 [查看中文文档 (Chinese Documentation)](./README.zh.md)
 
 ---
@@ -186,6 +190,38 @@ Key sources:
 | **Multi-Step Mission** | Full access-analyze-report loop; each step's output drives the next; user stays in control until final report |
 | **Partner Power (Fivetran)** | 3 dedicated pipelines; sightline audit and price comparison are non-functional without Fivetran data |
 | **Real-World Problem** | FIFA 2026 ticket fraud is a live, high-stakes problem — Final tickets at $8,000+ with no buyer protection tools |
+
+---
+
+## Deployment
+
+TicketGuard uses a split deployment architecture:
+
+| Service | Platform | URL |
+|---|---|---|
+| **Frontend** (React + Vite) | Vercel | [ticket-guard.vercel.app](https://ticket-guard-git-main-paxton-lins-projects.vercel.app) |
+| **Backend** (FastAPI + Browser-Use + Chromium) | Railway | [ticketguard-production.up.railway.app](https://ticketguard-production.up.railway.app) |
+
+The backend requires a full container runtime (Chromium for browser-use), which exceeds Vercel's 500 MB serverless limit. Railway provides Docker support with no size constraints.
+
+### Environment Variables
+
+**Vercel (Frontend)**:
+| Variable | Description |
+|---|---|
+| `VITE_API_URL` | Backend Railway URL (e.g. `https://ticketguard-production.up.railway.app`) |
+
+**Railway (Backend)**:
+| Variable | Description |
+|---|---|
+| `GOOGLE_GENAI_USE_VERTEXAI` | Use Vertex AI instead of AI Studio (set `true`) |
+| `GEMINI_MODEL` | Model override (default: `gemini-2.5-flash`) |
+| `PHOENIX_API_KEY` | Arize Phoenix observability (optional) |
+| `VIRUSTOTAL_API_KEY` | VirusTotal threat intel (optional) |
+| `SAFE_BROWSING_API_KEY` | Google Safe Browsing (optional) |
+| `URLHAUS_AUTH_KEY` | URLhaus threat intel (optional) |
+| `CHECKPHISH_API_KEY` | CheckPhish detection (optional) |
+| `METADEFENDER_API_KEY` | MetaDefender detection (optional) |
 
 ---
 
