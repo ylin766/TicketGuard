@@ -200,18 +200,18 @@ TicketGuard uses a split deployment architecture:
 | Service | Platform | URL |
 |---|---|---|
 | **Frontend** (React + Vite) | Vercel | [ticket-guard.vercel.app](https://ticket-guard-git-main-paxton-lins-projects.vercel.app) |
-| **Backend** (FastAPI + Browser-Use + Chromium) | Railway | [ticketguard-production.up.railway.app](https://ticketguard-production.up.railway.app) |
+| **Backend** (FastAPI + Browser-Use + Chromium) | Google Cloud Run | [ticketguard-backend-1086335517426.us-central1.run.app](https://ticketguard-backend-1086335517426.us-central1.run.app) |
 
-The backend requires a full container runtime (Chromium for browser-use), which exceeds Vercel's 500 MB serverless limit. Railway provides Docker support with no size constraints.
+The backend requires a full container runtime (Chromium for browser-use), which exceeds Vercel's 500 MB serverless limit. Cloud Run provides Docker support, ADC-based Vertex AI authentication, and enough room for Playwright/Chromium.
 
 ### Environment Variables
 
 **Vercel (Frontend)**:
 | Variable | Description |
 |---|---|
-| `VITE_API_URL` | Backend Railway URL (e.g. `https://ticketguard-production.up.railway.app`) |
+| `VITE_API_URL` | Backend Cloud Run URL (e.g. `https://ticketguard-backend-1086335517426.us-central1.run.app`) |
 
-**Railway (Backend)**:
+**Cloud Run (Backend)**:
 | Variable | Description |
 |---|---|
 | `GOOGLE_GENAI_USE_VERTEXAI` | Use Vertex AI instead of AI Studio (set `true`) |
