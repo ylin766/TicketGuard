@@ -1,9 +1,9 @@
 # 🎫 TicketGuard
 
+### 🌐 [**Try it Live → ticket-guard-rpmm.vercel.app**](https://ticket-guard-rpmm.vercel.app)
+
 > **Your real-time gatekeeper before you click "Buy"** — a multi-step AI Agent that audits any ticket listing URL for fraud, obstructed views, price manipulation, and legal violations before you spend thousands on a FIFA 2026 World Cup ticket.
 
-🌐 **Live Demo**: [ticketguard.vercel.app](https://ticket-guard-git-main-paxton-lins-projects.vercel.app)
-🔗 **Backend API**: [ticketguard-production.up.railway.app](https://ticketguard-production.up.railway.app)
 🎬 **Demo Video**: [Watch on YouTube](https://www.youtube.com/watch?v=AKHTeVINLSM)
 
 📖 [查看中文文档 (Chinese Documentation)](./README.zh.md)
