@@ -74,9 +74,9 @@ _client = None  # lazily-initialized google.genai.Client
 def _get_client():
     global _client
     if _client is None:
-        from google import genai  # lazy: heavy + needs credentials
+        from ...core.config import build_genai_client
 
-        _client = genai.Client()
+        _client = build_genai_client()
     return _client
 
 

@@ -33,11 +33,9 @@ def make_reflection_lm(model: str | None = None) -> Callable[[str], str]:
 
     def _get_client():
         if "c" not in _client:
-            from google import genai
+            from ..core.config import build_genai_client
 
-            # Honors GOOGLE_GENAI_USE_VERTEXAI / GOOGLE_CLOUD_PROJECT / _LOCATION
-            # from the environment (same as the rest of the backend).
-            _client["c"] = genai.Client()
+            _client["c"] = build_genai_client()
         return _client["c"]
 
     def reflect(prompt: str) -> str:

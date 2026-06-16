@@ -10,6 +10,35 @@ GEMINI_MODEL: str = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 GOOGLE_CLOUD_PROJECT: str = os.environ.get("GOOGLE_CLOUD_PROJECT", "")
 GOOGLE_CLOUD_LOCATION: str = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
 
+
+def _truthy_env(name: str) -> bool:
+    return os.environ.get(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+# Normalize the Vertex flag for both google-genai and google-adk. Some ADK
+# versions check for "1" while google-genai accepts "true"; setting both paths
+# to the stricter value prevents accidental fallback to AI Studio API-key mode.
+if _truthy_env("GOOGLE_GENAI_USE_VERTEXAI"):
+    os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "1"
+
+
+def build_genai_client():
+    """Return a google.genai.Client explicitly configured for this environment.
+
+    Cloud Run uses ADC, so direct google.genai clients must be forced onto
+    Vertex AI. Relying only on env auto-detection is fragile across google-genai
+    and google-adk versions and can fall back to API-key mode.
+    """
+    from google import genai
+
+    if _truthy_env("GOOGLE_GENAI_USE_VERTEXAI"):
+        return genai.Client(
+            vertexai=True,
+            project=GOOGLE_CLOUD_PROJECT,
+            location=GOOGLE_CLOUD_LOCATION,
+        )
+    return genai.Client()
+
 # Hard cap for any outbound HTTP request (seconds).
 HTTP_TIMEOUT_SECONDS: int = 15
 

@@ -57,9 +57,9 @@ def _get_client():
     """Return a cached ``google.genai.Client`` (created on first call)."""
     global _client
     if _client is None:
-        from google import genai  # imported lazily; heavy + needs credentials
+        from backend.core.config import build_genai_client
 
-        _client = genai.Client()
+        _client = build_genai_client()
     return _client
 
 
